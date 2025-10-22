@@ -1,24 +1,71 @@
 package com.example.to_do_app;
 
 import android.os.Bundle;
+import android.view.MenuItem;
+import android.view.View;
 
-import androidx.activity.EdgeToEdge;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationBarView;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.viewpager.widget.ViewPager;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationBarView;
 
 public class MainActivity extends AppCompatActivity {
+    private BottomNavigationView bottomNav;
+    private ViewPager myViewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
+
+
+        bottomNav = findViewById(R.id.bottom_nav);
+        myViewPager= findViewById(R.id.view_pager);
+        setupViewPager();
+        bottomNav.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int id = item.getItemId();
+                if (id == R.id.action_home) {
+                    myViewPager.setCurrentItem(0);
+                    return true;
+                } else if (id == R.id.action_add) {
+                    myViewPager.setCurrentItem(1);
+                    return true;
+                } else if (id == R.id.action_profile) {
+                    myViewPager.setCurrentItem(2);
+                    return true;
+                }
+                return false;
+            }
         });
     }
+    //xu ly su kien chuyen tab
+    private void setupViewPager() {
+        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager(), ViewPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
+        myViewPager.setAdapter(adapter);
+        bottomNav.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                int position = myViewPager.getCurrentItem();
+                switch (position) {
+                    case 0:
+                        bottomNav.getMenu().findItem(R.id.action_home).setChecked(true);
+                        break;
+                    case 1:
+                        bottomNav.getMenu().findItem(R.id.action_add).setChecked(true);
+                        break;
+                    case 2:
+                        bottomNav.getMenu().findItem(R.id.action_profile).setChecked(true);
+                        break;
+                }
+            }
+        });
+
+    }
+
 }

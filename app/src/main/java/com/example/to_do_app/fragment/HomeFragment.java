@@ -1,4 +1,4 @@
-package com.example.to_do_app;
+package com.example.to_do_app.fragment;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,6 +10,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
+import com.example.to_do_app.R;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,7 +41,7 @@ public class HomeFragment extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.manhinh4, container, false);
+        View view = inflater.inflate(R.layout.home_fragment, container, false);
 
         // Ánh xạ LinearLayout các ngày
         llMon = view.findViewById(R.id.llMon);

@@ -10,9 +10,11 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 public class AddFragment extends Fragment {
+
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.add_fragment, container, false);
         return view;
     }

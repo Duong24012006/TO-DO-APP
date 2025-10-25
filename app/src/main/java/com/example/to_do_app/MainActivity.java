@@ -4,8 +4,6 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.navigation.NavigationBarView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
@@ -14,6 +12,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
 public class MainActivity extends AppCompatActivity {
+
     private BottomNavigationView bottomNav;
     private ViewPager myViewPager;
 
@@ -22,10 +21,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
+        // Ánh xạ View
         bottomNav = findViewById(R.id.bottom_nav);
-        myViewPager= findViewById(R.id.view_pager);
+        myViewPager = findViewById(R.id.view_pager);
+
+        // Thiết lập adapter cho ViewPager
         setupViewPager();
+
+        // Sự kiện chọn item trong BottomNavigation
         bottomNav.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -43,15 +46,14 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
-    }
-    //xu ly su kien chuyen tab
-    private void setupViewPager() {
-        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager(), ViewPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
-        myViewPager.setAdapter(adapter);
-        bottomNav.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+
+        // Khi vuốt ViewPager -> tự cập nhật bottom nav
+        myViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
-            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                int position = myViewPager.getCurrentItem();
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
+
+            @Override
+            public void onPageSelected(int position) {
                 switch (position) {
                     case 0:
                         bottomNav.getMenu().findItem(R.id.action_home).setChecked(true);
@@ -64,8 +66,17 @@ public class MainActivity extends AppCompatActivity {
                         break;
                 }
             }
-        });
 
+            @Override
+            public void onPageScrollStateChanged(int state) {}
+        });
     }
 
+    private void setupViewPager() {
+        ViewPagerAdapter adapter = new ViewPagerAdapter(
+                getSupportFragmentManager(),
+                ViewPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
+        );
+        myViewPager.setAdapter(adapter);
+    }
 }

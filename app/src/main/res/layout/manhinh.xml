@@ -42,7 +42,6 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:padding="10dp"
-                        android:src="@drawable/iconsearch"
                         app:tint="#5C5C5C" />
                 </com.google.android.material.card.MaterialCardView>
 

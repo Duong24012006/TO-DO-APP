@@ -111,9 +111,9 @@
             </LinearLayout>
 
             <!-- Danh sách card mẫu (static) -->
-            <include layout="@layout/item_schedule" />
-            <include layout="@layout/item_schedule" />
-            <include layout="@layout/item_schedule" />
+            <include layout="@layout/item_schedule1" />
+            <include layout="@layout/item_schedule1" />
+            <include layout="@layout/item_schedule1" />
 
             <androidx.viewpager.widget.ViewPager
                 android:id="@+id/view_pager"

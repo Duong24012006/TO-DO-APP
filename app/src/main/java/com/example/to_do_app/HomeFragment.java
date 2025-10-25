@@ -39,7 +39,7 @@ public class HomeFragment extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.manhinh4, container, false);
+        View view = inflater.inflate(R.layout.manhinh, container, false);
 
         // Ánh xạ LinearLayout các ngày
         llMon = view.findViewById(R.id.llMon);

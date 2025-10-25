@@ -12,6 +12,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+
         android:padding="16dp">
 
         <TextView
@@ -24,16 +25,16 @@
             android:textColor="#1A1A1A"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/ivChevron" />
+            app:layout_constraintEnd_toStartOf="@+id/ivChevron" />
 
         <ImageView
             android:id="@+id/ivChevron"
             android:layout_width="28dp"
             android:layout_height="28dp"
-            android:src="@drawable/ic_arrow"
-            app:layout_constraintTop_toTopOf="@id/tvTitle"
-            app:layout_constraintBottom_toBottomOf="@id/tvTitle"
+            android:src="@android:drawable/sym_def_app_icon"
+            app:layout_constraintBottom_toBottomOf="@+id/chipGroup"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/tvTitle"
             app:tint="#1A1A1A" />
 
         <TextView
@@ -41,12 +42,12 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
+            android:lineSpacingExtra="2dp"
             android:text="Template này dành cho sinh viên muốn tối đa hóa thời gian học tập nhưng với mức ngủ tối thiểu."
             android:textColor="#3F3F3F"
-            android:lineSpacingExtra="2dp"
+            app:layout_constraintEnd_toStartOf="@+id/ivChevron"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvTitle"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/tvTitle" />
 
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/chipGroup"
@@ -54,25 +55,31 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             app:singleLine="true"
-            app:layout_constraintTop_toBottomOf="@id/tvDescription"
+            app:layout_constraintTop_toBottomOf="@+id/tvDescription"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent">
 
             <com.google.android.material.chip.Chip
                 style="@style/Widget.Material3.Chip.Assist.Elevated"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="+ TAG"
                 android:textAllCaps="true"
                 android:textSize="12sp" />
 
             <com.google.android.material.chip.Chip
                 style="@style/Widget.Material3.Chip.Assist.Elevated"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="+ TAG"
                 android:textAllCaps="true"
                 android:textSize="12sp" />
 
             <com.google.android.material.chip.Chip
                 style="@style/Widget.Material3.Chip.Assist.Elevated"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="+ TAG"
                 android:textAllCaps="true"
                 android:textSize="12sp" />

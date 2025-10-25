@@ -6,4 +6,19 @@
     <color name="button_gray">#E0E0E0</color>
     <color name="button_pink">#FFB6C1</color>
 
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+
+    <color name="search_bar_background">#F3F4F6</color>
+    <color name="filter_button_background">#FCE7F3</color>
+    <color name="filter_button_text_color">#E11D48</color>
+    <color name="schedule_card_background">#FCE7F3</color>
+    <color name="schedule_tag_background">#A5B4FC</color>
+
 </resources>

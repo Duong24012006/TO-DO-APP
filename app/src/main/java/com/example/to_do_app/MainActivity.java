@@ -1,13 +1,14 @@
 package com.example.to_do_app;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
+import com.example.to_do_app.ViewPagerAdapter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
@@ -16,6 +17,7 @@ public class MainActivity extends AppCompatActivity {
     private BottomNavigationView bottomNav;
     private ViewPager myViewPager;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -23,7 +25,6 @@ public class MainActivity extends AppCompatActivity {
 
         // Ánh xạ View
         bottomNav = findViewById(R.id.bottom_nav);
-        myViewPager = findViewById(R.id.view_pager);
 
         // Thiết lập adapter cho ViewPager
         setupViewPager();

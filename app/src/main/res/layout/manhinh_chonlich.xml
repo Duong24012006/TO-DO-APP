@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/chi_layout_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#EFEFEF"
+    android:padding="12dp">
+
+    <!-- Search row -->
+    <LinearLayout
+        android:id="@+id/search_row"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="8dp">
+
+        <ImageView
+            android:id="@+id/iv_search_icon"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:src="@android:drawable/ic_menu_search"
+            android:scaleType="center"
+            android:background="@drawable/round_grey_bg"
+            android:contentDescription="Search" />
+
+        <EditText
+            android:id="@+id/et_search"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:background="@drawable/search_edit_bg"
+            android:hint="Tìm kiếm tên lịch"
+            android:padding="12dp"
+            android:textColor="#222" />
+    </LinearLayout>
+
+    <!-- Filter header row (4 groups) -->
+    <HorizontalScrollView
+        android:id="@+id/hs_filters"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/ll_filters"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <!-- Each filter group - clickable; you will programmatically expand choices -->
+            <LinearLayout
+                android:id="@+id/filter_sleep_group"
+                android:layout_width="200dp"
+                android:layout_height="64dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="#DDDDDD"
+                android:padding="8dp"
+                android:layout_marginEnd="8dp">
+
+                <TextView
+                    android:id="@+id/tv_filter_sleep"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Giờ ngủ >"
+                    android:textStyle="bold"
+                    android:textColor="#222" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/filter_study_group"
+                android:layout_width="200dp"
+                android:layout_height="64dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="#DDDDDD"
+                android:padding="8dp"
+                android:layout_marginEnd="8dp">
+
+                <TextView
+                    android:id="@+id/tv_filter_study"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Thời gian học"
+                    android:textStyle="bold"
+                    android:textColor="#222" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/filter_sport_group"
+                android:layout_width="200dp"
+                android:layout_height="64dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="#DDDDDD"
+                android:padding="8dp"
+                android:layout_marginEnd="8dp">
+
+                <TextView
+                    android:id="@+id/tv_filter_sport"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Thể thao"
+                    android:textStyle="bold"
+                    android:textColor="#222" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/filter_fun_group"
+                android:layout_width="200dp"
+                android:layout_height="64dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="#DDDDDD"
+                android:padding="8dp">
+
+                <TextView
+                    android:id="@+id/tv_filter_fun"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Giải trí"
+                    android:textStyle="bold"
+                    android:textColor="#222" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Placeholder for filter choices (will be filled programmatically) -->
+    <LinearLayout
+        android:id="@+id/filter_choices_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:gravity="center_vertical" />
+
+    <!-- RecyclerView list of templates -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_templates"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingTop="8dp" />
+
+</LinearLayout>

@@ -6,4 +6,15 @@
     </style>
 
     <style name="Theme.TODOAPP" parent="Base.Theme.TODOAPP" />
+    <style name="FilterButton" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginEnd">8dp</item>
+        <item name="android:backgroundTint">@color/button_gray</item>
+        <item name="android:textColor">@android:color/black</item>
+        <item name="app:strokeColor">@android:color/darker_gray</item>
+        <item name="app:checkedIcon">@null</item>
+        <item name="app:checkedButton">@color/button_pink</item>
+    </style>
+
 </resources>

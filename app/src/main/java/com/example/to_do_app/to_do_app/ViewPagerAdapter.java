@@ -1,13 +1,9 @@
-package com.example.to_do_app;
+package com.example.to_do_app.to_do_app;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
-
-import com.example.to_do_app.AddFragment;
-import com.example.to_do_app.HomeFragment;
-import com.example.to_do_app.ProfileFragment;
 
 public class ViewPagerAdapter extends FragmentStatePagerAdapter {
 

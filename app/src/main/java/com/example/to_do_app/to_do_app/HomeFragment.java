@@ -1,4 +1,4 @@
-package com.example.to_do_app;
+package com.example.to_do_app.to_do_app;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,6 +10,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
+import com.example.to_do_app.R;
 
 import java.util.ArrayList;
 import java.util.HashMap;

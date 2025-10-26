@@ -41,7 +41,7 @@ public class HomeFragment extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
-
+        View view = inflater.inflate(R.layout.home_fragment, container, false);
         // Ánh xạ LinearLayout các ngày
         llMon = view.findViewById(R.id.llMon);
         llTue = view.findViewById(R.id.llTue);

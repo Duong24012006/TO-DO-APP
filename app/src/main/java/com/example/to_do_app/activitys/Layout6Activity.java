@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.to_do_app.R;
-import com.example.to_do_app.adapter.TimeAdapter;
+import com.example.to_do_app.adapters.TimeAdapter;
 import com.example.to_do_app.data.ScheduleData;
 import com.example.to_do_app.model.TimeSlot;
 

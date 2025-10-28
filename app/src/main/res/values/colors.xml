@@ -2,7 +2,8 @@
 <resources>
     <color name="blue">#0020F1</color> <!-- Màu icon/text khi được chọn -->
     <color name="bottom_nav">#D3CBF5</color> <!-- Nền của thanh bottom nav -->
-    <color name="color_select_bottom_nav">#FF5722</color> <!-- Màu icon/text khi chưa chọn -->
+    <color name="color_select_bottom_nav">#000000</color> <!-- Màu icon/text khi chưa chọn -->
+
     <color name="button_gray">#E0E0E0</color>
     <color name="button_pink">#FFB6C1</color>
 
@@ -16,8 +17,8 @@
 
 
     <color name="search_bar_background">#F3F4F6</color>
-    <color name="filter_button_background">#FCE7F3</color>
-    <color name="filter_button_text_color">#E11D48</color>
+    <color name="filter_button_background">#99A067EA</color>
+    <color name="filter_button_text_color">#000000</color>
     <color name="schedule_card_background">#FCE7F3</color>
     <color name="schedule_tag_background">#A5B4FC</color>
 

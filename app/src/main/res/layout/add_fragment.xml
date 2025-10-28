@@ -12,7 +12,6 @@
         android:id="@+id/scroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="16dp"
         android:clipToPadding="false"
         android:fillViewport="true"
         android:paddingBottom="110dp"
@@ -32,46 +31,58 @@
                 app:iconifiedByDefault="false" />
 
             <!-- Hàng filter -->
-            <LinearLayout
+
+            <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:orientation="horizontal">
+                android:scrollbars="none"
+                >
 
-                <com.google.android.material.button.MaterialButton
-                    style="@style/Widget.App.Button.Filter"
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Giờ ăn"
-                    />
+                    android:paddingStart="16dp"
+                    android:orientation="horizontal">
 
-                <com.google.android.material.button.MaterialButton
-                    style="@style/Widget.App.Button.Filter"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_weight="1"
-                    android:text="Học tập" />
+                    <com.google.android.material.button.MaterialButton
+                        style="@style/Widget.App.Button.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Giờ ăn"
+                        android:textSize="14sp"
+                        />
 
-                <com.google.android.material.button.MaterialButton
-                    style="@style/Widget.App.Button.Filter"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_weight="1"
-                    android:text="Giải trí" />
+                    <com.google.android.material.button.MaterialButton
+                        style="@style/Widget.App.Button.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="Học tập"
+                        android:textSize="14sp"/>
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_bo_loc"
-                    style="@style/Widget.App.Button.Filter"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_weight="1"
-                    android:text="Thể thao"
-                   />
-            </LinearLayout>
+                    <com.google.android.material.button.MaterialButton
+                        style="@style/Widget.App.Button.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="Giải trí"
+                        android:textSize="14sp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_bo_loc"
+                        style="@style/Widget.App.Button.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="Thể thao"
+                        android:textSize="14sp"
+                        />
+
+
+                </LinearLayout>
+            </HorizontalScrollView>
+
+
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView"

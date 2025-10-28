@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="blue">#0020F1</color> <!-- Màu icon/text khi được chọn -->
-    <color name="bottom_nav">#FFFFFF</color> <!-- Nền của thanh bottom nav -->
+    <color name="bottom_nav">#D3CBF5</color> <!-- Nền của thanh bottom nav -->
     <color name="color_select_bottom_nav">#FF5722</color> <!-- Màu icon/text khi chưa chọn -->
     <color name="button_gray">#E0E0E0</color>
     <color name="button_pink">#FFB6C1</color>

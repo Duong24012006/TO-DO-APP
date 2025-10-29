@@ -1,98 +1,144 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
-    tools:context="fragment.AddFragment">
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".fragment.AddFragment">
 
-    <ScrollView
-        android:id="@+id/scroll"
+    <!-- Search Bar -->
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:fillViewport="true"
-        android:paddingBottom="110dp"
-        app:layout_dodgeInsetEdges="bottom">
+        android:layout_height="wrap_content"
+        android:hint="Tìm kiếm tên lịch"
+        app:startIconDrawable="@android:drawable/ic_menu_search">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/search_edit_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:maxLines="1" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Filter Buttons with Horizontal Scroll -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_filter_sleep"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="Giờ ngủ"
+                android:textSize="16sp"
+                app:icon="@drawable/ic_down"
+                app:iconGravity="end" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_filter_study"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="Học tập"
+                android:textSize="16sp"
+                app:icon="@drawable/ic_down"
+                app:iconGravity="end" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_filter_entertainment"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="Giải trí"
+                android:textSize="16sp"
+                app:icon="@drawable/ic_down"
+                app:iconGravity="end" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_filter_sports"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Thể thao"
+                android:textSize="16sp"
+                app:icon="@drawable/ic_down"
+                app:iconGravity="end" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Filter Options Dropdown (Initially Hidden) -->
+    <LinearLayout
+        android:id="@+id/filter_options_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"/>
+
+        <RadioGroup
+            android:id="@+id/radio_group_filter_options"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="8dp"/>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="horizontal">
 
-            <androidx.appcompat.widget.SearchView
-                android:id="@+id/search_view"
-                android:layout_width="match_parent"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_reset_filter"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:background="@drawable/search_bar_background"
-                app:queryHint="Tìm kiếm lịch trình"
-                app:iconifiedByDefault="false" />
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="Thiết lập lại" />
 
-            <!-- Hàng filter -->
-
-            <HorizontalScrollView
-                android:layout_width="match_parent"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_apply_filter"
+                style="@style/Widget.Material3.Button.UnelevatedButton"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:scrollbars="none"
-                >
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="16dp"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.button.MaterialButton
-                        style="@style/Widget.App.Button.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Giờ ăn"
-                        android:textSize="14sp"
-                        />
-
-                    <com.google.android.material.button.MaterialButton
-                        style="@style/Widget.App.Button.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:text="Học tập"
-                        android:textSize="14sp"/>
-
-                    <com.google.android.material.button.MaterialButton
-                        style="@style/Widget.App.Button.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:text="Giải trí"
-                        android:textSize="14sp"/>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_bo_loc"
-                        style="@style/Widget.App.Button.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:text="Thể thao"
-                        android:textSize="14sp"
-                        />
-
-
-                </LinearLayout>
-            </HorizontalScrollView>
-
-
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                 />
-
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="Áp dụng" />
         </LinearLayout>
-    </ScrollView>
 
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"/>
+    </LinearLayout>
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+    <!-- Schedule Templates List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_weight="1"
+        tools:listitem="@layout/item_schedule_template" />
+
+</LinearLayout>

@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#E0E0E0"
+    android:background="#FFFFFF"
     tools:context=".activitys.MainActivity"
     >
 
@@ -20,35 +20,37 @@
 
         <LinearLayout
             android:id="@+id/welcome"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:layout_gravity="center"
-            >
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:orientation="horizontal">
+
             <ImageView
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:src="@drawable/ic_profile"
-                />
+                android:layout_width="71dp"
+                android:layout_height="71dp"
+                android:src="@drawable/ic_profile" />
+
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                >
+                android:orientation="vertical">
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Xin chao, User!"
+                    android:text="Xin chào, User!"
+                    android:layout_marginStart="8dp"
                     android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:layout_marginTop="16dp"
-                    />
+                    android:textStyle="bold" />
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Chuc ban mot ngay tot lanh"
-                    android:textSize="24sp"
-                    />
+                    android:layout_marginStart="8dp"
+                    android:text="Chúc bạn một ngày tốt lành"
+                    android:textSize="24sp" />
             </LinearLayout>
 
         </LinearLayout>
@@ -56,12 +58,18 @@
         <!-- Thanh tiêu đề -->
         <TextView
             android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:gravity="center_vertical"
-            android:paddingStart="16dp"
+            android:layout_height="wrap_content"
+            android:gravity="left"
             android:text="Lịch trình"
             android:textColor="#000"
-            android:textSize="32sp" />
+            android:textSize="36sp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="12dp"
+            android:layout_marginTop="12dp"
+            android:fontFamily="sans-serif-medium"
+
+            />
 
 
         <HorizontalScrollView
@@ -70,7 +78,7 @@
             android:layout_height="wrap_content"
             android:scrollbars="none"
             android:overScrollMode="never"
-            android:background="#EEEEEE">
+            android:background="#FFFFFF">
 
             <LinearLayout
                 android:id="@+id/weekDaysLayout"
@@ -98,19 +106,20 @@
                         android:id="@+id/tvMonDay"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="TH2"
+                        android:text="THỨ"
                         android:textStyle="bold"
                         android:textColor="#000"
-                        android:textSize="14sp"
+                        android:textSize="16sp"
                         android:gravity="center" />
 
                     <TextView
                         android:id="@+id/tvMonDate"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="1"
-                        android:textColor="#555"
-                        android:textSize="12sp"
+                        android:text="2"
+                        android:textStyle="bold"
+                        android:textColor="#000"
+                        android:textSize="16sp"
                         android:gravity="center" />
                 </LinearLayout>
 
@@ -131,19 +140,20 @@
                         android:id="@+id/tvTueDay"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="TH3"
+                        android:text="THỨ"
                         android:textStyle="bold"
                         android:textColor="#000"
-                        android:textSize="14sp"
+                        android:textSize="16sp"
                         android:gravity="center" />
 
                     <TextView
                         android:id="@+id/tvTueDate"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="2"
-                        android:textColor="#555"
-                        android:textSize="12sp"
+                        android:text="3"
+                        android:textColor="#000"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
                         android:gravity="center" />
                 </LinearLayout>
 
@@ -164,19 +174,20 @@
                         android:id="@+id/tvWedDay"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="TH4"
+                        android:text="THỨ"
                         android:textStyle="bold"
                         android:textColor="#000"
-                        android:textSize="14sp"
+                        android:textSize="16sp"
                         android:gravity="center" />
 
                     <TextView
                         android:id="@+id/tvWedDate"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="3"
-                        android:textColor="#555"
-                        android:textSize="12sp"
+                        android:text="4"
+                        android:textColor="#000"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
                         android:gravity="center" />
                 </LinearLayout>
 
@@ -197,19 +208,20 @@
                         android:id="@+id/tvThuDay"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="TH5"
+                        android:text="THỨ"
                         android:textStyle="bold"
                         android:textColor="#000"
-                        android:textSize="14sp"
+                        android:textSize="16sp"
                         android:gravity="center" />
 
                     <TextView
                         android:id="@+id/tvThuDate"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="4"
-                        android:textColor="#555"
-                        android:textSize="12sp"
+                        android:text="5"
+                        android:textColor="#000"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
                         android:gravity="center" />
                 </LinearLayout>
 
@@ -230,19 +242,20 @@
                         android:id="@+id/tvFriDay"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="TH6"
+                        android:text="THỨ"
                         android:textStyle="bold"
                         android:textColor="#000"
-                        android:textSize="14sp"
+                        android:textSize="16sp"
                         android:gravity="center" />
 
                     <TextView
                         android:id="@+id/tvFriDate"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="5"
-                        android:textColor="#555"
-                        android:textSize="12sp"
+                        android:text="6"
+                        android:textColor="#000"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
                         android:gravity="center" />
                 </LinearLayout>
 
@@ -263,19 +276,20 @@
                         android:id="@+id/tvSatDay"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="TH7"
+                        android:text="THỨ"
                         android:textStyle="bold"
                         android:textColor="#000"
-                        android:textSize="14sp"
+                        android:textSize="16sp"
                         android:gravity="center" />
 
                     <TextView
                         android:id="@+id/tvSatDate"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="6"
-                        android:textColor="#555"
-                        android:textSize="12sp"
+                        android:text="7"
+                        android:textColor="#000"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
                         android:gravity="center" />
                 </LinearLayout>
 
@@ -296,19 +310,20 @@
                         android:id="@+id/tvSunDay"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="CN"
+                        android:text="CHỦ"
                         android:textStyle="bold"
-                        android:textColor="#D84315"
-                        android:textSize="14sp"
+                        android:textColor="#000000"
+                        android:textSize="16sp"
                         android:gravity="center" />
 
                     <TextView
                         android:id="@+id/tvSunDate"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="7"
-                        android:textColor="#D84315"
-                        android:textSize="12sp"
+                        android:text="NHẬT"
+                        android:textColor="#000000"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
                         android:gravity="center" />
                 </LinearLayout>
 
@@ -408,7 +423,7 @@
                         android:paddingHorizontal="16dp"
                         android:paddingVertical="6dp"
                         android:text="8:00 - 9:00"
-                        android:textColor="#FFF"
+                        android:textColor="#000"
                         android:textSize="12sp" />
 
                     <LinearLayout
@@ -464,7 +479,7 @@
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="6dp"
                         android:text="10:00 - 11:30"
-                        android:textColor="#FFF"
+                        android:textColor="#000"
                         android:textSize="12sp" />
 
                     <LinearLayout
@@ -520,7 +535,7 @@
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="6dp"
                         android:text="14:00 - 16:00"
-                        android:textColor="#FFF"
+                        android:textColor="#000"
                         android:textSize="12sp" />
 
                     <LinearLayout
@@ -576,7 +591,7 @@
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="6dp"
                         android:text="17:00 - 19:00"
-                        android:textColor="#FFF"
+                        android:textColor="#000"
                         android:textSize="12sp" />
 
                     <LinearLayout
@@ -632,7 +647,7 @@
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="6dp"
                         android:text="20:00 - 22:00"
-                        android:textColor="#FFF"
+                        android:textColor="#000"
                         android:textSize="12sp" />
 
                     <LinearLayout
@@ -688,7 +703,7 @@
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="6dp"
                         android:text="22:00 - 23:00"
-                        android:textColor="#FFF"
+                        android:textColor="#000"
                         android:textSize="12sp" />
 
                     <LinearLayout

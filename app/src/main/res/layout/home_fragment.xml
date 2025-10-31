@@ -45,7 +45,7 @@
                     android:text="Xin chào, User"
                     android:layout_marginStart="8dp"
                     android:textSize="24sp"
-                    android:fontFamily="sans-serif-medium"
+                    android:fontFamily="sans-serif"
                     android:textStyle="bold" />
 
                 <TextView
@@ -113,7 +113,6 @@
                         android:layout_height="wrap_content"
                         android:text="THỨ"
                         android:fontFamily="sans-serif-medium"
-                        android:textStyle="bold"
                         android:textColor="#000"
                         android:textSize="16sp"
                         android:gravity="center" />
@@ -124,7 +123,6 @@
                         android:layout_height="wrap_content"
                         android:text="2"
                         android:fontFamily="sans-serif-medium"
-                        android:textStyle="bold"
                         android:textColor="#000"
                         android:textSize="16sp"
                         android:gravity="center" />
@@ -149,7 +147,6 @@
                         android:layout_height="wrap_content"
                         android:text="THỨ"
                         android:fontFamily="sans-serif-medium"
-                        android:textStyle="bold"
                         android:textColor="#000"
                         android:textSize="16sp"
                         android:gravity="center" />
@@ -162,7 +159,6 @@
                         android:fontFamily="sans-serif-medium"
                         android:textColor="#000"
                         android:textSize="16sp"
-                        android:textStyle="bold"
                         android:gravity="center" />
                 </LinearLayout>
 
@@ -185,7 +181,6 @@
                         android:layout_height="wrap_content"
                         android:text="THỨ"
                         android:fontFamily="sans-serif-medium"
-                        android:textStyle="bold"
                         android:textColor="#000"
                         android:textSize="16sp"
                         android:gravity="center" />
@@ -198,7 +193,6 @@
                         android:fontFamily="sans-serif-medium"
                         android:textColor="#000"
                         android:textSize="16sp"
-                        android:textStyle="bold"
                         android:gravity="center" />
                 </LinearLayout>
 
@@ -221,7 +215,6 @@
                         android:layout_height="wrap_content"
                         android:text="THỨ"
                         android:fontFamily="sans-serif-medium"
-                        android:textStyle="bold"
                         android:textColor="#000"
                         android:textSize="16sp"
                         android:gravity="center" />
@@ -234,7 +227,6 @@
                         android:fontFamily="sans-serif-medium"
                         android:textColor="#000"
                         android:textSize="16sp"
-                        android:textStyle="bold"
                         android:gravity="center" />
                 </LinearLayout>
 
@@ -257,7 +249,6 @@
                         android:layout_height="wrap_content"
                         android:text="THỨ"
                         android:fontFamily="sans-serif-medium"
-                        android:textStyle="bold"
                         android:textColor="#000"
                         android:textSize="16sp"
                         android:gravity="center" />
@@ -270,7 +261,6 @@
                         android:fontFamily="sans-serif-medium"
                         android:textColor="#000"
                         android:textSize="16sp"
-                        android:textStyle="bold"
                         android:gravity="center" />
                 </LinearLayout>
 
@@ -293,7 +283,6 @@
                         android:layout_height="wrap_content"
                         android:text="THỨ"
                         android:fontFamily="sans-serif-medium"
-                        android:textStyle="bold"
                         android:textColor="#000"
                         android:textSize="16sp"
                         android:gravity="center" />
@@ -306,7 +295,6 @@
                         android:fontFamily="sans-serif-medium"
                         android:textColor="#000"
                         android:textSize="16sp"
-                        android:textStyle="bold"
                         android:gravity="center" />
                 </LinearLayout>
 
@@ -329,7 +317,6 @@
                         android:layout_height="wrap_content"
                         android:text="CHỦ"
                         android:fontFamily="sans-serif-medium"
-                        android:textStyle="bold"
                         android:textColor="#000000"
                         android:textSize="16sp"
                         android:gravity="center" />
@@ -342,7 +329,6 @@
                         android:fontFamily="sans-serif-medium"
                         android:textColor="#000000"
                         android:textSize="16sp"
-                        android:textStyle="bold"
                         android:gravity="center" />
                 </LinearLayout>
 
@@ -411,7 +397,7 @@
                             android:textColor="#000"
                             android:fontFamily="sans-serif-medium"
                             android:textSize="18sp"
-                            android:textStyle="bold" />
+                            android:textStyle="normal" />
 
                         <TextView
                             android:id="@+id/tvTaskLocation1"
@@ -420,7 +406,7 @@
                             android:layout_marginTop="2dp"
                             android:text="Địa điểm: Công viên Lê Thị Riêng"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif-medium"
+                            android:fontFamily="sans-serif"
                             android:textSize="14sp" />
 
                         <TextView
@@ -430,7 +416,7 @@
                             android:layout_marginTop="2dp"
                             android:text="Ghi chú: Mang theo nước và khăn tập"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif-medium"
+                            android:fontFamily="sans-serif"
                             android:textSize="14sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -470,7 +456,7 @@
                             android:text="Ăn sáng và chuẩn bị đi làm"
                             android:textColor="#000"
                             android:fontFamily="sans-serif-medium"
-                            android:textStyle="bold"
+                            android:textStyle="normal"
                             android:textSize="18sp" />
 
                         <TextView
@@ -478,7 +464,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Địa điểm: Nhà bếp"
-                            android:fontFamily="sans-serif-medium"
+                            android:fontFamily="sans-serif"
                             android:textColor="#000"
                             android:textSize="14sp"
                             android:layout_marginTop="2dp" />
@@ -489,7 +475,7 @@
                             android:layout_height="wrap_content"
                             android:text="Ghi chú: Chuẩn bị tài liệu họp sáng"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif-medium"
+                            android:fontFamily="sans-serif"
                             android:textSize="14sp"
                             android:layout_marginTop="2dp" />
                     </LinearLayout>
@@ -531,7 +517,7 @@
                             android:text="Họp nhóm dự án"
                             android:textColor="#000"
                             android:fontFamily="sans-serif-medium"
-                            android:textStyle="bold"
+                            android:textStyle="normal"
                             android:textSize="18sp" />
 
                         <TextView
@@ -540,7 +526,7 @@
                             android:layout_height="wrap_content"
                             android:text="Địa điểm: Phòng họp tầng 3"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif-medium"
+                            android:fontFamily="sans-serif"
                             android:textSize="14sp"
                             android:layout_marginTop="2dp" />
 
@@ -550,7 +536,7 @@
                             android:layout_height="wrap_content"
                             android:text="Ghi chú: Chuẩn bị báo cáo sprint"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif-medium"
+                            android:fontFamily="sans-serif"
                             android:textSize="14sp"
                             android:layout_marginTop="2dp" />
                     </LinearLayout>
@@ -592,7 +578,7 @@
                             android:text="Làm việc tại văn phòng"
                             android:textColor="#000"
                             android:fontFamily="sans-serif-medium"
-                            android:textStyle="bold"
+                            android:textStyle="normal"
                             android:textSize="18sp" />
 
                         <TextView
@@ -601,7 +587,7 @@
                             android:layout_height="wrap_content"
                             android:text="Địa điểm: Công ty ABC"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif-medium"
+                            android:fontFamily="sans-serif"
                             android:textSize="14sp"
                             android:layout_marginTop="2dp" />
 
@@ -611,7 +597,7 @@
                             android:layout_height="wrap_content"
                             android:text="Ghi chú: Kiểm tra email khách hàng"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif-medium"
+                            android:fontFamily="sans-serif"
                             android:textSize="14sp"
                             android:layout_marginTop="2dp" />
                     </LinearLayout>
@@ -653,7 +639,7 @@
                             android:text="Tập gym"
                             android:fontFamily="sans-serif-medium"
                             android:textColor="#000"
-                            android:textStyle="bold"
+                            android:textStyle="normal"
                             android:textSize="18sp" />
 
                         <TextView
@@ -662,7 +648,7 @@
                             android:layout_height="wrap_content"
                             android:text="Địa điểm: Phòng gym California"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif-medium"
+                            android:fontFamily="sans-serif"
                             android:textSize="14sp"
                             android:layout_marginTop="2dp" />
 
@@ -672,7 +658,7 @@
                             android:layout_height="wrap_content"
                             android:text="Ghi chú: Tập ngực và tay"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif-medium"
+                            android:fontFamily="sans-serif"
                             android:textSize="14sp"
                             android:layout_marginTop="2dp" />
                     </LinearLayout>
@@ -714,7 +700,7 @@
                             android:text="Học lập trình Android"
                             android:textColor="#000"
                             android:fontFamily="sans-serif-medium"
-                            android:textStyle="bold"
+                            android:textStyle="normal"
                             android:textSize="18sp" />
 
                         <TextView
@@ -722,7 +708,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Địa điểm: Tại nhà"
-                            android:fontFamily="sans-serif-medium"
+                            android:fontFamily="sans-serif"
                             android:textColor="#000"
                             android:textSize="14sp"
                             android:layout_marginTop="2dp" />
@@ -733,7 +719,7 @@
                             android:layout_height="wrap_content"
                             android:text="Ghi chú: Hoàn thành project app tính toán"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif-medium"
+                            android:fontFamily="sans-serif"
                             android:textSize="14sp"
                             android:layout_marginTop="2dp" />
                     </LinearLayout>
@@ -775,7 +761,7 @@
                             android:text="Thư giãn và đọc sách"
                             android:textColor="#000"
                             android:fontFamily="sans-serif-medium"
-                            android:textStyle="bold"
+                            android:textStyle="normal"
                             android:textSize="18sp" />
 
                         <TextView
@@ -784,7 +770,7 @@
                             android:layout_height="wrap_content"
                             android:text="Địa điểm: Phòng ngủ"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif-medium"
+                            android:fontFamily="sans-serif"
                             android:textSize="14sp"
                             android:layout_marginTop="2dp" />
 
@@ -794,7 +780,7 @@
                             android:layout_height="wrap_content"
                             android:text="Ghi chú: Đọc 30 phút sách Android"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif-medium"
+                            android:fontFamily="sans-serif"
                             android:textSize="14sp"
                             android:layout_marginTop="2dp" />
                     </LinearLayout>

@@ -14,8 +14,8 @@
         android:id="@+id/layoutContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:layout_above="@id/bottom_nav"
+        android:orientation="vertical"
         tools:ignore="NotSibling">
 
         <LinearLayout
@@ -35,25 +35,25 @@
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
                 android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
                 android:orientation="vertical">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Xin chào, User"
                     android:layout_marginStart="8dp"
-                    android:textSize="24sp"
                     android:fontFamily="sans-serif"
+                    android:text="Xin chào, User"
+                    android:textSize="24sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:text="Chúc bạn một ngày tốt lành"
                     android:fontFamily="sans-serif-medium"
+                    android:text="Chúc bạn một ngày tốt lành"
                     android:textColor="#555"
                     android:textSize="20sp" />
             </LinearLayout>
@@ -64,68 +64,67 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="12dp"
+            android:fontFamily="sans-serif-medium"
             android:gravity="left"
             android:text="Lịch trình"
             android:textColor="#000"
             android:textSize="36sp"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="12dp"
-            android:layout_marginTop="12dp"
-            android:fontFamily="sans-serif-medium"
 
             />
 
 
-        <HorizontalScrollView
-            xmlns:android="http://schemas.android.com/apk/res/android"
+        <HorizontalScrollView xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:scrollbars="none"
+            android:background="#FFFFFF"
             android:overScrollMode="never"
-            android:background="#FFFFFF">
+            android:scrollbars="none">
 
             <LinearLayout
                 android:id="@+id/weekDaysLayout"
                 android:layout_width="wrap_content"
                 android:layout_height="80dp"
-                android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:paddingVertical="8dp"
-                android:paddingHorizontal="8dp">
+                android:orientation="horizontal"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="8dp">
 
                 <!-- Thứ 2 -->
                 <LinearLayout
                     android:id="@+id/llMon"
                     android:layout_width="60dp"
                     android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:background="@drawable/day_item_selector"
                     android:layout_marginHorizontal="4dp"
-                    android:padding="8dp"
+                    android:background="@drawable/day_item_selector"
                     android:clickable="true"
-                    android:focusable="true">
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="8dp">
 
                     <TextView
                         android:id="@+id/tvMonDay"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="THỨ"
                         android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
+                        android:text="THỨ"
                         android:textColor="#000"
-                        android:textSize="16sp"
-                        android:gravity="center" />
+                        android:textSize="16sp" />
 
                     <TextView
                         android:id="@+id/tvMonDate"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="2"
                         android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
+                        android:text="2"
                         android:textColor="#000"
-                        android:textSize="16sp"
-                        android:gravity="center" />
+                        android:textSize="16sp" />
                 </LinearLayout>
 
                 <!-- Thứ 3 -->
@@ -133,33 +132,33 @@
                     android:id="@+id/llTue"
                     android:layout_width="60dp"
                     android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:background="@drawable/day_item_selector"
                     android:layout_marginHorizontal="4dp"
-                    android:padding="8dp"
+                    android:background="@drawable/day_item_selector"
                     android:clickable="true"
-                    android:focusable="true">
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="8dp">
 
                     <TextView
                         android:id="@+id/tvTueDay"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="THỨ"
                         android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
+                        android:text="THỨ"
                         android:textColor="#000"
-                        android:textSize="16sp"
-                        android:gravity="center" />
+                        android:textSize="16sp" />
 
                     <TextView
                         android:id="@+id/tvTueDate"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="3"
                         android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
+                        android:text="3"
                         android:textColor="#000"
-                        android:textSize="16sp"
-                        android:gravity="center" />
+                        android:textSize="16sp" />
                 </LinearLayout>
 
                 <!-- Thứ 4 -->
@@ -167,33 +166,33 @@
                     android:id="@+id/llWed"
                     android:layout_width="60dp"
                     android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:background="@drawable/day_item_selector"
                     android:layout_marginHorizontal="4dp"
-                    android:padding="8dp"
+                    android:background="@drawable/day_item_selector"
                     android:clickable="true"
-                    android:focusable="true">
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="8dp">
 
                     <TextView
                         android:id="@+id/tvWedDay"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="THỨ"
                         android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
+                        android:text="THỨ"
                         android:textColor="#000"
-                        android:textSize="16sp"
-                        android:gravity="center" />
+                        android:textSize="16sp" />
 
                     <TextView
                         android:id="@+id/tvWedDate"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="4"
                         android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
+                        android:text="4"
                         android:textColor="#000"
-                        android:textSize="16sp"
-                        android:gravity="center" />
+                        android:textSize="16sp" />
                 </LinearLayout>
 
                 <!-- Thứ 5 -->
@@ -201,33 +200,33 @@
                     android:id="@+id/llThu"
                     android:layout_width="60dp"
                     android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:background="@drawable/day_item_selector"
                     android:layout_marginHorizontal="4dp"
-                    android:padding="8dp"
+                    android:background="@drawable/day_item_selector"
                     android:clickable="true"
-                    android:focusable="true">
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="8dp">
 
                     <TextView
                         android:id="@+id/tvThuDay"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="THỨ"
                         android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
+                        android:text="THỨ"
                         android:textColor="#000"
-                        android:textSize="16sp"
-                        android:gravity="center" />
+                        android:textSize="16sp" />
 
                     <TextView
                         android:id="@+id/tvThuDate"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="5"
                         android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
+                        android:text="5"
                         android:textColor="#000"
-                        android:textSize="16sp"
-                        android:gravity="center" />
+                        android:textSize="16sp" />
                 </LinearLayout>
 
                 <!-- Thứ 6 -->
@@ -235,33 +234,33 @@
                     android:id="@+id/llFri"
                     android:layout_width="60dp"
                     android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:background="@drawable/day_item_selector"
                     android:layout_marginHorizontal="4dp"
-                    android:padding="8dp"
+                    android:background="@drawable/day_item_selector"
                     android:clickable="true"
-                    android:focusable="true">
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="8dp">
 
                     <TextView
                         android:id="@+id/tvFriDay"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="THỨ"
                         android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
+                        android:text="THỨ"
                         android:textColor="#000"
-                        android:textSize="16sp"
-                        android:gravity="center" />
+                        android:textSize="16sp" />
 
                     <TextView
                         android:id="@+id/tvFriDate"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="6"
                         android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
+                        android:text="6"
                         android:textColor="#000"
-                        android:textSize="16sp"
-                        android:gravity="center" />
+                        android:textSize="16sp" />
                 </LinearLayout>
 
                 <!-- Thứ 7 -->
@@ -269,33 +268,33 @@
                     android:id="@+id/llSat"
                     android:layout_width="60dp"
                     android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:background="@drawable/day_item_selector"
                     android:layout_marginHorizontal="4dp"
-                    android:padding="8dp"
+                    android:background="@drawable/day_item_selector"
                     android:clickable="true"
-                    android:focusable="true">
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="8dp">
 
                     <TextView
                         android:id="@+id/tvSatDay"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="THỨ"
                         android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
+                        android:text="THỨ"
                         android:textColor="#000"
-                        android:textSize="16sp"
-                        android:gravity="center" />
+                        android:textSize="16sp" />
 
                     <TextView
                         android:id="@+id/tvSatDate"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="7"
                         android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
+                        android:text="7"
                         android:textColor="#000"
-                        android:textSize="16sp"
-                        android:gravity="center" />
+                        android:textSize="16sp" />
                 </LinearLayout>
 
                 <!-- Chủ nhật -->
@@ -303,54 +302,54 @@
                     android:id="@+id/llSun"
                     android:layout_width="60dp"
                     android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:background="@drawable/day_item_selector"
                     android:layout_marginHorizontal="4dp"
-                    android:padding="8dp"
+                    android:background="@drawable/day_item_selector"
                     android:clickable="true"
-                    android:focusable="true">
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="8dp">
 
                     <TextView
                         android:id="@+id/tvSunDay"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="CHỦ"
                         android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
+                        android:text="CHỦ"
                         android:textColor="#000000"
-                        android:textSize="16sp"
-                        android:gravity="center" />
+                        android:textSize="16sp" />
 
                     <TextView
                         android:id="@+id/tvSunDate"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="NHẬT"
                         android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
+                        android:text="NHẬT"
                         android:textColor="#000000"
-                        android:textSize="16sp"
-                        android:gravity="center" />
+                        android:textSize="16sp" />
                 </LinearLayout>
 
             </LinearLayout>
         </HorizontalScrollView>
 
 
-
         <!-- Danh sách lịch -->
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:fillViewport="true"
             android:layout_marginTop="24dp"
-            android:background="#FFFFFF">
+            android:background="#FFFFFF"
+            android:fillViewport="true">
 
             <LinearLayout
                 android:id="@+id/layoutSchedule"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="0dp"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="0dp">
 
                 <!-- ====== MỤC 1 → 7 ====== -->
 
@@ -372,12 +371,13 @@
                         android:layout_width="120dp"
                         android:layout_height="wrap_content"
                         android:background="@drawable/time_bg"
+                        android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
+                        android:layout_marginStart="16dp"
                         android:paddingHorizontal="16dp"
                         android:paddingVertical="6dp"
                         android:text="6:00 - 7:00"
-                        android:gravity="center"
                         android:textColor="#000"
-                        android:fontFamily="sans-serif-medium"
                         android:textSize="15sp" />
 
                     <LinearLayout
@@ -385,6 +385,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="16dp"
                         android:layout_weight="1"
+                        android:layout_marginEnd="16dp"
                         android:background="@drawable/schedule_item_bg"
                         android:orientation="vertical"
                         android:padding="8dp">
@@ -393,9 +394,9 @@
                             android:id="@+id/tvTaskTitle1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-medium"
                             android:text="Tập thể dục buổi sáng"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif-medium"
                             android:textSize="18sp"
                             android:textStyle="normal" />
 
@@ -404,9 +405,9 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
+                            android:fontFamily="sans-serif"
                             android:text="Địa điểm: Công viên Lê Thị Riêng"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif"
                             android:textSize="14sp" />
 
                         <TextView
@@ -414,9 +415,9 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
+                            android:fontFamily="sans-serif"
                             android:text="Ghi chú: Mang theo nước và khăn tập"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif"
                             android:textSize="14sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -424,27 +425,29 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
                     android:layout_marginBottom="16dp"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="120dp"
                         android:layout_height="wrap_content"
                         android:background="@drawable/time_bg"
+                        android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
                         android:paddingHorizontal="16dp"
                         android:paddingVertical="6dp"
+                        android:layout_marginStart="16dp"
                         android:text="8:00 - 9:00"
-                        android:gravity="center"
                         android:textColor="#000"
-                        android:fontFamily="sans-serif-medium"
                         android:textSize="15sp" />
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:layout_marginStart="16dp"
+                        android:layout_marginEnd="16dp"
+                        android:layout_weight="1"
                         android:background="@drawable/schedule_item_bg"
                         android:orientation="vertical"
                         android:padding="8dp">
@@ -453,31 +456,31 @@
                             android:id="@+id/tvTaskTitle2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-medium"
                             android:text="Ăn sáng và chuẩn bị đi làm"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif-medium"
-                            android:textStyle="normal"
-                            android:textSize="18sp" />
+                            android:textSize="18sp"
+                            android:textStyle="normal" />
 
                         <TextView
                             android:id="@+id/tvTaskLocation2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Địa điểm: Nhà bếp"
+                            android:layout_marginTop="2dp"
                             android:fontFamily="sans-serif"
+                            android:text="Địa điểm: Nhà bếp"
                             android:textColor="#000"
-                            android:textSize="14sp"
-                            android:layout_marginTop="2dp" />
+                            android:textSize="14sp" />
 
                         <TextView
                             android:id="@+id/tvTaskNote2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="sans-serif"
                             android:text="Ghi chú: Chuẩn bị tài liệu họp sáng"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif"
-                            android:textSize="14sp"
-                            android:layout_marginTop="2dp" />
+                            android:textSize="14sp" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -485,27 +488,29 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
                     android:layout_marginBottom="16dp"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="120dp"
                         android:layout_height="wrap_content"
                         android:background="@drawable/time_bg"
+                        android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="6dp"
                         android:text="10:00 - 11:30"
-                        android:gravity="center"
+                        android:layout_marginStart="16dp"
                         android:textColor="#000"
-                        android:fontFamily="sans-serif-medium"
                         android:textSize="15sp" />
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:layout_marginStart="16dp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="16dp"
                         android:background="@drawable/schedule_item_bg"
                         android:orientation="vertical"
                         android:padding="8dp">
@@ -514,31 +519,31 @@
                             android:id="@+id/tvTaskTitle3"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-medium"
                             android:text="Họp nhóm dự án"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif-medium"
-                            android:textStyle="normal"
-                            android:textSize="18sp" />
+                            android:textSize="18sp"
+                            android:textStyle="normal" />
 
                         <TextView
                             android:id="@+id/tvTaskLocation3"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="sans-serif"
                             android:text="Địa điểm: Phòng họp tầng 3"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif"
-                            android:textSize="14sp"
-                            android:layout_marginTop="2dp" />
+                            android:textSize="14sp" />
 
                         <TextView
                             android:id="@+id/tvTaskNote3"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="sans-serif"
                             android:text="Ghi chú: Chuẩn bị báo cáo sprint"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif"
-                            android:textSize="14sp"
-                            android:layout_marginTop="2dp" />
+                            android:textSize="14sp" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -546,27 +551,29 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
                     android:layout_marginBottom="16dp"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="120dp"
                         android:layout_height="wrap_content"
                         android:background="@drawable/time_bg"
+                        android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="6dp"
                         android:text="14:00 - 16:00"
                         android:textColor="#000"
-                        android:gravity="center"
-                        android:fontFamily="sans-serif-medium"
+                        android:layout_marginStart="16dp"
                         android:textSize="15sp" />
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:layout_marginStart="16dp"
+                        android:layout_marginEnd="16dp"
+                        android:layout_weight="1"
                         android:background="@drawable/schedule_item_bg"
                         android:orientation="vertical"
                         android:padding="8dp">
@@ -575,31 +582,31 @@
                             android:id="@+id/tvTaskTitle4"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-medium"
                             android:text="Làm việc tại văn phòng"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif-medium"
-                            android:textStyle="normal"
-                            android:textSize="18sp" />
+                            android:textSize="18sp"
+                            android:textStyle="normal" />
 
                         <TextView
                             android:id="@+id/tvTaskLocation4"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="sans-serif"
                             android:text="Địa điểm: Công ty ABC"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif"
-                            android:textSize="14sp"
-                            android:layout_marginTop="2dp" />
+                            android:textSize="14sp" />
 
                         <TextView
                             android:id="@+id/tvTaskNote4"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="sans-serif"
                             android:text="Ghi chú: Kiểm tra email khách hàng"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif"
-                            android:textSize="14sp"
-                            android:layout_marginTop="2dp" />
+                            android:textSize="14sp" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -607,27 +614,29 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
                     android:layout_marginBottom="16dp"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="120dp"
                         android:layout_height="wrap_content"
                         android:background="@drawable/time_bg"
+                        android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="6dp"
                         android:text="17:00 - 19:00"
                         android:textColor="#000"
-                        android:gravity="center"
-                        android:fontFamily="sans-serif-medium"
+                        android:layout_marginStart="16dp"
                         android:textSize="15sp" />
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:layout_marginStart="16dp"
+                        android:layout_marginEnd="16dp"
+                        android:layout_weight="1"
                         android:background="@drawable/schedule_item_bg"
                         android:orientation="vertical"
                         android:padding="8dp">
@@ -636,31 +645,31 @@
                             android:id="@+id/tvTaskTitle5"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Tập gym"
                             android:fontFamily="sans-serif-medium"
+                            android:text="Tập gym"
                             android:textColor="#000"
-                            android:textStyle="normal"
-                            android:textSize="18sp" />
+                            android:textSize="18sp"
+                            android:textStyle="normal" />
 
                         <TextView
                             android:id="@+id/tvTaskLocation5"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="sans-serif"
                             android:text="Địa điểm: Phòng gym California"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif"
-                            android:textSize="14sp"
-                            android:layout_marginTop="2dp" />
+                            android:textSize="14sp" />
 
                         <TextView
                             android:id="@+id/tvTaskNote5"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="sans-serif"
                             android:text="Ghi chú: Tập ngực và tay"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif"
-                            android:textSize="14sp"
-                            android:layout_marginTop="2dp" />
+                            android:textSize="14sp" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -668,27 +677,29 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
                     android:layout_marginBottom="16dp"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="120dp"
                         android:layout_height="wrap_content"
                         android:background="@drawable/time_bg"
+                        android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="6dp"
                         android:text="20:00 - 22:00"
-                        android:gravity="center"
+                        android:layout_marginStart="16dp"
                         android:textColor="#000"
-                        android:fontFamily="sans-serif-medium"
                         android:textSize="15sp" />
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:layout_marginStart="16dp"
+                        android:layout_marginEnd="16dp"
+                        android:layout_weight="1"
                         android:background="@drawable/schedule_item_bg"
                         android:orientation="vertical"
                         android:padding="8dp">
@@ -697,31 +708,31 @@
                             android:id="@+id/tvTaskTitle6"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-medium"
                             android:text="Học lập trình Android"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif-medium"
-                            android:textStyle="normal"
-                            android:textSize="18sp" />
+                            android:textSize="18sp"
+                            android:textStyle="normal" />
 
                         <TextView
                             android:id="@+id/tvTaskLocation6"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Địa điểm: Tại nhà"
+                            android:layout_marginTop="2dp"
                             android:fontFamily="sans-serif"
+                            android:text="Địa điểm: Tại nhà"
                             android:textColor="#000"
-                            android:textSize="14sp"
-                            android:layout_marginTop="2dp" />
+                            android:textSize="14sp" />
 
                         <TextView
                             android:id="@+id/tvTaskNote6"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="sans-serif"
                             android:text="Ghi chú: Hoàn thành project app tính toán"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif"
-                            android:textSize="14sp"
-                            android:layout_marginTop="2dp" />
+                            android:textSize="14sp" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -729,27 +740,29 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
                     android:layout_marginBottom="16dp"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="120dp"
                         android:layout_height="wrap_content"
                         android:background="@drawable/time_bg"
+                        android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="6dp"
                         android:text="22:00 - 23:00"
+                        android:layout_marginStart="16dp"
                         android:textColor="#000"
-                        android:gravity="center"
-                        android:fontFamily="sans-serif-medium"
                         android:textSize="15sp" />
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:layout_marginStart="16dp"
+                        android:layout_marginEnd="16dp"
+                        android:layout_weight="1"
                         android:background="@drawable/schedule_item_bg"
                         android:orientation="vertical"
                         android:padding="8dp">
@@ -758,37 +771,36 @@
                             android:id="@+id/tvTaskTitle7"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-medium"
                             android:text="Thư giãn và đọc sách"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif-medium"
-                            android:textStyle="normal"
-                            android:textSize="18sp" />
+                            android:textSize="18sp"
+                            android:textStyle="normal" />
 
                         <TextView
                             android:id="@+id/tvTaskLocation7"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="sans-serif"
                             android:text="Địa điểm: Phòng ngủ"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif"
-                            android:textSize="14sp"
-                            android:layout_marginTop="2dp" />
+                            android:textSize="14sp" />
 
                         <TextView
                             android:id="@+id/tvTaskNote7"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="sans-serif"
                             android:text="Ghi chú: Đọc 30 phút sách Android"
                             android:textColor="#000"
-                            android:fontFamily="sans-serif"
-                            android:textSize="14sp"
-                            android:layout_marginTop="2dp" />
+                            android:textSize="14sp" />
                     </LinearLayout>
                 </LinearLayout>
 
             </LinearLayout>
         </ScrollView>
-
 
 
     </LinearLayout>

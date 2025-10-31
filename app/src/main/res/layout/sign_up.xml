@@ -1,32 +1,172 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:background="@color/white"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp">
+
     <TextView
         android:id="@+id/dangki"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="ĐĂNG KÝ"
-        android:textSize="48sp"
-        android:gravity="center"
-        android:textStyle="bold"
+        android:layout_marginTop="60dp"
         android:fontFamily="sans-serif-medium"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        android:text="ĐĂNG KÝ"
+        android:textSize="40sp"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="180dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <TextView
-        android:layout_width="match_parent"
+        android:id="@+id/ho_va_ten"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="@+id/dangki"
-        app:layout_constraintBottom_toBottomOf="@+id/dangki"
-       />
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="52dp"
+        android:layout_marginEnd="32dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="Họ và tên"
+        android:textSize="24sp"
+        android:textStyle="normal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/dangki" />
 
+    <EditText
+        android:id="@+id/text1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:hint="Họ và tên"
+        android:textStyle="italic"
+        app:layout_constraintEnd_toEndOf="@+id/ho_va_ten"
+        app:layout_constraintStart_toStartOf="@+id/ho_va_ten"
+        app:layout_constraintTop_toBottomOf="@id/ho_va_ten" />
 
+    <TextView
+        android:id="@+id/ten_dang_nhap"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="Tên đăng nhập"
+        android:textSize="24sp"
+        android:textStyle="normal"
+        app:layout_constraintEnd_toEndOf="@+id/text1"
+        app:layout_constraintStart_toStartOf="@+id/text1"
+        app:layout_constraintTop_toBottomOf="@+id/text1" />
+
+    <EditText
+        android:id="@+id/text2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:hint="Tên đăng nhập"
+        android:textStyle="italic"
+        app:layout_constraintEnd_toEndOf="@+id/ten_dang_nhap"
+        app:layout_constraintStart_toStartOf="@id/ten_dang_nhap"
+        app:layout_constraintTop_toBottomOf="@id/ten_dang_nhap" />
+
+    <TextView
+        android:id="@+id/mat_khau"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="Mật khẩu"
+        android:textSize="24sp"
+        android:textStyle="normal"
+        app:layout_constraintEnd_toEndOf="@+id/text2"
+        app:layout_constraintStart_toStartOf="@+id/text2"
+        app:layout_constraintTop_toBottomOf="@+id/text2" />
+
+    <EditText
+        android:id="@+id/text3"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:hint="Mật khẩu"
+        android:inputType="textPassword"
+        android:textStyle="italic"
+        app:layout_constraintEnd_toEndOf="@+id/mat_khau"
+        app:layout_constraintStart_toStartOf="@id/mat_khau"
+        app:layout_constraintTop_toBottomOf="@id/mat_khau" />
+
+    <TextView
+        android:id="@+id/nhap_lai_mat_khau"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="Nhập lại mật khẩu"
+        android:textSize="24sp"
+        android:textStyle="normal"
+        app:layout_constraintEnd_toEndOf="@+id/text3"
+        app:layout_constraintStart_toStartOf="@+id/text3"
+        app:layout_constraintTop_toBottomOf="@+id/text3" />
+
+    <EditText
+        android:id="@+id/text4"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:hint="Nhập lại mật khẩu"
+        android:inputType="textPassword"
+        android:textStyle="italic"
+        app:layout_constraintEnd_toEndOf="@+id/nhap_lai_mat_khau"
+        app:layout_constraintStart_toStartOf="@+id/nhap_lai_mat_khau"
+        app:layout_constraintTop_toBottomOf="@id/nhap_lai_mat_khau" />
+
+    <Button
+        android:id="@+id/button_sign_in"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="26dp"
+        android:layout_marginEnd="32dp"
+        android:background="@drawable/sign_bg"
+        android:fontFamily="sans-serif-medium"
+        android:text="Đăng ký"
+        android:textColor="@color/black"
+        android:textSize="32sp"
+        app:backgroundTint="@null"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/text4" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_sign_in">
+
+        <TextView
+            android:id="@+id/ban_da_co_tai_khoang"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:text="Bạn đã có tài khoản? "
+            android:textSize="18sp"
+            android:textStyle="normal"
+            />
+
+        <TextView
+            android:id="@+id/chuyen_dang_nhap"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:text="Đăng nhập"
+            android:textColor="#4595DB"
+            android:textSize="18sp"
+            android:textStyle="normal"
+            />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

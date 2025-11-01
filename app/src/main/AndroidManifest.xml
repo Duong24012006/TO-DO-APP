@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TODOAPP">
         <activity
+            android:name=".activitys.StartApp"
+            android:exported="false" />
+        <activity
             android:name=".activitys.MainActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustPan">

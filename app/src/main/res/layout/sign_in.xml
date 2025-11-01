@@ -43,7 +43,7 @@
         android:layout_height="48dp"
         android:layout_marginLeft="48dp"
         android:layout_marginRight="48dp"
-        android:hint="Tên gọi"
+        android:hint="Tên đăng nhập"
         android:textStyle="italic"
         android:textSize="16sp"
         android:fontFamily="sans-serif-medium"

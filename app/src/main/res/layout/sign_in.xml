@@ -113,6 +113,7 @@
             android:layout_height="48dp"
             android:gravity="center"
             android:textSize="18sp"
+            android:textStyle="normal"
             android:fontFamily="sans-serif-medium"
             android:text="Bạn chưa có tài khoản?">
 

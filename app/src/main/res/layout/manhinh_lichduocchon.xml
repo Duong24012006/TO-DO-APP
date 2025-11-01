@@ -103,7 +103,7 @@
                 android:scrollbars="none">
 
                 <LinearLayout
-                    android:id="@+id/weekDaysLayout"
+                    android:id="@+id/daysContainer"
                     android:layout_width="wrap_content"
                     android:layout_height="80dp"
                     android:gravity="center_vertical"
@@ -113,7 +113,7 @@
 
                     <!-- Thứ 2 -->
                     <LinearLayout
-                        android:id="@+id/llMon"
+                        android:id="@+id/day2"
                         android:layout_width="60dp"
                         android:layout_height="match_parent"
                         android:layout_marginHorizontal="4dp"
@@ -147,7 +147,7 @@
 
                     <!-- Thứ 3 -->
                     <LinearLayout
-                        android:id="@+id/llTue"
+                        android:id="@+id/day3"
                         android:layout_width="60dp"
                         android:layout_height="match_parent"
                         android:layout_marginHorizontal="4dp"
@@ -181,7 +181,7 @@
 
                     <!-- Thứ 4 -->
                     <LinearLayout
-                        android:id="@+id/llWed"
+                        android:id="@+id/day4"
                         android:layout_width="60dp"
                         android:layout_height="match_parent"
                         android:layout_marginHorizontal="4dp"
@@ -215,7 +215,7 @@
 
                     <!-- Thứ 5 -->
                     <LinearLayout
-                        android:id="@+id/llThu"
+                        android:id="@+id/day5"
                         android:layout_width="60dp"
                         android:layout_height="match_parent"
                         android:layout_marginHorizontal="4dp"
@@ -249,7 +249,7 @@
 
                     <!-- Thứ 6 -->
                     <LinearLayout
-                        android:id="@+id/llFri"
+                        android:id="@+id/day6"
                         android:layout_width="60dp"
                         android:layout_height="match_parent"
                         android:layout_marginHorizontal="4dp"
@@ -283,7 +283,7 @@
 
                     <!-- Thứ 7 -->
                     <LinearLayout
-                        android:id="@+id/llSat"
+                        android:id="@+id/day7"
                         android:layout_width="60dp"
                         android:layout_height="match_parent"
                         android:layout_marginHorizontal="4dp"
@@ -317,7 +317,7 @@
 
                     <!-- Chủ nhật -->
                     <LinearLayout
-                        android:id="@+id/llSun"
+                        android:id="@+id/dayCN"
                         android:layout_width="60dp"
                         android:layout_height="match_parent"
                         android:layout_marginHorizontal="4dp"

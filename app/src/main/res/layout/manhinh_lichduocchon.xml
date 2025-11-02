@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/root_manhinh_lichduocchon"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,360 +11,346 @@
     <LinearLayout
         android:id="@+id/headerLayout"
         android:layout_width="match_parent"
-        android:layout_height="96dp"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="16dp"
-        android:gravity="center_vertical"
-        android:background="#FFFFFF">
+        android:gravity="center_vertical">
 
-        <androidx.cardview.widget.CardView
+        <ImageButton
             android:id="@+id/btnBack"
-            android:layout_width="44dp"
-            android:background="@color/white"
-            android:layout_height="44dp"
-            android:layout_marginEnd="12dp">
-
-            <ImageView
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_back"
-                android:contentDescription="Back" />
-        </androidx.cardview.widget.CardView>
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_back"
+            android:contentDescription="Back" />
 
         <TextView
             android:id="@+id/tvTitleHeader"
-            android:layout_width="290dp"
-            android:layout_height="40dp"
-            android:layout_gravity="center"
-            android:fontFamily="sans-serif-medium"
-            android:background="@drawable/border_ten_lich"
-            android:text="Tên lịch"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/btn_apply_background"
+            android:fontFamily="sans-serif"
+            android:gravity="center_vertical"
             android:paddingStart="16dp"
-            android:paddingTop="4dp"
-            android:textColor="#000"
-            android:textSize="20sp" />
+            android:paddingEnd="16dp"
+            android:text="Tên lịch"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:textSize="18sp" />
 
     </LinearLayout>
 
-    <!-- Main white card -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/mainContentCard"
-        android:layout_below="@id/headerLayout"
-        android:layout_margin="12dp"
+    <!-- Border for the main card -->
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:cardCornerRadius="20dp"
-        app:cardBackgroundColor="#FFFFFF"
-        app:cardElevation="6dp">
+        android:layout_below="@id/headerLayout"
+        android:padding="12dp"
+        android:background="#FFFFFF">
 
-        <LinearLayout
+        <!-- Main white card -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/mainContentCard"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:padding="18dp">
+            app:cardCornerRadius="20dp"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardElevation="0dp">
 
-            <!-- Title row and Apply button -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="12dp">
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:background="@drawable/border_history"
+                android:padding="18dp">
 
-                <TextView
-                    android:id="@+id/tvSectionTitle"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-medium"
-                    android:text="Lịch trình"
-                    android:textSize="32sp"
-                    android:textStyle="normal"
-                    android:textColor="#000" />
-
-                <Button
-                    android:id="@+id/btnApplySchedule"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/btn_apply_background"
-                    android:text="Áp dụng lịch"
-                    android:textSize="20sp"
-                    android:padding="8dp"
-                    android:textColor="#FFF" />
-            </LinearLayout>
-
-            <!-- Days horizontal -->
-
-            <HorizontalScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="#FFFFFF"
-                android:overScrollMode="never"
-                android:scrollbars="none">
-
+                <!-- Title row and Apply button -->
                 <LinearLayout
-                    android:id="@+id/daysContainer"
-                    android:layout_width="wrap_content"
-                    android:layout_height="80dp"
-                    android:gravity="center_vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="8dp">
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
 
-                    <!-- Thứ 2 -->
-                    <LinearLayout
-                        android:id="@+id/day2"
-                        android:layout_width="60dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginHorizontal="4dp"
-                        android:background="@drawable/day_item_selector"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="8dp">
+                    <TextView
+                        android:id="@+id/tvSectionTitle"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="Lịch trình"
+                        android:textSize="32sp"
+                        android:textStyle="bold"
+                        android:textColor="#000" />
 
-                        <TextView
-                            android:id="@+id/tvMonDay"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="THỨ"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
-
-                        <TextView
-                            android:id="@+id/tvMonDate"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="2"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
-                    </LinearLayout>
-
-                    <!-- Thứ 3 -->
-                    <LinearLayout
-                        android:id="@+id/day3"
-                        android:layout_width="60dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginHorizontal="4dp"
-                        android:background="@drawable/day_item_selector"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="8dp">
-
-                        <TextView
-                            android:id="@+id/tvTueDay"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="THỨ"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
-
-                        <TextView
-                            android:id="@+id/tvTueDate"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="3"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
-                    </LinearLayout>
-
-                    <!-- Thứ 4 -->
-                    <LinearLayout
-                        android:id="@+id/day4"
-                        android:layout_width="60dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginHorizontal="4dp"
-                        android:background="@drawable/day_item_selector"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="8dp">
-
-                        <TextView
-                            android:id="@+id/tvWedDay"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="THỨ"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
-
-                        <TextView
-                            android:id="@+id/tvWedDate"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="4"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
-                    </LinearLayout>
-
-                    <!-- Thứ 5 -->
-                    <LinearLayout
-                        android:id="@+id/day5"
-                        android:layout_width="60dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginHorizontal="4dp"
-                        android:background="@drawable/day_item_selector"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="8dp">
-
-                        <TextView
-                            android:id="@+id/tvThuDay"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="THỨ"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
-
-                        <TextView
-                            android:id="@+id/tvThuDate"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="5"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
-                    </LinearLayout>
-
-                    <!-- Thứ 6 -->
-                    <LinearLayout
-                        android:id="@+id/day6"
-                        android:layout_width="60dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginHorizontal="4dp"
-                        android:background="@drawable/day_item_selector"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="8dp">
-
-                        <TextView
-                            android:id="@+id/tvFriDay"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="THỨ"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
-
-                        <TextView
-                            android:id="@+id/tvFriDate"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="6"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
-                    </LinearLayout>
-
-                    <!-- Thứ 7 -->
-                    <LinearLayout
-                        android:id="@+id/day7"
-                        android:layout_width="60dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginHorizontal="4dp"
-                        android:background="@drawable/day_item_selector"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="8dp">
-
-                        <TextView
-                            android:id="@+id/tvSatDay"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="THỨ"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
-
-                        <TextView
-                            android:id="@+id/tvSatDate"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="7"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
-                    </LinearLayout>
-
-                    <!-- Chủ nhật -->
-                    <LinearLayout
-                        android:id="@+id/dayCN"
-                        android:layout_width="60dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginHorizontal="4dp"
-                        android:background="@drawable/day_item_selector"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="8dp">
-
-                        <TextView
-                            android:id="@+id/tvSunDay"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="CHỦ"
-                            android:textColor="#000000"
-                            android:textSize="16sp" />
-
-                        <TextView
-                            android:id="@+id/tvSunDate"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="NHẬT"
-                            android:textColor="#000000"
-                            android:textSize="16sp" />
-                    </LinearLayout>
-
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnApplySchedule"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Áp dụng lịch"
+                        android:textColor="#000000"
+                        android:textSize="16sp"
+                        app:backgroundTint="#BFB3F1"
+                        app:cornerRadius="5dp"
+                        app:icon="@drawable/ic_chevron_right"
+                        app:iconSize="32dp"
+                        app:iconGravity="textEnd"
+                        app:iconPadding="8dp"
+                        app:iconTint="#000000"/>
                 </LinearLayout>
-            </HorizontalScrollView>
 
+                <!-- Days horizontal -->
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:overScrollMode="never"
+                    android:scrollbars="none">
 
-            <!-- RecyclerView for time slots -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/scheduleRecyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:clipToPadding="false"
-                android:paddingBottom="8dp" />
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
+                    <LinearLayout
+                        android:id="@+id/daysContainer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="80dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingVertical="8dp">
 
-    <!-- Bottom Navigation placeholder -->
+                        <!-- Thứ 2 -->
+                        <LinearLayout
+                            android:id="@+id/day2"
+                            android:layout_width="60dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginHorizontal="4dp"
+                            android:background="@drawable/day_item_background"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="8dp"
+                            android:selected="true">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:text="THỨ"
+
+                                android:textColor="@color/day_text_color_selector"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:text="2"
+                                android:textColor="@color/day_text_color_selector"
+                                android:textSize="16sp" />
+                        </LinearLayout>
+
+                        <!-- Thứ 3 -->
+                        <LinearLayout
+                            android:id="@+id/day3"
+                            android:layout_width="60dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginHorizontal="4dp"
+                            android:background="@drawable/day_item_background"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="8dp">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:text="THỨ"
+                                android:textColor="@color/day_text_color_selector"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:text="3"
+                                android:textColor="@color/day_text_color_selector"
+                                android:textSize="16sp" />
+                        </LinearLayout>
+
+                         <LinearLayout
+                            android:id="@+id/day4"
+                            android:layout_width="60dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginHorizontal="4dp"
+                            android:background="@drawable/day_item_background"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="8dp">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:text="THỨ"
+                                android:textColor="@color/day_text_color_selector"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:text="4"
+                                android:textColor="@color/day_text_color_selector"
+                                android:textSize="16sp" />
+                        </LinearLayout>
+
+                         <LinearLayout
+                            android:id="@+id/day5"
+                            android:layout_width="60dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginHorizontal="4dp"
+                            android:background="@drawable/day_item_background"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="8dp">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center"
+                                android:text="THỨ"
+                                android:textColor="@color/day_text_color_selector"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center"
+                                android:text="5"
+                                android:textColor="@color/day_text_color_selector"
+                                android:textSize="16sp" />
+                        </LinearLayout>
+
+                        <!-- Thứ 6 -->
+                        <LinearLayout
+                            android:id="@+id/day6"
+                            android:layout_width="60dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginHorizontal="4dp"
+                            android:background="@drawable/day_item_background"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="8dp">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:text="THỨ"
+                                android:textColor="@color/day_text_color_selector"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:text="6"
+                                android:textColor="@color/day_text_color_selector"
+                                android:textSize="16sp" />
+                        </LinearLayout>
+
+                        <!-- Thứ 7 -->
+                        <LinearLayout
+                            android:id="@+id/day7"
+                            android:layout_width="60dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginHorizontal="4dp"
+                            android:background="@drawable/day_item_background"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="8dp">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:text="THỨ"
+                                android:textColor="@color/day_text_color_selector"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:text="7"
+                                android:textColor="@color/day_text_color_selector"
+                                android:textSize="16sp" />
+                        </LinearLayout>
+
+                        <!-- Chủ Nhật -->
+                        <LinearLayout
+                            android:id="@+id/dayCN"
+                            android:layout_width="60dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginHorizontal="4dp"
+                            android:background="@drawable/day_item_background"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="8dp">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:text="CHỦ"
+                                android:textColor="@color/day_text_color_selector"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:text="NHẬT"
+                                android:textColor="@color/day_text_color_selector"
+                                android:textSize="16sp" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </HorizontalScrollView>
+
+                <!-- RecyclerView for time slots -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/scheduleRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:clipToPadding="false"
+                    android:paddingTop="8dp"
+                    tools:listitem="@layout/item_schedule" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+    </FrameLayout>
 
 </RelativeLayout>

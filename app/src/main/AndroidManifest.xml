@@ -4,6 +4,7 @@
 
     <application
         android:allowBackup="true"
+        android:clearTaskOnLaunch="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
@@ -11,15 +12,16 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.TODOAPP">
+
         <activity
             android:name=".activitys.StartAppActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".activitys.MainActivity"
             android:exported="false"
@@ -28,6 +30,16 @@
             android:name=".activitys.Layout6Activity"
             android:exported="false"
             android:windowSoftInputMode="adjustPan" />
+
+        <activity
+            android:name=".activitys.SignInActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
+
+        <activity
+            android:name=".activitys.SignUpActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
     </application>
 
 </manifest>

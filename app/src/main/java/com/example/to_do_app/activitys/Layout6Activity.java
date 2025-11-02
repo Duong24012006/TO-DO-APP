@@ -35,6 +35,7 @@ public class Layout6Activity extends AppCompatActivity {
     private static final String TAG = "Layout6Activity";
 
     private CardView btnBack;
+    private android.widget.TextView tvTitleHeader;
     private Button btnApplySchedule;
     private RecyclerView scheduleRecyclerView;
     private ScheduleItemAdapter scheduleAdapter;
@@ -47,6 +48,7 @@ public class Layout6Activity extends AppCompatActivity {
 
     private LinearLayout daysContainer;
     private FloatingActionButton fabAdd;
+
     // Firebase
     private DatabaseReference databaseReference;
 
@@ -70,6 +72,11 @@ public class Layout6Activity extends AppCompatActivity {
         String passedTitle = getIntent().getStringExtra("EXTRA_TEMPLATE_TITLE");
         String passedDescription = getIntent().getStringExtra("EXTRA_TEMPLATE_DESCRIPTION");
         ArrayList<String> passedTags = getIntent().getStringArrayListExtra("EXTRA_TEMPLATE_TAGS");
+
+        // Nếu truyền tiêu đề template, cập nhật header ngay
+        if (passedTitle != null && !passedTitle.isEmpty() && tvTitleHeader != null) {
+            tvTitleHeader.setText(passedTitle);
+        }
 
         boolean hasTemplate = (passedTitle != null && !passedTitle.isEmpty())
                 || (passedDescription != null && !passedDescription.isEmpty())
@@ -114,6 +121,7 @@ public class Layout6Activity extends AppCompatActivity {
         btnApplySchedule = findViewById(R.id.btnApplySchedule);
         scheduleRecyclerView = findViewById(R.id.scheduleRecyclerView);
         fabAdd = findViewById(R.id.fabAddSlot);
+        tvTitleHeader = findViewById(R.id.tvTitleHeader);
         day2 = findViewById(R.id.day2);
         day3 = findViewById(R.id.day3);
         day4 = findViewById(R.id.day4);
@@ -194,7 +202,13 @@ public class Layout6Activity extends AppCompatActivity {
                 List<ScheduleItem> firebaseItems = new ArrayList<>();
                 for (DataSnapshot ds : snapshot.getChildren()) {
                     ScheduleItem item = ds.getValue(ScheduleItem.class);
-                    if (item != null) firebaseItems.add(item);
+                    if (item != null) {
+                        // ensure we keep firebase key stored in model for later edits/deletes
+                        if (item.getFirebaseKey() == null || item.getFirebaseKey().isEmpty()) {
+                            item.setFirebaseKey(ds.getKey());
+                        }
+                        firebaseItems.add(item);
+                    }
                 }
 
                 // Nếu hiện đang có preview (ví dụ user vừa chuyển từ template), merge thay vì overwrite
@@ -245,6 +259,14 @@ public class Layout6Activity extends AppCompatActivity {
                     item.setEndTime(newEnd);
                     item.setActivity(newAct);
 
+                    // If item has firebaseKey, update the single node. Otherwise, update local list only.
+                    if (item.getFirebaseKey() != null && !item.getFirebaseKey().isEmpty()) {
+                        String key = item.getFirebaseKey();
+                        databaseReference.child("day_" + item.getDayOfWeek()).child(key).setValue(item)
+                                .addOnSuccessListener(aVoid -> Log.d(TAG, "Updated item in Firebase key=" + key))
+                                .addOnFailureListener(e -> Toast.makeText(this, "Lỗi cập nhật: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                    }
+
                     if (scheduleAdapter != null) scheduleAdapter.notifyItemChanged(position);
                     Toast.makeText(this, "Đã cập nhật", Toast.LENGTH_SHORT).show();
                 })
@@ -268,6 +290,7 @@ public class Layout6Activity extends AppCompatActivity {
                 .setNeutralButton("Hủy", null)
                 .show();
     }
+
     private void showAddDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = LayoutInflater.from(this).inflate(R.layout.edit_schedule1, null); // reuse the same layout if appropriate
@@ -297,9 +320,17 @@ public class Layout6Activity extends AppCompatActivity {
                     // Add to current list and update adapter
                     if (currentList == null) currentList = new ArrayList<>();
                     currentList.add(newItem);
+
+                    // sort optionally (by startTime)
+                    currentList.sort((a, b) -> {
+                        String as = a.getStartTime() == null ? "" : a.getStartTime();
+                        String bs = b.getStartTime() == null ? "" : b.getStartTime();
+                        return as.compareTo(bs);
+                    });
+
                     if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
 
-                    // Option A: save immediately to Firebase (recommended if you want persistence per add)
+                    // Save immediately to Firebase (generate key, store key in model)
                     saveSingleItemToFirebase(newItem);
 
                     Toast.makeText(this, "Đã thêm mục lịch", Toast.LENGTH_SHORT).show();
@@ -308,19 +339,36 @@ public class Layout6Activity extends AppCompatActivity {
                 .show();
     }
 
-    // Save a single ScheduleItem to Firebase under the selected day using push() to keep items separate
+    /**
+     * Save a single ScheduleItem to Firebase under the selected day using push() but set the key into the item.
+     * This allows later edits/deletes using the firebaseKey.
+     */
     private void saveSingleItemToFirebase(ScheduleItem item) {
         if (item == null) return;
         String dayNode = "day_" + item.getDayOfWeek();
-        // push a new child with autogenerated key
         DatabaseReference dayRef = databaseReference.child(dayNode);
-        dayRef.push().setValue(item)
-                .addOnSuccessListener(aVoid -> Log.d(TAG, "Saved single item to Firebase"))
+
+        // generate key first
+        String key = dayRef.push().getKey();
+        if (key == null) {
+            // fallback: push directly without key stored
+            dayRef.push().setValue(item)
+                    .addOnSuccessListener(aVoid -> Log.d(TAG, "Saved single item (no key) to Firebase"))
+                    .addOnFailureListener(e -> Toast.makeText(this, "Lỗi lưu item: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            return;
+        }
+
+        // set key into model so we can later update/delete easily
+        item.setFirebaseKey(key);
+
+        // save under the generated key
+        dayRef.child(key).setValue(item)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Saved single item to Firebase with key=" + key))
                 .addOnFailureListener(e -> Toast.makeText(this, "Lỗi lưu item: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     // Optional helper to merge Firebase-loaded items with current preview list (instead of overwriting)
-// Call this from loadScheduleDataForDay if you want to keep preview and append real data:
+    // Call this from loadScheduleDataForDay if you want to keep preview and append real data:
     private void mergeFirebaseItems(List<ScheduleItem> firebaseItems) {
         if (currentList == null) currentList = new ArrayList<>();
         if (firebaseItems == null || firebaseItems.isEmpty()) {

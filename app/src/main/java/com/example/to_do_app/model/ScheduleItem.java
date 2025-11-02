@@ -5,28 +5,35 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Model for a schedule item used across the app and stored in Firebase.
- * - Implements Serializable so it can be passed via Intent extras easily.
- * - Provides consistent getters/setters used by adapters and activities:
- *     getStartTime(), getEndTime(), getActivity(), getDayOfWeek()
- * - Adds convenience aliases getTitle()/setTitle() because some UI/code may expect "title".
- * - Adds toMap() helper if you want to write a Map to Firebase.
+ * Model for a schedule item, now includes firebaseKey so each item can be edited/deleted individually.
  */
 public class ScheduleItem implements Serializable {
+    private String firebaseKey; // Firebase key for this item (null if not persisted yet)
     private int id;
-    private String title;       // alias for activity/name — used in some places as "title"
-    private String name;        // optional alternate field
+    private String title;       // alias for activity/name
+    private String name;
     private String time;
-    private String startTime;   // Thời gian bắt đầu, ví dụ "06:00"
-    private String endTime;     // Thời gian kết thúc, ví dụ "07:00"
-    private String activity;    // Mô tả hoạt động
-    private int dayOfWeek;      // 2=Thứ 2, 3=Thứ 3, ..., 8=CN
+    private String startTime;
+    private String endTime;
+    private String activity;
+    private int dayOfWeek;
 
-    // Default constructor cần cho Firebase
+    // Default constructor required by Firebase
     public ScheduleItem() { }
 
     // Full constructor
     public ScheduleItem(int id, String startTime, String endTime, String activity, int dayOfWeek) {
+        this.id = id;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.activity = activity;
+        this.title = activity;
+        this.dayOfWeek = dayOfWeek;
+    }
+
+    // Constructor with firebaseKey
+    public ScheduleItem(String firebaseKey, int id, String startTime, String endTime, String activity, int dayOfWeek) {
+        this.firebaseKey = firebaseKey;
         this.id = id;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -48,6 +55,10 @@ public class ScheduleItem implements Serializable {
         this.activity = activity;
         this.title = activity;
     }
+
+    // firebaseKey
+    public String getFirebaseKey() { return firebaseKey; }
+    public void setFirebaseKey(String firebaseKey) { this.firebaseKey = firebaseKey; }
 
     // ID
     public int getId() { return id; }
@@ -105,6 +116,7 @@ public class ScheduleItem implements Serializable {
      */
     public Map<String, Object> toMap() {
         Map<String, Object> m = new HashMap<>();
+        m.put("firebaseKey", firebaseKey);
         m.put("id", id);
         m.put("title", title);
         m.put("name", name);
@@ -119,7 +131,8 @@ public class ScheduleItem implements Serializable {
     @Override
     public String toString() {
         return "ScheduleItem{" +
-                "id=" + id +
+                "firebaseKey='" + firebaseKey + '\'' +
+                ", id=" + id +
                 ", title='" + getTitle() + '\'' +
                 ", startTime='" + startTime + '\'' +
                 ", endTime='" + endTime + '\'' +

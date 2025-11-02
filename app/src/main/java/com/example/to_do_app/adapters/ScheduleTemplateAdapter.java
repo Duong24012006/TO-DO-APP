@@ -74,6 +74,28 @@ public class ScheduleTemplateAdapter extends RecyclerView.Adapter<ScheduleTempla
                 // intent.putExtra("TEMPLATE_TITLE", templateList.get(getAdapterPosition()).getTitle());
                 context.startActivity(intent);
             });
+            ivNext.setOnClickListener(v -> {
+                int position = getAdapterPosition();
+                if (position != RecyclerView.NO_POSITION) {
+                    ScheduleTemplate template = templateList.get(position);
+                    Intent intent = new Intent(context, Layout6Activity.class);
+                    // Truyền dữ liệu nếu cần
+                    intent.putExtra("TEMPLATE_TITLE", template.getTitle());
+                    intent.putExtra("TEMPLATE_DESCRIPTION", template.getDescription());
+                    context.startActivity(intent);
+                }
+            });
+
+            // Nếu bạn muốn bấm vào phần còn lại của item để làm việc khác
+            itemView.setOnClickListener(v -> {
+                int position = getAdapterPosition();
+                if (position != RecyclerView.NO_POSITION) {
+                    ScheduleTemplate template = templateList.get(position);
+                    // Ví dụ: chỉ hiện Toast
+                    // Bạn có thể thêm logic khác ở đây
+                    // Toast.makeText(context, "Chọn: " + template.getTitle(), Toast.LENGTH_SHORT).show();
+                }
+            });
         }
 
         void bind(ScheduleTemplate template) {

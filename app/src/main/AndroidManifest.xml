@@ -24,6 +24,10 @@
             android:name=".activitys.MainActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".activitys.Layout6Activity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustPan" />
     </application>
 
 </manifest>

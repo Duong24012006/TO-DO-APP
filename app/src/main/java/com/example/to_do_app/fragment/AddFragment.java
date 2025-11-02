@@ -1,5 +1,6 @@
 package com.example.to_do_app.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.to_do_app.R;
+import com.example.to_do_app.activitys.Layout6Activity;
 import com.example.to_do_app.adapters.ScheduleTemplateAdapter;
 import com.example.to_do_app.model.ScheduleTemplate;
 
@@ -31,14 +33,13 @@ public class AddFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private ScheduleTemplateAdapter adapter;
-    private List<ScheduleTemplate> allTemplates; // Full list from data source
-    private List<ScheduleTemplate> currentlyDisplayedTemplates; // List to be displayed
+    private List<ScheduleTemplate> allTemplates; // Full list
+    private List<ScheduleTemplate> currentlyDisplayedTemplates; // List hiển thị
 
     private LinearLayout filterOptionsContainer;
     private RadioGroup radioGroupFilterOptions;
     private Button btnApplyFilter, btnResetFilter;
 
-    // Data for filters
     private Map<Integer, String> filterCategoryMap;
     private Map<String, List<String>> filterOptionsMap;
     private String currentFilterCategory = "";
@@ -122,17 +123,16 @@ public class AddFragment extends Fragment {
     }
 
     private void toggleFilterOptions(String category) {
-        // If the same filter is clicked again while visible, hide it.
         if (filterOptionsContainer.getVisibility() == View.VISIBLE && category.equals(currentFilterCategory)) {
             filterOptionsContainer.setVisibility(View.GONE);
             return;
         }
-        
+
         currentFilterCategory = category;
         List<String> options = filterOptionsMap.get(category);
         radioGroupFilterOptions.clearCheck();
         radioGroupFilterOptions.removeAllViews();
-        
+
         if (options != null) {
             for (String option : options) {
                 RadioButton radioButton = new RadioButton(getContext());
@@ -146,8 +146,6 @@ public class AddFragment extends Fragment {
     }
 
     private void applyFilter(String category, String option) {
-        // This is a placeholder for your actual filtering logic.
-        // You should define how categories and options map to your data tags.
         String tagToFilter;
         switch (category) {
             case "Học tập":
@@ -160,7 +158,7 @@ public class AddFragment extends Fragment {
                 tagToFilter = "#GiaiTri";
                 break;
             case "Giờ ngủ":
-                tagToFilter = "#SinhVien"; // Example: maps to a broader tag
+                tagToFilter = "#SinhVien";
                 break;
             default:
                 tagToFilter = "";

@@ -3,6 +3,7 @@ package com.example.to_do_app.activitys;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -18,6 +19,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.to_do_app.R;
 import com.example.to_do_app.adapters.ScheduleItemAdapter;
 import com.example.to_do_app.model.ScheduleItem;
+import com.example.to_do_app.model.ScheduleTemplate;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -28,6 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Layout6Activity extends AppCompatActivity {
+
+    private static final String TAG = "Layout6Activity";
 
     private CardView btnBack;
     private Button btnApplySchedule;
@@ -41,7 +46,7 @@ public class Layout6Activity extends AppCompatActivity {
     private int selectedDay = 2; // default Thứ 2
 
     private LinearLayout daysContainer;
-
+    private FloatingActionButton fabAdd;
     // Firebase
     private DatabaseReference databaseReference;
 
@@ -50,21 +55,65 @@ public class Layout6Activity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.manhinh_lichduocchon);
 
-        // Firebase
+        currentList = new ArrayList<>();
         databaseReference = FirebaseDatabase.getInstance().getReference("schedules");
 
         bindViews();
+
+        // read selected day early if caller sent it
+        selectedDay = getIntent().getIntExtra("selected_day", selectedDay);
+
+        // init RecyclerView + adapter
         setupRecyclerView();
+
+        // Read extras sent from template adapter
+        String passedTitle = getIntent().getStringExtra("EXTRA_TEMPLATE_TITLE");
+        String passedDescription = getIntent().getStringExtra("EXTRA_TEMPLATE_DESCRIPTION");
+        ArrayList<String> passedTags = getIntent().getStringArrayListExtra("EXTRA_TEMPLATE_TAGS");
+
+        boolean hasTemplate = (passedTitle != null && !passedTitle.isEmpty())
+                || (passedDescription != null && !passedDescription.isEmpty())
+                || (passedTags != null && !passedTags.isEmpty());
+
+        if (hasTemplate) {
+            // create preview ScheduleItem and show it immediately
+            ScheduleItem preview = new ScheduleItem(0, "06:00", "07:00",
+                    (passedTitle != null && !passedTitle.isEmpty()) ? passedTitle :
+                            (passedDescription != null ? passedDescription : "Activity"),
+                    selectedDay);
+            currentList.clear();
+            currentList.add(preview);
+
+            // update adapter on UI thread
+            runOnUiThread(() -> {
+                if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
+            });
+
+            // Do NOT call loadScheduleDataForDay(...) here unless you intend to merge results.
+        } else {
+            // normal flow: load from firebase for selected day
+            loadScheduleDataForDay(selectedDay);
+        }
+
         setupDays();
         setupListeners();
-        loadScheduleDataForDay(selectedDay);
+    }
+
+    // Tạo ScheduleItem đơn từ title/description (một chỗ để dễ chỉnh)
+    private ScheduleItem createScheduleItemFromTemplate(String title, String description) {
+        String titleToUse = (title != null && !title.isEmpty()) ? title
+                : (description != null && !description.isEmpty() ? description : "Activity");
+        String defaultStart = "06:00";
+        String defaultEnd = "07:00";
+        int defaultDay = 2;
+        return new ScheduleItem(0, defaultStart, defaultEnd, titleToUse, defaultDay);
     }
 
     private void bindViews() {
         btnBack = findViewById(R.id.btnBack);
         btnApplySchedule = findViewById(R.id.btnApplySchedule);
         scheduleRecyclerView = findViewById(R.id.scheduleRecyclerView);
-
+        fabAdd = findViewById(R.id.fabAddSlot);
         day2 = findViewById(R.id.day2);
         day3 = findViewById(R.id.day3);
         day4 = findViewById(R.id.day4);
@@ -77,11 +126,24 @@ public class Layout6Activity extends AppCompatActivity {
     }
 
     private void setupRecyclerView() {
-        currentList = new ArrayList<>();
-        scheduleAdapter = new ScheduleItemAdapter(this, currentList, (position, item) -> showEditDialog(position, item));
+        if (currentList == null) currentList = new ArrayList<>();
+
+        scheduleAdapter = new ScheduleItemAdapter(this, currentList, new ScheduleItemAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(int position, ScheduleItem item) {
+                showEditDialog(position, item);
+            }
+
+            @Override
+            public void onEditClick(int position, ScheduleItem item) {
+                showEditDialog(position, item);
+            }
+        });
+
         scheduleRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         scheduleRecyclerView.setAdapter(scheduleAdapter);
     }
+
     private void setupDays() {
         View.OnClickListener dayClick = v -> {
             if (selectedDayView != null) selectedDayView.setSelected(false);
@@ -116,20 +178,37 @@ public class Layout6Activity extends AppCompatActivity {
     private void setupListeners() {
         btnBack.setOnClickListener(v -> finish());
         btnApplySchedule.setOnClickListener(v -> showApplyDialog());
+
+        if (fabAdd != null) {
+            fabAdd.setOnClickListener(v -> showAddDialog());
+        }
     }
 
     private void loadScheduleDataForDay(int day) {
+        if (currentList == null) currentList = new ArrayList<>();
         currentList.clear();
         String dayNode = "day_" + day;
         databaseReference.child(dayNode).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
-                currentList.clear();
+                List<ScheduleItem> firebaseItems = new ArrayList<>();
                 for (DataSnapshot ds : snapshot.getChildren()) {
                     ScheduleItem item = ds.getValue(ScheduleItem.class);
-                    if (item != null) currentList.add(item);
+                    if (item != null) firebaseItems.add(item);
                 }
-                scheduleAdapter.updateList(currentList);
+
+                // Nếu hiện đang có preview (ví dụ user vừa chuyển từ template), merge thay vì overwrite
+                if (currentList != null && !currentList.isEmpty()) {
+                    mergeFirebaseItems(firebaseItems);
+                } else {
+                    currentList.clear();
+                    currentList.addAll(firebaseItems);
+                    if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
+                }
+
+                if (currentList.isEmpty()) {
+                    Toast.makeText(Layout6Activity.this, "Danh sách lịch trống", Toast.LENGTH_SHORT).show();
+                }
             }
 
             @Override
@@ -166,7 +245,7 @@ public class Layout6Activity extends AppCompatActivity {
                     item.setEndTime(newEnd);
                     item.setActivity(newAct);
 
-                    scheduleAdapter.notifyItemChanged(position);
+                    if (scheduleAdapter != null) scheduleAdapter.notifyItemChanged(position);
                     Toast.makeText(this, "Đã cập nhật", Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Hủy", null)
@@ -180,7 +259,7 @@ public class Layout6Activity extends AppCompatActivity {
                 .setPositiveButton("Hiển thị ở màn hình chính", (dialog, which) -> {
                     saveScheduleToFirebase();
                     Toast.makeText(this, "Đã lưu và áp dụng", Toast.LENGTH_SHORT).show();
-                    finish(); // hoặc chuyển MainActivity
+                    finish();
                 })
                 .setNegativeButton("Chỉ lưu vào lịch sử", (dialog, which) -> {
                     saveScheduleToFirebase();
@@ -189,9 +268,97 @@ public class Layout6Activity extends AppCompatActivity {
                 .setNeutralButton("Hủy", null)
                 .show();
     }
+    private void showAddDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this).inflate(R.layout.edit_schedule1, null); // reuse the same layout if appropriate
+        EditText etStart = view.findViewById(R.id.etStartTime);
+        EditText etEnd = view.findViewById(R.id.etEndTime);
+        EditText etAct = view.findViewById(R.id.etActivity);
+
+        // Optionally put default times
+        etStart.setHint("06:00");
+        etEnd.setHint("07:00");
+
+        builder.setView(view)
+                .setTitle("Thêm lịch trình")
+                .setPositiveButton("Thêm", (dialog, which) -> {
+                    String newStart = etStart.getText().toString().trim();
+                    String newEnd = etEnd.getText().toString().trim();
+                    String newAct = etAct.getText().toString().trim();
+
+                    if (newStart.isEmpty() || newEnd.isEmpty()) {
+                        Toast.makeText(this, "Vui lòng nhập đầy đủ thời gian", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    // Create new item for currently selected day
+                    ScheduleItem newItem = new ScheduleItem(0, newStart, newEnd, newAct, selectedDay);
+
+                    // Add to current list and update adapter
+                    if (currentList == null) currentList = new ArrayList<>();
+                    currentList.add(newItem);
+                    if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
+
+                    // Option A: save immediately to Firebase (recommended if you want persistence per add)
+                    saveSingleItemToFirebase(newItem);
+
+                    Toast.makeText(this, "Đã thêm mục lịch", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    // Save a single ScheduleItem to Firebase under the selected day using push() to keep items separate
+    private void saveSingleItemToFirebase(ScheduleItem item) {
+        if (item == null) return;
+        String dayNode = "day_" + item.getDayOfWeek();
+        // push a new child with autogenerated key
+        DatabaseReference dayRef = databaseReference.child(dayNode);
+        dayRef.push().setValue(item)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Saved single item to Firebase"))
+                .addOnFailureListener(e -> Toast.makeText(this, "Lỗi lưu item: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    // Optional helper to merge Firebase-loaded items with current preview list (instead of overwriting)
+// Call this from loadScheduleDataForDay if you want to keep preview and append real data:
+    private void mergeFirebaseItems(List<ScheduleItem> firebaseItems) {
+        if (currentList == null) currentList = new ArrayList<>();
+        if (firebaseItems == null || firebaseItems.isEmpty()) {
+            // nothing to merge
+            if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
+            return;
+        }
+
+        for (ScheduleItem item : firebaseItems) {
+            boolean exists = false;
+            for (ScheduleItem c : currentList) {
+                String cs = c.getStartTime() == null ? "" : c.getStartTime();
+                String ce = c.getEndTime() == null ? "" : c.getEndTime();
+                String as = item.getStartTime() == null ? "" : item.getStartTime();
+                String ae = item.getEndTime() == null ? "" : item.getEndTime();
+                String ca = c.getActivity() == null ? "" : c.getActivity();
+                String ia = item.getActivity() == null ? "" : item.getActivity();
+
+                if (cs.equals(as) && ce.equals(ae) && ca.equals(ia)) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) currentList.add(item);
+        }
+
+        // Optional: sort by startTime if format is HH:mm
+        currentList.sort((a, b) -> {
+            String as = a.getStartTime() == null ? "" : a.getStartTime();
+            String bs = b.getStartTime() == null ? "" : b.getStartTime();
+            return as.compareTo(bs);
+        });
+
+        if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
+    }
 
     private void saveScheduleToFirebase() {
-        if (currentList.isEmpty()) {
+        if (currentList == null || currentList.isEmpty()) {
             Toast.makeText(this, "Danh sách lịch trống", Toast.LENGTH_SHORT).show();
             return;
         }

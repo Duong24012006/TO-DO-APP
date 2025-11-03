@@ -22,7 +22,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.to_do_app.R;
 import com.example.to_do_app.activitys.Layout6Activity;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -34,15 +36,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * ProfileFragment — shows only applied schedules (history saved by Layout6Activity).
+ * ProfileFragment — shows only user-added history entries (isUserAdded == true).
  *
- * Behavior changes:
- * - Removed ability to add history manually from this fragment.
- * - Loads history from Firebase (/users/<userId>/history) (fallback to local).
- * - Each history item preserves firebase key (historyKey) for editing.
- * - "Chỉnh sửa" opens Layout6Activity with extras:
- *      EXTRA_TEMPLATE_TITLE, EXTRA_TEMPLATE_DESCRIPTION, selected_day, EXTRA_HISTORY_KEY
- *   so Layout6Activity can let user edit the applied schedule. (Layout6Activity must handle this extra.)
+ * Behavior:
+ * - Attaches a ChildEventListener to /users/<userId>/history so newly pushed history items
+ *   created by Layout6Activity appear immediately (child_added).
+ * - loadHistory() reads from Firebase once as a fallback, but the listener keeps the UI realtime.
+ * - onResume() also triggers reload (safe fallback).
+ * - Local prefs are kept in sync (saveHistoryListToLocalWithKeys).
+ *
+ * Note:
+ * - Layout6Activity should set "isUserAdded": true when it pushes single activity history entries.
  */
 public class ProfileFragment extends Fragment {
 
@@ -62,6 +66,8 @@ public class ProfileFragment extends Fragment {
 
     // Firebase
     private DatabaseReference rootRef;
+    private DatabaseReference historyRef;
+    private ChildEventListener historyListener;
     private String userId;
 
     public ProfileFragment() { }
@@ -83,6 +89,9 @@ public class ProfileFragment extends Fragment {
             userId = "user_" + System.currentTimeMillis();
             prefs.edit().putString(KEY_USER_ID, userId).apply();
         }
+
+        // historyRef points to user's history node
+        historyRef = rootRef.child("users").child(userId).child("history");
 
         tvProfileTitle = root.findViewById(R.id.tv_profile_title);
         ivAvatar = root.findViewById(R.id.iv_avatar);
@@ -137,8 +146,9 @@ public class ProfileFragment extends Fragment {
 
         // load profile name and history
         loadProfileName();
-        loadHistory();
+        loadHistory(); // initial load
 
+        historyList = historyList == null ? new ArrayList<>() : historyList;
         adapter = new HistoryListAdapter(historyList);
         rvHistory.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvHistory.setAdapter(adapter);
@@ -149,6 +159,151 @@ public class ProfileFragment extends Fragment {
         // NOTE: intentionally removed "add history" from this fragment — history is created by Layout6Activity when user applies.
 
         return root;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        attachHistoryListener();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        detachHistoryListener();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // ensure we have a fresh baseline (listener handles realtime updates)
+        loadHistory();
+    }
+
+    private void attachHistoryListener() {
+        if (historyRef == null) return;
+        if (historyListener != null) return; // already attached
+
+        historyListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                // Only respond to user-added entries (isUserAdded == true)
+                Boolean isUserAdded = false;
+                if (snapshot.child("isUserAdded").exists()) {
+                    isUserAdded = snapshot.child("isUserAdded").getValue(Boolean.class);
+                }
+                if (isUserAdded == null || !isUserAdded) return;
+
+                String historyKey = snapshot.getKey();
+                String title = snapshot.child("title").getValue(String.class);
+                String subtitle = snapshot.child("subtitle").getValue(String.class);
+
+                Integer day = null;
+                if (snapshot.child("day").exists()) {
+                    Long d = snapshot.child("day").getValue(Long.class);
+                    if (d != null) day = d.intValue();
+                }
+
+                List<String> activities = new ArrayList<>();
+                if (snapshot.child("activities").exists()) {
+                    for (DataSnapshot act : snapshot.child("activities").getChildren()) {
+                        if (act.child("time").exists() && act.child("activity").exists()) {
+                            String t = act.child("time").getValue(String.class);
+                            String a = act.child("activity").getValue(String.class);
+                            if (t != null && a != null) activities.add(t + ": " + a);
+                        } else {
+                            String s = act.getValue(String.class);
+                            if (s != null) activities.add(s);
+                        }
+                    }
+                }
+
+                // Avoid duplicates
+                for (HistoryItem h : historyList) {
+                    if (h.historyKey != null && h.historyKey.equals(historyKey)) return;
+                }
+
+                HistoryItem newItem = new HistoryItem(historyKey,
+                        title != null ? title : "",
+                        subtitle != null ? subtitle : "",
+                        day,
+                        activities);
+
+                historyList.add(0, newItem);
+                saveHistoryListToLocalWithKeys();
+                if (adapter != null) adapter.updateData(historyList);
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                String historyKey = snapshot.getKey();
+                for (int i = 0; i < historyList.size(); i++) {
+                    HistoryItem it = historyList.get(i);
+                    if (it.historyKey != null && it.historyKey.equals(historyKey)) {
+                        String title = snapshot.child("title").getValue(String.class);
+                        String subtitle = snapshot.child("subtitle").getValue(String.class);
+                        Integer day = null;
+                        if (snapshot.child("day").exists()) {
+                            Long d = snapshot.child("day").getValue(Long.class);
+                            if (d != null) day = d.intValue();
+                        }
+                        List<String> activities = new ArrayList<>();
+                        if (snapshot.child("activities").exists()) {
+                            for (DataSnapshot act : snapshot.child("activities").getChildren()) {
+                                if (act.child("time").exists() && act.child("activity").exists()) {
+                                    String t = act.child("time").getValue(String.class);
+                                    String a = act.child("activity").getValue(String.class);
+                                    if (t != null && a != null) activities.add(t + ": " + a);
+                                } else {
+                                    String s = act.getValue(String.class);
+                                    if (s != null) activities.add(s);
+                                }
+                            }
+                        }
+                        it.title = title != null ? title : it.title;
+                        it.subtitle = subtitle != null ? subtitle : it.subtitle;
+                        it.day = day != null ? day : it.day;
+                        it.activities = activities;
+                        saveHistoryListToLocalWithKeys();
+                        if (adapter != null) adapter.updateData(historyList);
+                        break;
+                    }
+                }
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+                String historyKey = snapshot.getKey();
+                for (int i = 0; i < historyList.size(); i++) {
+                    HistoryItem it = historyList.get(i);
+                    if (it.historyKey != null && it.historyKey.equals(historyKey)) {
+                        historyList.remove(i);
+                        saveHistoryListToLocalWithKeys();
+                        if (adapter != null) adapter.updateData(historyList);
+                        break;
+                    }
+                }
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                // not used
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // optional: log or show toast
+            }
+        };
+
+        historyRef.addChildEventListener(historyListener);
+    }
+
+    private void detachHistoryListener() {
+        if (historyRef != null && historyListener != null) {
+            historyRef.removeEventListener(historyListener);
+            historyListener = null;
+        }
     }
 
     private void loadProfileName() {
@@ -173,13 +328,19 @@ public class ProfileFragment extends Fragment {
     private void loadHistory() {
         historyList = new ArrayList<>();
 
-        // Read from Firebase /users/<userId>/history (only applied schedules are saved there by Layout6Activity)
-        rootRef.child("users").child(userId).child("history").get().addOnCompleteListener(task -> {
+        // Read from Firebase /users/<userId>/history once (initial load). The ChildEventListener will handle realtime additions.
+        historyRef.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 DataSnapshot snap = task.getResult();
                 if (snap.exists()) {
-                    // load items with their firebase keys
+                    // load items with their firebase keys but only those marked isUserAdded == true
                     for (DataSnapshot child : snap.getChildren()) {
+                        Boolean isUserAdded = false;
+                        if (child.child("isUserAdded").exists()) {
+                            isUserAdded = child.child("isUserAdded").getValue(Boolean.class);
+                        }
+                        if (isUserAdded == null || !isUserAdded) continue;
+
                         String historyKey = child.getKey();
                         String title = child.child("title").getValue(String.class);
                         String subtitle = child.child("subtitle").getValue(String.class);
@@ -193,8 +354,14 @@ public class ProfileFragment extends Fragment {
                         List<String> activities = new ArrayList<>();
                         if (child.child("activities").exists()) {
                             for (DataSnapshot act : child.child("activities").getChildren()) {
-                                String s = act.getValue(String.class);
-                                if (s != null) activities.add(s);
+                                if (act.child("time").exists() && act.child("activity").exists()) {
+                                    String t = act.child("time").getValue(String.class);
+                                    String a = act.child("activity").getValue(String.class);
+                                    if (t != null && a != null) activities.add(t + ": " + a);
+                                } else {
+                                    String s = act.getValue(String.class);
+                                    if (s != null) activities.add(s);
+                                }
                             }
                         }
 
@@ -204,15 +371,14 @@ public class ProfileFragment extends Fragment {
                                 day,
                                 activities));
                     }
-                    // persist local copy (including keys) and update UI
                     saveHistoryListToLocalWithKeys();
-                    adapter.updateData(historyList);
+                    if (adapter != null) adapter.updateData(historyList);
                     return;
                 }
             }
             // fallback to local
             loadHistoryFromLocalWithKeys();
-            adapter.updateData(historyList);
+            if (adapter != null) adapter.updateData(historyList);
         });
     }
 
@@ -233,9 +399,21 @@ public class ProfileFragment extends Fragment {
                 Integer day = o.has("day") ? o.optInt("day") : null;
                 List<String> activities = new ArrayList<>();
                 if (o.has("activities")) {
+                    // activities may be array of strings or array of objects
                     JSONArray a = o.optJSONArray("activities");
                     if (a != null) {
-                        for (int j = 0; j < a.length(); j++) activities.add(a.optString(j, ""));
+                        for (int j = 0; j < a.length(); j++) {
+                            Object el = a.opt(j);
+                            if (el instanceof String) activities.add((String) el);
+                            else if (el instanceof JSONObject) {
+                                JSONObject jo = (JSONObject) el;
+                                String time = jo.optString("time", "");
+                                String act = jo.optString("activity", "");
+                                if (!TextUtils.isEmpty(time) && !TextUtils.isEmpty(act)) activities.add(time + ": " + act);
+                            } else {
+                                activities.add(String.valueOf(el));
+                            }
+                        }
                     }
                 } else if (o.has("activities_text")) {
                     String at = o.optString("activities_text", "");
@@ -275,10 +453,10 @@ public class ProfileFragment extends Fragment {
 
     private void pushLocalHistoryToFirebase() {
         // keep this for synchronization if needed; but primary source is Firebase
-        DatabaseReference historyRef = rootRef.child("users").child(userId).child("history");
-        historyRef.removeValue().addOnCompleteListener(t -> {
+        DatabaseReference historyRefLocal = rootRef.child("users").child(userId).child("history");
+        historyRefLocal.removeValue().addOnCompleteListener(t -> {
             for (HistoryItem it : historyList) {
-                DatabaseReference p = historyRef.push();
+                DatabaseReference p = historyRefLocal.push();
                 p.child("title").setValue(it.title);
                 p.child("subtitle").setValue(it.subtitle);
                 if (it.day != null) p.child("day").setValue(it.day);
@@ -314,9 +492,7 @@ public class ProfileFragment extends Fragment {
         b.show();
     }
 
-    // Removed manual add history dialog — history should be created only by applying schedules in Layout6Activity.
-
-    // Adapter with actions (view, apply, edit, delete)
+    // Adapter with actions (view, open to edit in Layout6Activity, delete)
     private class HistoryListAdapter extends RecyclerView.Adapter<HistoryListAdapter.VH> {
         private List<HistoryItem> items;
 
@@ -413,10 +589,6 @@ public class ProfileFragment extends Fragment {
         b.setMessage(sb.toString());
         b.setPositiveButton("Đóng", null);
         b.show();
-    }
-
-    private void showEditHistoryDialog(int position, HistoryItem item) {
-        // Not used: editing is done in Layout6Activity. Keep for backward-compat if you want local edit UI.
     }
 
     private void confirmDelete(int position) {

@@ -37,21 +37,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Layout6Activity — updated to validate non-overlapping time slots.
+ * Layout6Activity — updated to:
+ * - Save new schedule items under the correct day node (day_N).
+ * - After adding an item, push a small history entry (isUserAdded=true) so ProfileFragment shows it immediately.
+ * - Provide two add modes: predefined-slot (non-overlapping slot) and free activity (allows overlap).
+ * - When editing, preserve item.day and update under its original day node (unless you explicitly move it).
  *
- * Changes in this version:
- * - Added timeToMinutes(...) helper to parse HH:mm to minutes.
- * - Added isOverlapping(...) helper to detect interval overlap using [start, end) semantics.
- * - showAddDialog() now validates format, ensures end > start, checks overlap with existing items,
- *   and prevents adding if overlapping.
- * - showEditDialog() now validates and checks overlap (excluding the edited item).
- * - Other behavior unchanged.
- *
- * Make sure your ScheduleItem.getStartTime()/getEndTime() return strings in "HH:mm" format.
+ * Important:
+ * - ScheduleItem must include fields: startTime, endTime, activity, dayOfWeek, firebaseKey plus getters/setters.
+ * - ProfileFragment expects pushed history entries to include isUserAdded=true and activities array objects with time/activity/day.
  */
 public class Layout6Activity extends AppCompatActivity {
 
     private static final String TAG = "Layout6Activity";
+
+    public static final String EXTRA_TEMPLATE_TITLE = "EXTRA_TEMPLATE_TITLE";
+    public static final String EXTRA_TEMPLATE_DESCRIPTION = "EXTRA_TEMPLATE_DESCRIPTION";
+    public static final String EXTRA_HISTORY_KEY = "EXTRA_HISTORY_KEY";
 
     private CardView btnBack;
     private android.widget.TextView tvTitleHeader;
@@ -69,8 +71,8 @@ public class Layout6Activity extends AppCompatActivity {
     private FloatingActionButton fabAdd;
 
     // Firebase
-    private DatabaseReference databaseReference;
-    private DatabaseReference rootRef;
+    private DatabaseReference databaseReference; // schedules/day_N
+    private DatabaseReference rootRef; // root
     private String userId;
 
     // Profile (overrides) storage
@@ -81,7 +83,7 @@ public class Layout6Activity extends AppCompatActivity {
     private static final String PROFILE_PREFS = "profile_prefs";
     private static final String PROFILE_HISTORY_KEY = "profile_history";
 
-    // If editing an existing applied history entry, this holds its Firebase key
+    // If editing an existing applied history entry, this holds its Firebase history key
     private String editingHistoryKey = null;
 
     @Override
@@ -94,7 +96,7 @@ public class Layout6Activity extends AppCompatActivity {
         rootRef = FirebaseDatabase.getInstance().getReference();
         prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
-        // ensure userId exists (if you use FirebaseAuth, replace with auth uid)
+        // userId stored in profile prefs (shared with ProfileFragment)
         SharedPreferences profilePrefs = getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE);
         userId = profilePrefs.getString("profile_user_id", null);
         if (userId == null) {
@@ -104,21 +106,16 @@ public class Layout6Activity extends AppCompatActivity {
 
         bindViews();
 
-        // read selected day early if caller sent it
+        // selected day and optional history key (editing)
         selectedDay = getIntent().getIntExtra("selected_day", selectedDay);
+        editingHistoryKey = getIntent().getStringExtra(EXTRA_HISTORY_KEY);
 
-        // read optional history key (edit mode)
-        editingHistoryKey = getIntent().getStringExtra("EXTRA_HISTORY_KEY");
-
-        // init RecyclerView + adapter
         setupRecyclerView();
 
-        // Read extras sent from template adapter (or from ProfileFragment apply)
-        String passedTitle = getIntent().getStringExtra("EXTRA_TEMPLATE_TITLE");
-        String passedDescription = getIntent().getStringExtra("EXTRA_TEMPLATE_DESCRIPTION");
+        String passedTitle = getIntent().getStringExtra(EXTRA_TEMPLATE_TITLE);
+        String passedDescription = getIntent().getStringExtra(EXTRA_TEMPLATE_DESCRIPTION);
         ArrayList<String> passedTags = getIntent().getStringArrayListExtra("EXTRA_TEMPLATE_TAGS");
 
-        // Nếu truyền tiêu đề template, cập nhật header ngay
         if (passedTitle != null && !passedTitle.isEmpty() && tvTitleHeader != null) {
             tvTitleHeader.setText(passedTitle);
         }
@@ -128,26 +125,19 @@ public class Layout6Activity extends AppCompatActivity {
                 || (passedTags != null && !passedTags.isEmpty());
 
         if (hasTemplate) {
-            // create preview ScheduleItem and show it immediately
             ScheduleItem preview = new ScheduleItem(0, "06:00", "07:00",
                     (passedTitle != null && !passedTitle.isEmpty()) ? passedTitle :
                             (passedDescription != null ? passedDescription : "Activity"),
                     selectedDay);
             currentList.clear();
             currentList.add(preview);
-
-            // update adapter on UI thread
             runOnUiThread(() -> {
                 if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
             });
-
-            // We'll still load and merge real items below so the selected day shows full content.
         }
 
         setupDays();
         setupListeners();
-
-        // Ensure selected day's data is loaded (merges with preview if present)
         loadScheduleDataForDay(selectedDay);
     }
 
@@ -164,13 +154,11 @@ public class Layout6Activity extends AppCompatActivity {
         day6 = findViewById(R.id.day6);
         day7 = findViewById(R.id.day7);
         dayCN = findViewById(R.id.dayCN);
-
         daysContainer = findViewById(R.id.daysContainer);
     }
 
     private void setupRecyclerView() {
         if (currentList == null) currentList = new ArrayList<>();
-
         scheduleAdapter = new ScheduleItemAdapter(this, currentList, new ScheduleItemAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(int position, ScheduleItem item) {
@@ -182,7 +170,6 @@ public class Layout6Activity extends AppCompatActivity {
                 showEditDialog(position, item);
             }
         });
-
         scheduleRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         scheduleRecyclerView.setAdapter(scheduleAdapter);
     }
@@ -213,7 +200,6 @@ public class Layout6Activity extends AppCompatActivity {
         day7.setOnClickListener(dayClick);
         dayCN.setOnClickListener(dayClick);
 
-        // default selection
         day2.setSelected(true);
         selectedDayView = day2;
     }
@@ -221,10 +207,7 @@ public class Layout6Activity extends AppCompatActivity {
     private void setupListeners() {
         btnBack.setOnClickListener(v -> finish());
         btnApplySchedule.setOnClickListener(v -> showApplyDialog());
-
-        if (fabAdd != null) {
-            fabAdd.setOnClickListener(v -> showAddDialog());
-        }
+        if (fabAdd != null) fabAdd.setOnClickListener(v -> showAddDialogMode());
     }
 
     private void loadScheduleDataForDay(int day) {
@@ -245,8 +228,6 @@ public class Layout6Activity extends AppCompatActivity {
                 }
 
                 List<ScheduleItem> itemsToShow = new ArrayList<>();
-
-                // built-ins
                 List<ScheduleItem> builtins = getDefaultItemsForDay(day);
                 int biCounter = 0;
                 for (ScheduleItem b : builtins) {
@@ -254,16 +235,9 @@ public class Layout6Activity extends AppCompatActivity {
                     itemsToShow.add(b);
                 }
 
-                // firebase user items
-                if (firebaseItems != null && !firebaseItems.isEmpty()) {
-                    itemsToShow.addAll(firebaseItems);
-                }
-
-                // overrides from prefs
+                if (firebaseItems != null && !firebaseItems.isEmpty()) itemsToShow.addAll(firebaseItems);
                 List<ScheduleItem> overrides = getOverridesFromPrefs(day);
-                if (overrides != null && !overrides.isEmpty()) {
-                    itemsToShow.addAll(overrides);
-                }
+                if (overrides != null && !overrides.isEmpty()) itemsToShow.addAll(overrides);
 
                 if (currentList != null && !currentList.isEmpty()) {
                     for (ScheduleItem item : itemsToShow) {
@@ -275,7 +249,6 @@ public class Layout6Activity extends AppCompatActivity {
                             String ae = item.getEndTime() == null ? "" : item.getEndTime();
                             String ca = c.getActivity() == null ? "" : c.getActivity();
                             String ia = item.getActivity() == null ? "" : item.getActivity();
-
                             if (cs.equals(as) && ce.equals(ae) && ca.equals(ia)) {
                                 exists = true;
                                 break;
@@ -338,7 +311,6 @@ public class Layout6Activity extends AppCompatActivity {
                         return;
                     }
 
-                    // validate times
                     if (timeToMinutes(newStart) < 0 || timeToMinutes(newEnd) < 0) {
                         Toast.makeText(this, "Định dạng thời gian không hợp lệ (HH:mm)", Toast.LENGTH_SHORT).show();
                         return;
@@ -354,7 +326,6 @@ public class Layout6Activity extends AppCompatActivity {
                         String overrideKey = "override_" + System.currentTimeMillis();
                         override.setFirebaseKey(overrideKey);
 
-                        // check overlap against currentList but exclude the builtin item being overridden?
                         if (isOverlapping(newStart, newEnd, currentList, item)) {
                             Toast.makeText(this, "Thời gian mới trùng với mục khác. Vui lòng chọn khung giờ khác.", Toast.LENGTH_LONG).show();
                             return;
@@ -370,7 +341,6 @@ public class Layout6Activity extends AppCompatActivity {
                         return;
                     }
 
-                    // check overlap with other items (exclude the item being edited)
                     if (isOverlapping(newStart, newEnd, currentList, item)) {
                         Toast.makeText(this, "Thời gian mới trùng với mục khác. Vui lòng chọn khung giờ khác.", Toast.LENGTH_LONG).show();
                         return;
@@ -389,6 +359,8 @@ public class Layout6Activity extends AppCompatActivity {
                         saveOverrideToPrefs(item.getDayOfWeek(), item);
                     } else {
                         saveSingleItemToFirebase(item);
+                        // also push a single-activity history so Profile shows it
+                        pushSingleActivityToProfileHistory(item, null);
                     }
 
                     if (scheduleAdapter != null) scheduleAdapter.notifyItemChanged(position);
@@ -417,32 +389,24 @@ public class Layout6Activity extends AppCompatActivity {
                 .show();
     }
 
-    // Thay thế phương thức showAddDialog() hiện tại bằng đoạn này:
-    private void showAddDialog() {
-        // We will offer two modes:
-        // Mode A: choose a predefined slot (from getDefaultItemsForDay(selectedDay)).
-        //         If that slot already has an activity (an existing ScheduleItem with same start+end), disallow adding.
-        // Mode B: free activity: user supplies start/end/activity freely (can overlap existing).
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Thêm lịch trình");
-
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.edit_schedule1, null);
-        EditText etStart = dialogView.findViewById(R.id.etStartTime);
-        EditText etEnd = dialogView.findViewById(R.id.etEndTime);
-        EditText etAct = dialogView.findViewById(R.id.etActivity);
-
-        // We'll add a simple mode selector at top programmatically (radio-like using two buttons)
-        // For simplicity reuse etActivity hint to show mode; alternatively create a custom layout.
-        // Here we implement with a small choice dialog before showing the form.
-
+    /**
+     * showAddDialogMode
+     * Mode A: add into predefined slot (only if slot free for selected day)
+     * Mode B: add free activity (overlap allowed)
+     */
+    private void showAddDialogMode() {
         AlertDialog.Builder modeBuilder = new AlertDialog.Builder(this);
         modeBuilder.setTitle("Chọn cách thêm")
-                .setItems(new String[] { "Thêm vào khung giờ cố định", "Thêm hoạt động tùy ý (cho phép trùng)" }, (modeDialog, whichMode) -> {
+                .setItems(new String[]{"Thêm vào khung giờ cố định", "Thêm hoạt động tùy ý (cho phép trùng)"}, (modeDialog, whichMode) -> {
+                    View dialogView = LayoutInflater.from(this).inflate(R.layout.edit_schedule1, null);
+                    EditText etStart = dialogView.findViewById(R.id.etStartTime);
+                    EditText etEnd = dialogView.findViewById(R.id.etEndTime);
+                    EditText etAct = dialogView.findViewById(R.id.etActivity);
+                    etStart.setHint("06:00");
+                    etEnd.setHint("07:00");
+
                     if (whichMode == 0) {
-                        // Mode A: choose predefined slot
-                        // Get predefined slots for selectedDay
                         List<ScheduleItem> predefined = getDefaultItemsForDay(selectedDay);
-                        // Build string list for display
                         List<String> slotLabels = new ArrayList<>();
                         for (ScheduleItem s : predefined) {
                             String label = s.getStartTime() + " - " + s.getEndTime() + " : " + s.getActivity();
@@ -454,7 +418,6 @@ public class Layout6Activity extends AppCompatActivity {
                                 .setTitle("Chọn khung giờ")
                                 .setItems(choices, (slotDialog, slotIndex) -> {
                                     ScheduleItem chosenSlot = predefined.get(slotIndex);
-                                    // Check if this slot already occupied in currentList (same start & end)
                                     boolean occupied = false;
                                     if (currentList != null) {
                                         for (ScheduleItem existing : currentList) {
@@ -470,11 +433,10 @@ public class Layout6Activity extends AppCompatActivity {
                                         Toast.makeText(this, "Khung giờ này đã có hoạt động, không thể thêm.", Toast.LENGTH_LONG).show();
                                         return;
                                     }
-                                    // Create new item in that slot; allow user to edit activity text before saving
                                     etStart.setText(chosenSlot.getStartTime());
                                     etEnd.setText(chosenSlot.getEndTime());
-                                    etAct.setText(chosenSlot.getActivity()); // default
-                                    // show the form dialog to confirm/edit description
+                                    etAct.setText(chosenSlot.getActivity());
+
                                     new AlertDialog.Builder(this)
                                             .setTitle("Xác nhận khung giờ")
                                             .setView(dialogView)
@@ -482,7 +444,6 @@ public class Layout6Activity extends AppCompatActivity {
                                                 String newStart = etStart.getText().toString().trim();
                                                 String newEnd = etEnd.getText().toString().trim();
                                                 String newAct = etAct.getText().toString().trim();
-                                                // Basic validation
                                                 if (newStart.isEmpty() || newEnd.isEmpty()) {
                                                     Toast.makeText(this, "Vui lòng nhập đầy đủ thời gian", Toast.LENGTH_SHORT).show();
                                                     return;
@@ -495,7 +456,6 @@ public class Layout6Activity extends AppCompatActivity {
                                                     Toast.makeText(this, "Thời gian kết thúc phải sau thời gian bắt đầu", Toast.LENGTH_SHORT).show();
                                                     return;
                                                 }
-                                                // Re-check occupancy (race safety)
                                                 boolean occupiedNow = false;
                                                 if (currentList != null) {
                                                     for (ScheduleItem existing : currentList) {
@@ -511,7 +471,6 @@ public class Layout6Activity extends AppCompatActivity {
                                                     Toast.makeText(this, "Khung giờ này đã có hoạt động, không thể thêm.", Toast.LENGTH_LONG).show();
                                                     return;
                                                 }
-                                                // Add as non-overlapping predefined slot item
                                                 ScheduleItem newItem = new ScheduleItem(0, newStart, newEnd, newAct, selectedDay);
                                                 if (currentList == null) currentList = new ArrayList<>();
                                                 currentList.add(newItem);
@@ -522,6 +481,8 @@ public class Layout6Activity extends AppCompatActivity {
                                                 });
                                                 if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
                                                 saveSingleItemToFirebase(newItem);
+                                                // push single small history item so ProfileFragment shows it
+                                                pushSingleActivityToProfileHistory(newItem, null);
                                                 Toast.makeText(this, "Đã thêm vào khung giờ cố định", Toast.LENGTH_SHORT).show();
                                             })
                                             .setNegativeButton("Hủy", null)
@@ -529,9 +490,9 @@ public class Layout6Activity extends AppCompatActivity {
                                 })
                                 .show();
                     } else {
-                        // Mode B: free input, allow overlap
-                        // Show the same dialogView but in free mode: no overlap check
-                        etStart.setText(""); etEnd.setText(""); etAct.setText("");
+                        etStart.setText("");
+                        etEnd.setText("");
+                        etAct.setText("");
                         new AlertDialog.Builder(this)
                                 .setTitle("Thêm hoạt động tùy ý (cho phép trùng)")
                                 .setView(dialogView)
@@ -551,7 +512,6 @@ public class Layout6Activity extends AppCompatActivity {
                                         Toast.makeText(this, "Thời gian kết thúc phải sau thời gian bắt đầu", Toast.LENGTH_SHORT).show();
                                         return;
                                     }
-                                    // In free mode we allow overlap: create item and save
                                     ScheduleItem newItem = new ScheduleItem(0, newStart, newEnd, newAct, selectedDay);
                                     if (currentList == null) currentList = new ArrayList<>();
                                     currentList.add(newItem);
@@ -561,8 +521,8 @@ public class Layout6Activity extends AppCompatActivity {
                                         return as.compareTo(bs);
                                     });
                                     if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
-                                    // save to firebase as usual
                                     saveSingleItemToFirebase(newItem);
+                                    pushSingleActivityToProfileHistory(newItem, null);
                                     Toast.makeText(this, "Đã thêm hoạt động (cho phép trùng)", Toast.LENGTH_SHORT).show();
                                 })
                                 .setNegativeButton("Hủy", null)
@@ -591,6 +551,74 @@ public class Layout6Activity extends AppCompatActivity {
         dayRef.child(key).setValue(item)
                 .addOnSuccessListener(aVoid -> Log.d(TAG, "Saved single item to Firebase with key=" + key))
                 .addOnFailureListener(e -> Toast.makeText(this, "Lỗi lưu item: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    /**
+     * Push a small history entry for a single activity (user-added).
+     * The pushed entry includes: title, subtitle, day, activities:[{time,activity,day}], isUserAdded=true
+     * Also appends the entry to local profile_prefs history at the front.
+     */
+    private void pushSingleActivityToProfileHistory(ScheduleItem item, String titleOptional) {
+        if (item == null) return;
+
+        String title = titleOptional;
+        if (title == null || title.trim().isEmpty()) {
+            if (tvTitleHeader != null && tvTitleHeader.getText() != null && !tvTitleHeader.getText().toString().trim().isEmpty()) {
+                title = tvTitleHeader.getText().toString().trim();
+            } else {
+                title = "Lịch ngày " + (item.getDayOfWeek() == 8 ? "CN" : ("Thứ " + item.getDayOfWeek()));
+            }
+        }
+
+        String time = (item.getStartTime() == null ? "" : item.getStartTime()) + "-" + (item.getEndTime() == null ? "" : item.getEndTime());
+        String activity = item.getActivity() == null ? "" : item.getActivity();
+
+        try {
+            SharedPreferences profilePrefs = getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE);
+            String json = profilePrefs.getString(PROFILE_HISTORY_KEY, null);
+            JSONArray arr = (json == null) ? new JSONArray() : new JSONArray(json);
+
+            JSONObject obj = new JSONObject();
+            obj.put("title", title);
+            obj.put("subtitle", time + ": " + activity);
+            obj.put("day", item.getDayOfWeek());
+            obj.put("isUserAdded", true);
+
+            JSONArray acts = new JSONArray();
+            JSONObject aobj = new JSONObject();
+            aobj.put("time", time);
+            aobj.put("activity", activity);
+            aobj.put("day", item.getDayOfWeek());
+            acts.put(aobj);
+            obj.put("activities", acts);
+
+            if (item.getFirebaseKey() != null) obj.put("linkedScheduleKey", item.getFirebaseKey());
+
+            // insert at front
+            JSONArray newArr = new JSONArray();
+            newArr.put(obj);
+            for (int i = 0; i < arr.length(); i++) newArr.put(arr.get(i));
+            profilePrefs.edit().putString(PROFILE_HISTORY_KEY, newArr.toString()).apply();
+
+            // push to Firebase
+            DatabaseReference historyRef = rootRef.child("users").child(userId).child("history");
+            DatabaseReference p = historyRef.push();
+            p.child("title").setValue(title);
+            p.child("subtitle").setValue(time + ": " + activity);
+            p.child("day").setValue(item.getDayOfWeek());
+            p.child("isUserAdded").setValue(true);
+            DatabaseReference actsRef = p.child("activities");
+            DatabaseReference ap = actsRef.push();
+            ap.child("time").setValue(time);
+            ap.child("activity").setValue(activity);
+            ap.child("day").setValue(item.getDayOfWeek());
+            p.child("timestamp").setValue(ServerValue.TIMESTAMP);
+
+        } catch (JSONException ex) {
+            Log.e(TAG, "pushSingleActivityToProfileHistory error", ex);
+        } catch (Exception ex) {
+            Log.w(TAG, "pushSingleActivityToProfileHistory failed", ex);
+        }
     }
 
     private List<ScheduleItem> getOverridesFromPrefs(int day) {
@@ -650,7 +678,6 @@ public class Layout6Activity extends AppCompatActivity {
             prefs.edit().putString(key, arr.toString()).apply();
             Log.d(TAG, "Saved override to prefs for day " + day);
 
-            // also persist overrides to Firebase for cross-device sync
             DatabaseReference overridesRef = rootRef.child("users").child(userId).child("overrides_day_" + day);
             overridesRef.removeValue().addOnCompleteListener(t -> {
                 for (ScheduleItem it : existing) {
@@ -714,6 +741,7 @@ public class Layout6Activity extends AppCompatActivity {
                 .addOnFailureListener(e -> Toast.makeText(this, "Lỗi lưu lịch: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
+    // saveScheduleToProfileHistory left unchanged (saves whole schedule summary when user clicks Apply)
     private void saveScheduleToProfileHistory(int day) {
         if (currentList == null) currentList = new ArrayList<>();
 
@@ -739,7 +767,15 @@ public class Layout6Activity extends AppCompatActivity {
             String e = it.getEndTime() == null ? "" : it.getEndTime();
             String a = it.getActivity() == null ? "" : it.getActivity();
             String row = s + "-" + e + ": " + a;
-            actsArr.put(row);
+            try {
+                JSONObject actObj = new JSONObject();
+                actObj.put("time", row);
+                actObj.put("activity", a);
+                actObj.put("day", it.getDayOfWeek());
+                actsArr.put(actObj);
+            } catch (JSONException ex) {
+                Log.w(TAG, "activity json error", ex);
+            }
             if (count < maxToShow) {
                 if (subtitleSb.length() > 0) subtitleSb.append("  •  ");
                 subtitleSb.append(row);
@@ -854,28 +890,22 @@ public class Layout6Activity extends AppCompatActivity {
         int ne = timeToMinutes(newEnd);
         if (ns < 0 || ne < 0 || ne <= ns) return true; // invalid => treat as overlapping/invalid
 
+        if (existing == null) return false;
         for (ScheduleItem it : existing) {
             if (exclude != null && it == exclude) continue;
+            // Usually currentList contains only items for selectedDay
             String s = it.getStartTime();
             String e = it.getEndTime();
             int is = timeToMinutes(s);
             int ie = timeToMinutes(e);
             if (is < 0 || ie < 0) continue;
-            // intervals [is,ie) and [ns,ne) overlap if ns < ie && is < ne
-            if (ns < ie && is < ne) {
-                return true;
-            }
+            if (ns < ie && is < ne) return true;
         }
         return false;
     }
 
-    /**
-     * Returns a list of about 7 built-in default ScheduleItem objects for the given day.
-     * Each weekday has a different set of activities using non-overlapping time blocks.
-     */
     private List<ScheduleItem> getDefaultItemsForDay(int day) {
         List<ScheduleItem> defaults = new ArrayList<>();
-
         switch (day) {
             case 2:
                 defaults.add(new ScheduleItem(0, "06:00", "08:00", "Thức dậy & vệ sinh", day));
@@ -950,7 +980,16 @@ public class Layout6Activity extends AppCompatActivity {
                 defaults.add(new ScheduleItem(0, "19:00", "21:00", "Gia đình", day));
                 break;
         }
-
         return defaults;
+    }
+    private boolean equalsByTimeAndActivity(ScheduleItem a, ScheduleItem b) {
+        if (a == null || b == null) return false;
+        String as = a.getStartTime() == null ? "" : a.getStartTime();
+        String ae = a.getEndTime() == null ? "" : a.getEndTime();
+        String aa = a.getActivity() == null ? "" : a.getActivity();
+        String bs = b.getStartTime() == null ? "" : b.getStartTime();
+        String be = b.getEndTime() == null ? "" : b.getEndTime();
+        String ba = b.getActivity() == null ? "" : b.getActivity();
+        return as.equals(bs) && ae.equals(be) && aa.equals(ba);
     }
 }

@@ -47,44 +47,44 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/headerLayout"
-        android:padding="12dp"
-        android:background="#FFFFFF">
+        android:background="#FFFFFF"
+        android:padding="12dp">
 
         <!-- Main white card -->
         <androidx.cardview.widget.CardView
             android:id="@+id/mainContentCard"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:cardCornerRadius="20dp"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             app:cardBackgroundColor="#FFFFFF"
+            app:cardCornerRadius="20dp"
             app:cardElevation="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
                 android:background="@drawable/border_history"
+                android:orientation="vertical"
                 android:padding="18dp">
 
                 <!-- Title row and Apply button -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
+                    android:layout_marginBottom="12dp"
                     android:gravity="center_vertical"
-                    android:layout_marginBottom="12dp">
+                    android:orientation="horizontal">
 
                     <TextView
                         android:id="@+id/tvSectionTitle"
                         android:layout_width="0dp"
-                        android:layout_weight="1"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:text="Lịch trình"
+                        android:textColor="#000"
                         android:textSize="32sp"
-                        android:textStyle="bold"
-                        android:textColor="#000" />
+                        android:textStyle="bold" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnApplySchedule"
@@ -96,10 +96,10 @@
                         app:backgroundTint="#BFB3F1"
                         app:cornerRadius="5dp"
                         app:icon="@drawable/ic_chevron_right"
-                        app:iconSize="32dp"
                         app:iconGravity="textEnd"
                         app:iconPadding="8dp"
-                        app:iconTint="#000000"/>
+                        app:iconSize="32dp"
+                        app:iconTint="#000000" />
                 </LinearLayout>
 
                 <!-- Days horizontal -->
@@ -128,8 +128,7 @@
                             android:focusable="true"
                             android:gravity="center"
                             android:orientation="vertical"
-                            android:padding="8dp"
-                            >
+                            android:padding="8dp">
 
                             <TextView
                                 android:layout_width="match_parent"
@@ -183,7 +182,7 @@
                                 android:textSize="16sp" />
                         </LinearLayout>
 
-                         <LinearLayout
+                        <LinearLayout
                             android:id="@+id/day4"
                             android:layout_width="60dp"
                             android:layout_height="match_parent"
@@ -214,7 +213,7 @@
                                 android:textSize="16sp" />
                         </LinearLayout>
 
-                         <LinearLayout
+                        <LinearLayout
                             android:id="@+id/day5"
                             android:layout_width="60dp"
                             android:layout_height="match_parent"

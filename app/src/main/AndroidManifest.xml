@@ -2,9 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Network access is required for Firebase Auth / any remote API usage -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
-        android:clearTaskOnLaunch="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
@@ -13,6 +15,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TODOAPP">
 
+        <!-- Ensure StartAppActivity is LAUNCHER (first entry point) -->
         <activity
             android:name=".activitys.StartAppActivity"
             android:exported="true">
@@ -22,10 +25,12 @@
             </intent-filter>
         </activity>
 
+        <!-- Internal activities -->
         <activity
             android:name=".activitys.MainActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustPan" />
+
         <activity
             android:name=".activitys.Layout6Activity"
             android:exported="false"

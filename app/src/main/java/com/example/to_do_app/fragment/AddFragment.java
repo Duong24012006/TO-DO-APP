@@ -42,6 +42,8 @@ public class AddFragment extends Fragment {
 
     private Map<Integer, String> filterCategoryMap;
     private Map<String, List<String>> filterOptionsMap;
+    private Map<String, String> categoryTagMap;
+    private Map<String, String> optionTagMap; // optional mapping from option text to tag (if available)
     private String currentFilterCategory = "";
 
     @Nullable
@@ -80,9 +82,37 @@ public class AddFragment extends Fragment {
 
         filterOptionsMap = new HashMap<>();
         filterOptionsMap.put("Giờ ngủ", Arrays.asList("4 giờ", "6 giờ", "8 giờ"));
-        filterOptionsMap.put("Học tập", Arrays.asList("4 giờ", "6 giờ", "8 giờ"));
+        filterOptionsMap.put("Học tập", Arrays.asList("2 giờ", "4 giờ", "6 giờ"));
         filterOptionsMap.put("Giải trí", Arrays.asList("30 phút", "60 phút", "90 phút"));
         filterOptionsMap.put("Thể thao", Arrays.asList("30 phút", "60 phút", "90 phút"));
+
+        // Map category -> main tag used to identify templates of that category
+        categoryTagMap = new HashMap<>();
+        categoryTagMap.put("Học tập", "#HocTap");
+        categoryTagMap.put("Thể thao", "#TheThao");
+        categoryTagMap.put("Giải trí", "#GiaiTri");
+        categoryTagMap.put("Giờ ngủ", "#GioNgu"); // fixed tag for sleep
+
+        // Option tag map is optional: if you have tags for specific options (e.g., durations),
+        // map them here so filter will be able to filter by both category and option.
+        // If your templates don't include such tags, the option filter will try to match the option
+        // text inside title or description as a fallback.
+        optionTagMap = new HashMap<>();
+        optionTagMap.put("Giờ ngủ:4 giờ", "#4h_sleep");
+        optionTagMap.put("Giờ ngủ:6 giờ", "#6h_sleep");
+        optionTagMap.put("Giờ ngủ:8 giờ", "#8h_sleep");
+
+        optionTagMap.put("Học tập:2 giờ", "#2h_study");
+        optionTagMap.put("Học tập:4 giờ", "#4h_study");
+        optionTagMap.put("Học tập:6 giờ", "#6h_study");
+
+        optionTagMap.put("Giải trí:30 phút", "#30m_fun");
+        optionTagMap.put("Giải trí:60 phút", "#60m_fun");
+        optionTagMap.put("Giải trí:90 phút", "#90m_fun");
+
+        optionTagMap.put("Thể thao:30 phút", "#30m_sport");
+        optionTagMap.put("Thể thao:60 phút", "#60m_sport");
+        optionTagMap.put("Thể thao:90 phút", "#90m_sport");
     }
 
     private void setupListeners() {
@@ -146,34 +176,51 @@ public class AddFragment extends Fragment {
     }
 
     private void applyFilter(String category, String option) {
-        String tagToFilter;
-        switch (category) {
-            case "Học tập":
-                tagToFilter = "#HocTap";
-                break;
-            case "Thể thao":
-                tagToFilter = "#TheThao";
-                break;
-            case "Giải trí":
-                tagToFilter = "#GiaiTri";
-                break;
-            case "Giờ ngủ":
-                tagToFilter = "#SinhVien";
-                break;
-            default:
-                tagToFilter = "";
-                break;
-        }
+        // 1) find the category tag (if any)
+        String categoryTag = categoryTagMap.getOrDefault(category, "");
 
-        if (tagToFilter.isEmpty()) {
-            adapter.updateList(allTemplates);
-            return;
-        }
+        // 2) find the option tag (if any)
+        String optionKey = category + ":" + option; // consistent key used in optionTagMap
+        String optionTag = optionTagMap.getOrDefault(optionKey, "");
 
-        String finalTagToFilter = tagToFilter;
-        List<ScheduleTemplate> result = allTemplates.stream()
-                .filter(template -> template.getTags().contains(finalTagToFilter))
-                .collect(Collectors.toList());
+
+        List<ScheduleTemplate> result = new ArrayList<>(allTemplates);
+
+        if (!categoryTag.isEmpty() && !optionTag.isEmpty()) {
+            final String ct = categoryTag;
+            final String ot = optionTag;
+            result = allTemplates.stream()
+                    .filter(template -> template.getTags().contains(ct) && template.getTags().contains(ot))
+                    .collect(Collectors.toList());
+        } else if (!categoryTag.isEmpty()) {
+            final String ct = categoryTag;
+            result = allTemplates.stream()
+                    .filter(template -> template.getTags().contains(ct))
+                    .collect(Collectors.toList());
+        } else if (!optionTag.isEmpty()) {
+            final String ot = optionTag;
+            result = allTemplates.stream()
+                    .filter(template -> template.getTags().contains(ot))
+                    .collect(Collectors.toList());
+        } else {
+            // Fallback: if there is no tag mapping available for this option/category,
+            // attempt to match the option text inside title or description AND match category if possible.
+            final String optLower = option.toLowerCase();
+            if (!categoryTag.isEmpty()) {
+                final String ct = categoryTag;
+                result = allTemplates.stream()
+                        .filter(template -> template.getTags().contains(ct) &&
+                                (template.getTitle().toLowerCase().contains(optLower) ||
+                                        template.getDescription().toLowerCase().contains(optLower)))
+                        .collect(Collectors.toList());
+            } else {
+                result = allTemplates.stream()
+                        .filter(template -> template.getTitle().toLowerCase().contains(optLower) ||
+                                template.getDescription().toLowerCase().contains(optLower) ||
+                                template.getTags().stream().anyMatch(tag -> tag.toLowerCase().contains(optLower)))
+                        .collect(Collectors.toList());
+            }
+        }
 
         adapter.updateList(result);
 
@@ -190,22 +237,27 @@ public class AddFragment extends Fragment {
         allTemplates.add(new ScheduleTemplate(
                 "Lịch học cho sinh viên",
                 "Template này dành cho sinh viên muốn tối đa hóa thời gian học tập nhưng với mức ngủ tối thiểu",
-                Arrays.asList("#HocTap", "#SinhVien")
+                Arrays.asList("#HocTap", "#SinhVien", "#4h_study")
         ));
         allTemplates.add(new ScheduleTemplate(
                 "Lịch trình thể thao",
                 "Tối ưu hóa thời gian tập luyện và phục hồi để đạt hiệu suất cao nhất trong thể thao.",
-                Arrays.asList("#TheThao", "#CoHoi")
+                Arrays.asList("#TheThao", "#CoHoi", "#60m_sport")
         ));
         allTemplates.add(new ScheduleTemplate(
                 "Lịch trình giải trí cuối tuần",
                 "Dành thời gian để thư giãn, giải trí và nạp lại năng lượng sau một tuần làm việc căng thẳng.",
-                Arrays.asList("#GiaiTri", "#CuoiTuan")
+                Arrays.asList("#GiaiTri", "#CuoiTuan", "#60m_fun")
         ));
         allTemplates.add(new ScheduleTemplate(
                 "Lịch trình ăn uống lành mạnh",
                 "Thiết lập một chế độ ăn uống cân bằng và khoa học để cải thiện sức khỏe và vóc dáng.",
                 Arrays.asList("#AnUong", "#SucKhoe", "#SinhVien")
+        ));
+        allTemplates.add(new ScheduleTemplate(
+                "Lịch ngủ sâu",
+                "Tập trung vào chất lượng giấc ngủ để cải thiện năng lượng ngày tiếp theo.",
+                Arrays.asList("#GioNgu", "#8h_sleep")
         ));
     }
 }

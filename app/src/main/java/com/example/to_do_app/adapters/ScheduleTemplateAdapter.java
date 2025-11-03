@@ -84,7 +84,7 @@ public class ScheduleTemplateAdapter extends RecyclerView.Adapter<ScheduleTempla
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 }
                 context.startActivity(intent);
-            });
+            }); 
 
             // Click toàn item => tương tự như bấm mũi tên
             itemView.setOnClickListener(v -> ivNext.performClick());

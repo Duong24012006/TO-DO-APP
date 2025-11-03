@@ -1,5 +1,7 @@
 package com.example.to_do_app.fragment;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,17 +33,22 @@ public class AddFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private ScheduleTemplateAdapter adapter;
-    private List<ScheduleTemplate> allTemplates; // Full list from data source
-    private List<ScheduleTemplate> currentlyDisplayedTemplates; // List to be displayed
+    private List<ScheduleTemplate> allTemplates;
+    private List<ScheduleTemplate> currentlyDisplayedTemplates;
 
     private LinearLayout filterOptionsContainer;
     private RadioGroup radioGroupFilterOptions;
     private Button btnApplyFilter, btnResetFilter;
 
-    // Data for filters
     private Map<Integer, String> filterCategoryMap;
     private Map<String, List<String>> filterOptionsMap;
     private String currentFilterCategory = "";
+
+    // 🔹 SharedPreferences để lưu trạng thái lọc
+    private SharedPreferences sharedPreferences;
+    private static final String PREFS_NAME = "FilterPrefs";
+    private static final String KEY_CATEGORY = "filter_category";
+    private static final String KEY_OPTION = "filter_option";
 
     @Nullable
     @Override
@@ -57,6 +64,18 @@ public class AddFragment extends Fragment {
         initializeFilterData();
         setupListeners();
         setupRecyclerView();
+
+        // 🔹 Khởi tạo SharedPreferences
+        sharedPreferences = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+
+        // 🔹 Khôi phục bộ lọc nếu có lưu trước đó
+        String savedCategory = sharedPreferences.getString(KEY_CATEGORY, null);
+        String savedOption = sharedPreferences.getString(KEY_OPTION, null);
+
+        if (savedCategory != null && savedOption != null) {
+            currentFilterCategory = savedCategory;
+            applyFilter(savedCategory, savedOption);
+        }
     }
 
     private void initializeViews(View view) {
@@ -103,6 +122,13 @@ public class AddFragment extends Fragment {
                 RadioButton selectedRadioButton = requireView().findViewById(selectedId);
                 String selectedOption = selectedRadioButton.getText().toString();
                 applyFilter(currentFilterCategory, selectedOption);
+
+                // 🔹 Lưu lại bộ lọc vào SharedPreferences
+                sharedPreferences.edit()
+                        .putString(KEY_CATEGORY, currentFilterCategory)
+                        .putString(KEY_OPTION, selectedOption)
+                        .apply();
+
                 filterOptionsContainer.setVisibility(View.GONE);
             } else {
                 Toast.makeText(getContext(), "Vui lòng chọn một tùy chọn", Toast.LENGTH_SHORT).show();
@@ -111,6 +137,10 @@ public class AddFragment extends Fragment {
 
         btnResetFilter.setOnClickListener(v -> {
             resetFilter();
+
+            // 🔹 Xóa dữ liệu lưu trữ
+            sharedPreferences.edit().clear().apply();
+
             filterOptionsContainer.setVisibility(View.GONE);
         });
     }
@@ -122,17 +152,16 @@ public class AddFragment extends Fragment {
     }
 
     private void toggleFilterOptions(String category) {
-        // If the same filter is clicked again while visible, hide it.
         if (filterOptionsContainer.getVisibility() == View.VISIBLE && category.equals(currentFilterCategory)) {
             filterOptionsContainer.setVisibility(View.GONE);
             return;
         }
-        
+
         currentFilterCategory = category;
         List<String> options = filterOptionsMap.get(category);
         radioGroupFilterOptions.clearCheck();
         radioGroupFilterOptions.removeAllViews();
-        
+
         if (options != null) {
             for (String option : options) {
                 RadioButton radioButton = new RadioButton(getContext());
@@ -146,8 +175,6 @@ public class AddFragment extends Fragment {
     }
 
     private void applyFilter(String category, String option) {
-        // This is a placeholder for your actual filtering logic.
-        // You should define how categories and options map to your data tags.
         String tagToFilter;
         switch (category) {
             case "Học tập":
@@ -160,7 +187,7 @@ public class AddFragment extends Fragment {
                 tagToFilter = "#GiaiTri";
                 break;
             case "Giờ ngủ":
-                tagToFilter = "#SinhVien"; // Example: maps to a broader tag
+                tagToFilter = "#SinhVien";
                 break;
             default:
                 tagToFilter = "";

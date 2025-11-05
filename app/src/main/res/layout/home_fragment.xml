@@ -40,6 +40,7 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/tvGreeting"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
@@ -49,6 +50,7 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/tvSubtitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
@@ -70,7 +72,7 @@
             android:layout_marginBottom="12dp"
             android:fontFamily="sans-serif-medium"
             android:gravity="left"
-            android:text="Lịch trình"
+            android:text="Lịch trình chung"
             android:textColor="#000"
             android:textSize="36sp"
 

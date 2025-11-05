@@ -1,21 +1,20 @@
 plugins {
-    alias(libs.plugins.android.application)
+    id("com.android.application")
+    id("com.google.gms.google-services") // plugin Firebase
 }
 
 android {
-    namespace 'com.example.to_do_app'
-    compileSdk {
-        version = release(36)
-    }
+    namespace = "com.example.to_do_app"
+    compileSdk = 36
 
     defaultConfig {
-        applicationId "com.example.to_do_app"
-        minSdk 24
-        targetSdk 36
-        versionCode 1
-        versionName "1.0"
+        applicationId = "com.example.to_do_app"
+        minSdk = 24
+        targetSdk = 36
+        versionCode = 1
+        versionName = "1.0"
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -24,21 +23,29 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 }
 
 dependencies {
-    implementation libs.appcompat
-    implementation libs.material
-    implementation libs.activity
-    implementation libs.constraintlayout
-    testImplementation libs.junit
-    androidTestImplementation libs.ext.junit
-    androidTestImplementation libs.espresso.core
+    implementation(libs.appcompat)
+    implementation(libs.material)
+    implementation(libs.activity)
+    implementation(libs.constraintlayout)
+    implementation libs.firebase.auth
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.ext.junit)
+    androidTestImplementation(libs.espresso.core)
 
-    implementation 'com.google.android.material:material:1.13.0-alpha02' // hoặc phiên bản mới hơn
+    implementation("com.google.android.material:material:1.13.0-alpha02")
 
+    // Firebase BOM để quản lý version
+    implementation(platform("com.google.firebase:firebase-bom:34.5.0"))
+
+    // Các thư viện Firebase bạn cần
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-database") // thêm Realtime Database
 }

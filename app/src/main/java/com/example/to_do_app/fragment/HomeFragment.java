@@ -1,5 +1,7 @@
 package com.example.to_do_app.fragment;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,12 +14,30 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.to_do_app.R;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * HomeFragment — now reads "home display" from Firebase /users/<userId>/home_display realtime.
+ * Falls back to SharedPreferences if Firebase value not present.
+ *
+ * Behavior:
+ * - When Layout6Activity saves schedule for Home, it writes JSON string to /users/<userId>/home_display
+ *   and also to SharedPreferences profile_prefs.home_display_activities.
+ * - HomeFragment listens for changes and updates UI immediately.
+ */
 public class HomeFragment extends Fragment {
 
     private LinearLayout llMon, llTue, llWed, llThu, llFri, llSat, llSun;
@@ -35,6 +55,20 @@ public class HomeFragment extends Fragment {
         }
     }
 
+    // Shared prefs / firebase keys
+    private static final String PROFILE_PREFS = "profile_prefs";
+    private static final String HOME_DISPLAY_ACTIVITIES_KEY = "home_display_activities";
+    private static final String HOME_DISPLAY_DAY_KEY = "home_display_day";
+
+    private SharedPreferences profilePrefs;
+    private DatabaseReference rootRef;
+    private DatabaseReference homeDisplayRef;
+    private ChildEventListener dummyListener; // not used but kept for pattern
+
+    private String userId;
+
+    public HomeFragment() { }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -42,6 +76,19 @@ public class HomeFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.home_fragment, container, false);
+
+        profilePrefs = requireContext().getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE);
+        rootRef = FirebaseDatabase.getInstance().getReference();
+
+        userId = profilePrefs.getString("profile_user_id", null);
+        if (userId == null) {
+            userId = "user_" + System.currentTimeMillis();
+            profilePrefs.edit().putString("profile_user_id", userId).apply();
+        }
+
+        // history/home node reference
+        homeDisplayRef = rootRef.child("users").child(userId).child("home_display");
+
         // Ánh xạ LinearLayout các ngày
         llMon = view.findViewById(R.id.llMon);
         llTue = view.findViewById(R.id.llTue);
@@ -91,7 +138,7 @@ public class HomeFragment extends Fragment {
                 view.findViewById(R.id.tvTaskNote7)
         };
 
-        // Khởi tạo dữ liệu mẫu
+        // Khởi tạo dữ liệu mẫu (used when no home display saved)
         initSampleTasks();
 
         // Gán click cho các ngày
@@ -105,7 +152,112 @@ public class HomeFragment extends Fragment {
         // Chọn mặc định Thứ 2
         selectDay(llMon, 2);
 
+        // Attach realtime listener to home_display so UI updates immediately
+        attachHomeDisplayListener();
+
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // load fallback prefs if firebase value not available
+        loadHomeDisplayFromPrefsIfAny();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // detach listener
+        if (homeDisplayRef != null && dummyListener != null) {
+            homeDisplayRef.removeEventListener(dummyListener);
+            dummyListener = null;
+        }
+    }
+
+    private void attachHomeDisplayListener() {
+        if (homeDisplayRef == null) return;
+
+        // Use a ValueEventListener via addValueEventListener to get the entire JSON string/object
+        homeDisplayRef.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Object v = snapshot.getValue();
+                if (v == null) {
+                    // no remote home_display — fallback to prefs
+                    loadHomeDisplayFromPrefsIfAny();
+                    return;
+                }
+                String jsonString = String.valueOf(v);
+                applyHomeDisplayJson(jsonString);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // On error, fallback to prefs
+                loadHomeDisplayFromPrefsIfAny();
+            }
+        });
+    }
+
+    private void loadHomeDisplayFromPrefsIfAny() {
+        String json = profilePrefs.getString(HOME_DISPLAY_ACTIVITIES_KEY, null);
+        if (json == null) return;
+        applyHomeDisplayJson(json);
+    }
+
+    /**
+     * Parse stored JSON (same format saved by Layout6Activity) and update taskMap + UI.
+     * Format:
+     * { "day": <int>, "activities":[ { "start":"06:00","end":"08:00","activity":"..." , "day":2}, ... ] }
+     */
+    private void applyHomeDisplayJson(String json) {
+        if (json == null || json.isEmpty()) return;
+        try {
+            JSONObject root = new JSONObject(json);
+            int day = root.optInt("day", 2);
+            JSONArray acts = root.optJSONArray("activities");
+            if (acts == null) return;
+
+            List<Task> list = new ArrayList<>();
+            for (int i = 0; i < acts.length(); i++) {
+                JSONObject o = acts.optJSONObject(i);
+                if (o == null) continue;
+                String start = o.optString("start", "");
+                String end = o.optString("end", "");
+                String activity = o.optString("activity", "");
+                String time = (start.isEmpty() && end.isEmpty()) ? "" : (start + " - " + end);
+                Task t = new Task(time, activity, "", "");
+                list.add(t);
+            }
+
+            // replace tasks for that day
+            taskMap.put(day, list);
+
+            // switch UI to that day
+            LinearLayout targetLayout;
+            switch (day) {
+                case 2: targetLayout = llMon; break;
+                case 3: targetLayout = llTue; break;
+                case 4: targetLayout = llWed; break;
+                case 5: targetLayout = llThu; break;
+                case 6: targetLayout = llFri; break;
+                case 7: targetLayout = llSat; break;
+                case 1: targetLayout = llSun; break;
+                default: targetLayout = llMon; break;
+            }
+
+            if (targetLayout != null) selectDay(targetLayout, day);
+
+            // also persist locally (keep prefs in sync if remote updated)
+            profilePrefs.edit()
+                    .putString(HOME_DISPLAY_ACTIVITIES_KEY, json)
+                    .putInt(HOME_DISPLAY_DAY_KEY, day)
+                    .apply();
+
+        } catch (JSONException ex) {
+            ex.printStackTrace();
+        }
     }
 
     private void initSampleTasks() {

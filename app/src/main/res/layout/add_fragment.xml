@@ -25,11 +25,21 @@
             android:maxLines="1" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <!-- Preset chips (quick access to sample items) -->
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/preset_chips"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        app:singleSelection="false"
+        app:chipSpacing="8dp"
+        android:visibility="visible" />
+
     <!-- Filter Buttons with Horizontal Scroll -->
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="12dp"
         android:scrollbars="none">
 
         <LinearLayout
@@ -131,6 +141,19 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"/>
     </LinearLayout>
+
+    <!-- No results / empty state TextView -->
+    <TextView
+        android:id="@+id/tv_no_results"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center"
+        android:padding="12dp"
+        android:text="Không có kết quả phù hợp"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?android:attr/textColorSecondary"
+        android:visibility="gone" />
 
     <!-- Schedule Templates List -->
     <androidx.recyclerview.widget.RecyclerView

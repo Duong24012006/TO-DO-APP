@@ -46,16 +46,16 @@
 
     </LinearLayout>
 
-    <!-- Main white card -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/mainContentCard"
-        android:layout_below="@id/headerLayout"
-        android:layout_margin="12dp"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:cardCornerRadius="20dp"
-        app:cardBackgroundColor="#FFFFFF"
-        app:cardElevation="6dp">
+        <!-- Main white card -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/mainContentCard"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -82,16 +82,21 @@
                     android:textStyle="normal"
                     android:textColor="#000" />
 
-                <Button
-                    android:id="@+id/btnApplySchedule"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/btn_apply_background"
-                    android:text="Áp dụng lịch"
-                    android:textSize="20sp"
-                    android:padding="8dp"
-                    android:textColor="#FFF" />
-            </LinearLayout>
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnApplySchedule"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Áp dụng lịch"
+                        android:textColor="#000000"
+                        android:textSize="16sp"
+                        app:backgroundTint="#BFB3F1"
+                        app:cornerRadius="5dp"
+                        app:icon="@drawable/ic_chevron_right"
+                        app:iconGravity="textEnd"
+                        app:iconPadding="4dp"
+                        app:iconSize="32dp"
+                        app:iconTint="#000000" />
+                </LinearLayout>
 
             <!-- Days horizontal -->
 
@@ -124,26 +129,16 @@
                         android:orientation="vertical"
                         android:padding="8dp">
 
-                        <TextView
-                            android:id="@+id/tvMonDay"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="THỨ"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:text="THỨ\n2"
 
-                        <TextView
-                            android:id="@+id/tvMonDate"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="2"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
-                    </LinearLayout>
+                                android:textColor="@color/day_text_color_selector"
+                                android:textSize="16sp" />
+                        </LinearLayout>
 
                     <!-- Thứ 3 -->
                     <LinearLayout
@@ -158,26 +153,15 @@
                         android:orientation="vertical"
                         android:padding="8dp">
 
-                        <TextView
-                            android:id="@+id/tvTueDay"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="THỨ"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
-
-                        <TextView
-                            android:id="@+id/tvTueDate"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="3"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
-                    </LinearLayout>
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:text="THỨ\n3"
+                                android:textColor="@color/day_text_color_selector"
+                                android:textSize="16sp" />
+                        </LinearLayout>
 
                     <!-- Thứ 4 -->
                     <LinearLayout
@@ -192,26 +176,15 @@
                         android:orientation="vertical"
                         android:padding="8dp">
 
-                        <TextView
-                            android:id="@+id/tvWedDay"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="THỨ"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
-
-                        <TextView
-                            android:id="@+id/tvWedDate"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="4"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
-                    </LinearLayout>
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:text="THỨ\n4"
+                                android:textColor="@color/day_text_color_selector"
+                                android:textSize="16sp" />
+                        </LinearLayout>
 
                     <!-- Thứ 5 -->
                     <LinearLayout
@@ -226,26 +199,14 @@
                         android:orientation="vertical"
                         android:padding="8dp">
 
-                        <TextView
-                            android:id="@+id/tvThuDay"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="THỨ"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
-
-                        <TextView
-                            android:id="@+id/tvThuDate"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="5"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
-                    </LinearLayout>
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center"
+                                android:text="THỨ\n5"
+                                android:textColor="@color/day_text_color_selector"
+                                android:textSize="16sp" />
+                        </LinearLayout>
 
                     <!-- Thứ 6 -->
                     <LinearLayout
@@ -260,26 +221,15 @@
                         android:orientation="vertical"
                         android:padding="8dp">
 
-                        <TextView
-                            android:id="@+id/tvFriDay"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="THỨ"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
-
-                        <TextView
-                            android:id="@+id/tvFriDate"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="6"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
-                    </LinearLayout>
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:text="THỨ\n6"
+                                android:textColor="@color/day_text_color_selector"
+                                android:textSize="16sp" />
+                        </LinearLayout>
 
                     <!-- Thứ 7 -->
                     <LinearLayout
@@ -294,63 +244,41 @@
                         android:orientation="vertical"
                         android:padding="8dp">
 
-                        <TextView
-                            android:id="@+id/tvSatDay"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="THỨ"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:text="THỨ\n7"
+                                android:textColor="@color/day_text_color_selector"
+                                android:textSize="16sp" />
+                        </LinearLayout>
 
-                        <TextView
-                            android:id="@+id/tvSatDate"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
+                        <!-- Chủ Nhật -->
+                        <LinearLayout
+                            android:id="@+id/dayCN"
+                            android:layout_width="60dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginHorizontal="4dp"
+                            android:background="@drawable/day_item_background"
+                            android:clickable="true"
+                            android:focusable="true"
                             android:gravity="center"
-                            android:text="7"
-                            android:textColor="#000"
-                            android:textSize="16sp" />
+                            android:orientation="vertical"
+                            android:padding="8dp">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:text="CHỦ\nNHẬT"
+                                android:textColor="@color/day_text_color_selector"
+                                android:textSize="16sp" />
+                        </LinearLayout>
+
                     </LinearLayout>
-
-                    <!-- Chủ nhật -->
-                    <LinearLayout
-                        android:id="@+id/dayCN"
-                        android:layout_width="60dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginHorizontal="4dp"
-                        android:background="@drawable/day_item_selector"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="8dp">
-
-                        <TextView
-                            android:id="@+id/tvSunDay"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="CHỦ"
-                            android:textColor="#000000"
-                            android:textSize="16sp" />
-
-                        <TextView
-                            android:id="@+id/tvSunDate"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:gravity="center"
-                            android:text="NHẬT"
-                            android:textColor="#000000"
-                            android:textSize="16sp" />
-                    </LinearLayout>
-
-                </LinearLayout>
-            </HorizontalScrollView>
+                </HorizontalScrollView>
 
 
             <!-- RecyclerView for time slots -->

@@ -4,6 +4,10 @@
     <color name="bottom_nav">#D3CBF5</color> <!-- Nền của thanh bottom nav -->
     <color name="color_select_bottom_nav">#000000</color> <!-- Màu icon/text khi chưa chọn -->
 
+    <color name="day_button">#D3CBF5</color> <!-- Nền của cac ngay trong tuan -->
+
+    <color name="doing_work_button">#FCE7F3</color> <!-- Nền của cac ngay trong tuan -->
+
     <color name="button_gray">#E0E0E0</color>
     <color name="button_pink">#FFB6C1</color>
 

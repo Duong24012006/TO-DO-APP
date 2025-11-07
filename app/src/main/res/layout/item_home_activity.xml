@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/item_time"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/time_bg"
+        android:gravity="center"
+        android:padding="8dp"
+        android:text="06:00 - 07:00"
+        android:textSize="14sp" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:paddingStart="8dp">
+
+        <TextView
+            android:id="@+id/item_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tiêu đề"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/item_location"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Địa điểm: -"
+            android:textSize="14sp"
+            android:layout_marginTop="4dp" />
+
+        <TextView
+            android:id="@+id/item_note"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ghi chú: -"
+            android:textSize="14sp"
+            android:layout_marginTop="2dp" />
+    </LinearLayout>
+</LinearLayout>

@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- State when the item is selected -->
-    <item android:state_selected="true"
-        android:drawable="@drawable/day_item_selected_background" />
-    
+    <item android:state_selected="true">
+        <!-- Thay thế @drawable/day_item_selected_background bằng code dưới đây -->
+        <shape android:shape="rectangle">
+            <!-- Màu nền khi được chọn -->
+            <solid android:color="@color/day_select_button" />
+
+            <!-- Bo tròn các góc (tùy chọn) -->
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+
     <!-- Default state -->
-    <item android:drawable="@drawable/viec_phai_lam" />
+    <item android:drawable="@color/day_button" />
 </selector>

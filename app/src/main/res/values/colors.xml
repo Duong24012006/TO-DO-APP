@@ -3,27 +3,29 @@
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
 
-    <color name="day_button">#D3CBF5</color> <!-- Nền của cac ngay trong tuan -->
+    <color name="main_button">#22D0D4</color> <!-- Màu chính của button -->
+    <color name="day_select_button">#3700B3</color> <!-- Màu nền cua button ngay khi được chọn -->
+    <color name="day_button">#FFFFFF</color> <!-- Nền của các ngay trong tuần -->
 
-    <color name="doing_work_button">#FCE7F3</color> <!-- Nền của cac ngay trong tuan -->
+    <color name="doing_work_button">#BFF0F5</color> <!-- Nền bao quanh của các hoạt động trong ngày -->
 
     <color name="blue">#0020F1</color> <!-- Màu icon/text khi được chọn -->
-
     <color name="color_select_bottom_nav">#000000</color> <!-- Màu icon/text khi chưa chọn -->
 
     <color name="bottom_nav">#22D0D4</color> <!-- Nền của thanh bottom nav -->
 
-    <color name="main_button">#22D0D4</color> <!-- Màu button -->
 
-    <color name="search_bar_background">#F3F4F6</color>
+    <color name="search_bar_background">#000000</color>
+
     <color name="filter_button_background">#99A067EA</color>
+
     <color name="filter_button_text_color">#000000</color>
+
     <color name="schedule_card_background">#FCE7F3</color>
+
     <color name="schedule_tag_background">#A5B4FC</color>
-    <color name="design_default_color_primary_variant">#3700B3</color>
-    <color name="colorPrimary">#6200EE</color>
-    <color name="colorPrimaryVariant">#3700B3</color>
-    <color name="colorOnPrimary">#FFFFFF</color>
+
+
 
 
 </resources>

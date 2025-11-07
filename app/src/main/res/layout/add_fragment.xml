@@ -137,7 +137,7 @@
                 android:layout_weight="1"
                 android:text="Áp dụng"
                 android:background="@drawable/sign_bg"
-                android:backgroundTint="@null"
+                app:backgroundTint="@null"
                 />
         </LinearLayout>
 

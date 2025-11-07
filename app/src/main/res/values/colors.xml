@@ -1,20 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="blue">#0020F1</color> <!-- Màu icon/text khi được chọn -->
-    <color name="bottom_nav">#D3CBF5</color> <!-- Nền của thanh bottom nav -->
-    <color name="color_select_bottom_nav">#000000</color> <!-- Màu icon/text khi chưa chọn -->
-
-    <color name="button_gray">#E0E0E0</color>
-    <color name="button_pink">#FFB6C1</color>
-
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
+    <color name="blue">#0020F1</color> <!-- Màu icon/text khi được chọn -->
+
+    <color name="color_select_bottom_nav">#000000</color> <!-- Màu icon/text khi chưa chọn -->
+
+    <color name="bottom_nav">#22D0D4</color> <!-- Nền của thanh bottom nav -->
+
+    <color name="main_button">#22D0D4</color> <!-- Màu button -->
 
     <color name="search_bar_background">#F3F4F6</color>
     <color name="filter_button_background">#99A067EA</color>

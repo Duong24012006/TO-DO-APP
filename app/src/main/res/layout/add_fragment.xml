@@ -56,7 +56,9 @@
                 android:text="Giờ ngủ"
                 android:textSize="16sp"
                 app:icon="@drawable/ic_down"
-                app:iconGravity="end" />
+                app:iconGravity="end"
+
+                />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_filter_study"
@@ -133,7 +135,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:text="Áp dụng" />
+                android:text="Áp dụng"
+                android:background="@drawable/sign_bg"
+                android:backgroundTint="@null"
+                />
         </LinearLayout>
 
         <com.google.android.material.divider.MaterialDivider

@@ -6,6 +6,7 @@ import java.util.Map;
 
 /**
  * Model for a schedule item, now includes firebaseKey so each item can be edited/deleted individually.
+ * Added 'locked' flag to represent "áp cứng" (không thể sửa / xóa).
  */
 public class ScheduleItem implements Serializable {
     private String firebaseKey; // Firebase key for this item (null if not persisted yet)
@@ -17,6 +18,7 @@ public class ScheduleItem implements Serializable {
     private String endTime;
     private String activity;
     private int dayOfWeek;
+    private boolean locked = false; // NEW: áp cứng (true = không được sửa/xóa)
 
     // Default constructor required by Firebase
     public ScheduleItem() { }
@@ -111,6 +113,10 @@ public class ScheduleItem implements Serializable {
     public int getDayOfWeek() { return dayOfWeek; }
     public void setDayOfWeek(int dayOfWeek) { this.dayOfWeek = dayOfWeek; }
 
+    // Locked flag (áp cứng)
+    public boolean isLocked() { return locked; }
+    public void setLocked(boolean locked) { this.locked = locked; }
+
     /**
      * Helper to convert to a Map for Firebase updates (if needed).
      */
@@ -125,6 +131,7 @@ public class ScheduleItem implements Serializable {
         m.put("endTime", endTime);
         m.put("activity", activity);
         m.put("dayOfWeek", dayOfWeek);
+        m.put("locked", locked);
         return m;
     }
 
@@ -138,6 +145,7 @@ public class ScheduleItem implements Serializable {
                 ", endTime='" + endTime + '\'' +
                 ", activity='" + getActivity() + '\'' +
                 ", dayOfWeek=" + dayOfWeek +
+                ", locked=" + locked +
                 '}';
     }
 }

@@ -36,6 +36,7 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation libs.firebase.auth
+    implementation libs.firebase.firestore
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
@@ -46,6 +47,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.5.0"))
 
     // Các thư viện Firebase bạn cần
+    implementation 'com.google.code.gson:gson:2.10.1'
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-database") // thêm Realtime Database
 }

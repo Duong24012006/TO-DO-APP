@@ -2,7 +2,10 @@ package com.example.to_do_app.activitys;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -16,17 +19,21 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.to_do_app.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * SignInActivity — simplified
+ * SignInActivity — simplified, with device confirmation on successful login.
  *
- * Changes made:
- * - Removed pre-check fetchSignInMethodsForEmail to simplify flow.
- *   Now sign-in attempts directly with email/password.
- * - If sign-in fails with "There is no user record" (account doesn't exist),
- *   user is redirected to SignUpActivity with the email prefilled.
- * - Ensures the sign-in button is re-enabled and progress dismissed in every path.
- * - Keeps previous UX: prefill email from SignUpActivity, don't finish() when opening SignUp.
+ * Changes:
+ * - After successful sign-in we auto-confirm/register the device under
+ *   /users/<userId>/devices/<deviceId> in Realtime Database (confirmed=true, timestamp).
+ * - Only after device confirmation (or a DB failure) we navigate to MainActivity and request opening HomeFragment.
+ * - We pass intent extra "open_home" = true so MainActivity can show HomeFragment on start.
  */
 public class SignInActivity extends AppCompatActivity {
 
@@ -35,12 +42,15 @@ public class SignInActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private ProgressDialog progress;
 
+    private DatabaseReference rootRef;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_in);
 
         mAuth = FirebaseAuth.getInstance();
+        rootRef = FirebaseDatabase.getInstance().getReference();
 
         etUserName = findViewById(R.id.user_name);
         etPassword = findViewById(R.id.user_password);
@@ -88,21 +98,28 @@ public class SignInActivity extends AppCompatActivity {
             // Directly attempt sign-in
             mAuth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(signInTask -> {
-                        safeDismissProgress();
-                        btnSignIn.setEnabled(true);
-
                         if (signInTask.isSuccessful()) {
+                            // On success, confirm device then navigate to MainActivity -> HomeFragment
                             FirebaseUser user = mAuth.getCurrentUser();
-                            String displayName = user != null ? user.getDisplayName() : null;
-
-                            // Move to MainActivity and clear back stack
-                            Intent intent = new Intent(SignInActivity.this, MainActivity.class);
-                            intent.putExtra("from_startapp", true);
-                            if (displayName != null) intent.putExtra("displayName", displayName);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity(intent);
-                            finish();
+                            String userId = (user != null) ? user.getUid() : null;
+                            confirmDeviceAndProceed(userId, () -> {
+                                safeDismissProgress();
+                                btnSignIn.setEnabled(true);
+                                // Navigate to MainActivity and request opening HomeFragment
+                                Intent intent = new Intent(SignInActivity.this, MainActivity.class);
+                                intent.putExtra("from_startapp", true);
+                                intent.putExtra("open_home", true); // MainActivity should read this and open HomeFragment
+                                String displayName = user != null ? user.getDisplayName() : null;
+                                if (displayName != null) intent.putExtra("displayName", displayName);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                                finish();
+                            });
                         } else {
+                            // Ensure UI restored
+                            safeDismissProgress();
+                            btnSignIn.setEnabled(true);
+
                             // Try to detect common reason: user not found -> send to SignUp
                             String errMsg = "";
                             if (signInTask.getException() != null && signInTask.getException().getMessage() != null) {
@@ -110,10 +127,10 @@ public class SignInActivity extends AppCompatActivity {
                             }
 
                             // Firebase's message for non-existing user often contains "There is no user record" or "There is no user"
-                            if (errMsg.toLowerCase().contains("no user") || errMsg.toLowerCase().contains("no user record")) {
+                            if (!errMsg.isEmpty() && (errMsg.toLowerCase().contains("no user") || errMsg.toLowerCase().contains("no user record") || errMsg.toLowerCase().contains("user-not-found"))) {
                                 Toast.makeText(SignInActivity.this, "Email chưa được đăng ký. Chuyển sang trang đăng ký.", Toast.LENGTH_LONG).show();
                                 Intent i = new Intent(SignInActivity.this, SignUpActivity.class);
-                                i.putExtra("prefillEmail", email);
+                                i.putExtra("prefillEmail", etUserName.getText() != null ? etUserName.getText().toString().trim() : "");
                                 startActivity(i);
                                 // keep SignIn on back stack so user can return
                             } else {
@@ -134,7 +151,7 @@ public class SignInActivity extends AppCompatActivity {
                         if (lower.contains("no user") || lower.contains("no user record") || lower.contains("user-not-found")) {
                             Toast.makeText(SignInActivity.this, "Email chưa được đăng ký.", Toast.LENGTH_LONG).show();
                             Intent i = new Intent(SignInActivity.this, SignUpActivity.class);
-                            i.putExtra("prefillEmail", email);
+                            i.putExtra("prefillEmail", etUserName.getText() != null ? etUserName.getText().toString().trim() : "");
                             startActivity(i);
                         } else {
                             showToast(msg);
@@ -152,6 +169,51 @@ public class SignInActivity extends AppCompatActivity {
             startActivity(i);
             // keep SignIn on back stack so user can return
         });
+    }
+
+    /**
+     * Confirm/register device under /users/<userId>/devices/<deviceId>
+     * Calls onDone.run() when DB write completes or on failure (we still proceed).
+     */
+    private void confirmDeviceAndProceed(String userId, Runnable onDone) {
+        if (userId == null || userId.isEmpty()) {
+            // Nothing to confirm; proceed immediately
+            onDone.run();
+            return;
+        }
+
+        try {
+            String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+            if (deviceId == null || deviceId.isEmpty()) {
+                // fallback to build fields
+                deviceId = "android_" + Build.SERIAL;
+            }
+            DatabaseReference devRef = rootRef.child("users").child(userId).child("devices").child(deviceId);
+
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("confirmed", true);
+            payload.put("deviceId", deviceId);
+            payload.put("model", Build.MODEL);
+            payload.put("manufacturer", Build.MANUFACTURER);
+            payload.put("sdk_int", Build.VERSION.SDK_INT);
+            payload.put("timestamp", ServerValue.TIMESTAMP);
+
+            // Write and wait for completion; whether success or failure we continue to onDone
+            devRef.setValue(payload)
+                    .addOnSuccessListener(aVoid -> {
+                        // success - proceed
+                        onDone.run();
+                    })
+                    .addOnFailureListener(e -> {
+                        // Failure to write shouldn't block user - log and proceed
+                        Log.w("SignInActivity", "Device confirmation failed: " + (e != null ? e.getMessage() : "unknown"));
+                        onDone.run();
+                    });
+        } catch (Exception ex) {
+            // On any exception proceed
+            Log.w("SignInActivity", "confirmDeviceAndProceed exception", ex);
+            onDone.run();
+        }
     }
 
     @Override

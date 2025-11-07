@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowCompat;
 import androidx.viewpager.widget.ViewPager;
 
 import com.example.to_do_app.R;
@@ -22,7 +23,14 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-
+/**
+ * MainActivity — updated to handle incoming intent extras:
+ *  - "open_home" (boolean) -> when true, open HomeFragment (page 0)
+ *  - "displayName" (String) -> when present, save to prefs and update greeting
+ *
+ * Also supports receiving these extras via onNewIntent (so SignIn/SignUp can launch MainActivity
+ * with extras and MainActivity will react).
+ */
 public class MainActivity extends AppCompatActivity {
 
     private static final String KEY_SELECTED_PAGE = "selected_page";
@@ -140,6 +148,9 @@ public class MainActivity extends AppCompatActivity {
                 if (m != null) m.setChecked(true);
             }
         }
+
+        // Handle intent extras (open_home, displayName) on first creation
+        handleIntentExtras(getIntent());
     }
 
     @Override
@@ -147,6 +158,33 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
         // Refresh greeting in case profile changed
         updateGreeting();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleIntentExtras(intent);
+    }
+
+    private void handleIntentExtras(Intent intent) {
+        if (intent == null) return;
+        boolean openHome = intent.getBooleanExtra("open_home", false);
+        String displayNameExtra = intent.getStringExtra("displayName");
+        if (displayNameExtra != null && !displayNameExtra.trim().isEmpty()) {
+            prefs.edit().putString(KEY_DISPLAY_NAME, displayNameExtra.trim()).apply();
+            updateGreeting();
+        }
+        if (openHome && myViewPager != null) {
+            // ensure UI is ready
+            myViewPager.post(() -> {
+                myViewPager.setCurrentItem(0, false);
+                if (bottomNav != null) {
+                    MenuItem mi = bottomNav.getMenu().findItem(R.id.action_home);
+                    if (mi != null) mi.setChecked(true);
+                }
+            });
+        }
     }
 
     private boolean onBottomNavItemSelected(@NonNull MenuItem item) {

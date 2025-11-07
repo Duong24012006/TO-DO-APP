@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+
     <color name="day_button">#D3CBF5</color> <!-- Nền của cac ngay trong tuan -->
 
     <color name="doing_work_button">#FCE7F3</color> <!-- Nền của cac ngay trong tuan -->
-
 
     <color name="blue">#0020F1</color> <!-- Màu icon/text khi được chọn -->
 

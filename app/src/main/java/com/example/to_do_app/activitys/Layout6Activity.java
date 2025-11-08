@@ -16,6 +16,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -108,6 +111,25 @@ public class Layout6Activity extends AppCompatActivity {
         schedulesRef = FirebaseDatabase.getInstance().getReference("schedules");
         rootRef = FirebaseDatabase.getInstance().getReference();
         prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+
+        View root = findViewById(R.id.root_manhinh_lichduocchon);
+        if (root != null) {
+            final int padL = root.getPaddingLeft();
+            final int padT = root.getPaddingTop();
+            final int padR = root.getPaddingRight();
+
+            ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
+                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(
+                        padL + systemBars.left,
+                        padT + systemBars.top,
+                        padR + systemBars.right,
+                        systemBars.bottom
+                );
+                return insets;
+            });
+        }
+
 
         // userId stored in profile prefs (shared with ProfileFragment)
         SharedPreferences profilePrefs = getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE);

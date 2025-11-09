@@ -55,6 +55,7 @@
                 android:layout_marginEnd="8dp"
                 android:text="Giờ ngủ"
                 android:textSize="16sp"
+                android:textColor="@color/black"
                 app:icon="@drawable/ic_down"
                 app:iconGravity="end"
 
@@ -68,6 +69,7 @@
                 android:layout_marginEnd="8dp"
                 android:text="Học tập"
                 android:textSize="16sp"
+                android:textColor="@color/black"
                 app:icon="@drawable/ic_down"
                 app:iconGravity="end" />
 
@@ -79,6 +81,7 @@
                 android:layout_marginEnd="8dp"
                 android:text="Giải trí"
                 android:textSize="16sp"
+                android:textColor="@color/black"
                 app:icon="@drawable/ic_down"
                 app:iconGravity="end" />
 
@@ -89,6 +92,7 @@
                 android:layout_height="wrap_content"
                 android:text="Thể thao"
                 android:textSize="16sp"
+                android:textColor="@color/black"
                 app:icon="@drawable/ic_down"
                 app:iconGravity="end" />
         </LinearLayout>

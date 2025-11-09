@@ -7,7 +7,10 @@
     <color name="day_select_button">#3700B3</color> <!-- Màu nền cua button ngay khi được chọn -->
     <color name="day_button">#FFFFFF</color> <!-- Nền của các ngay trong tuần -->
 
+    <color name="add_schedule_button">#FFF000</color> <!-- Nền cua lich trong addfragment -->
+
     <color name="doing_work_button">#BFF0F5</color> <!-- Nền bao quanh của các hoạt động trong ngày -->
+    <color name="time_button">#BFF0F5</color> <!-- Nền cua gio của các hoạt động trong ngày -->
 
     <color name="blue">#0020F1</color> <!-- Màu icon/text khi được chọn -->
     <color name="color_select_bottom_nav">#000000</color> <!-- Màu icon/text khi chưa chọn -->
@@ -17,7 +20,7 @@
 
     <color name="search_bar_background">#000000</color>
 
-    <color name="filter_button_background">#99A067EA</color>
+    <color name="filter_button_background">#000000</color>
 
     <color name="filter_button_text_color">#000000</color>
 

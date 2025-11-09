@@ -94,7 +94,7 @@ public class ScheduleTemplateAdapter extends RecyclerView.Adapter<ScheduleTempla
             tvScheduleDescription.setText(template.getDescription() == null ? "" : template.getDescription());
 
             chipGroupTags.removeAllViews();
-            ContextThemeWrapper chipContext = new ContextThemeWrapper(context, com.google.android.material.R.style.Widget_Material3_Chip_Suggestion);
+            ContextThemeWrapper chipContext = new ContextThemeWrapper(context, R.style.MyChipStyle);
             List<String> tags = template.getTags();
             if (tags == null) tags = new ArrayList<>();
             for (String tag : tags) {

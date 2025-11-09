@@ -25,29 +25,10 @@ public class ScheduleTemplateAdapter extends RecyclerView.Adapter<ScheduleTempla
 
     private final List<ScheduleTemplate> templateList;
     private final Context context;
-    private OnItemClickListener onItemClickListener;
 
     public ScheduleTemplateAdapter(Context context, List<ScheduleTemplate> templateList) {
         this.context = context;
         this.templateList = (templateList == null) ? new ArrayList<>() : templateList;
-    }
-
-    /**
-     * Optional constructor that accepts an item click listener.
-     * Use this in fragments/activities that want adapter-driven clicks.
-     */
-    public ScheduleTemplateAdapter(Context context, List<ScheduleTemplate> templateList, OnItemClickListener listener) {
-        this.context = context;
-        this.templateList = (templateList == null) ? new ArrayList<>() : templateList;
-        this.onItemClickListener = listener;
-    }
-
-    public void setOnItemClickListener(OnItemClickListener listener) {
-        this.onItemClickListener = listener;
-    }
-
-    public interface OnItemClickListener {
-        void onItemClick(ScheduleTemplate template, int position);
     }
 
     @NonNull
@@ -74,11 +55,6 @@ public class ScheduleTemplateAdapter extends RecyclerView.Adapter<ScheduleTempla
         notifyDataSetChanged();
     }
 
-    public ScheduleTemplate getItem(int position) {
-        if (position < 0 || position >= templateList.size()) return null;
-        return templateList.get(position);
-    }
-
     class ScheduleTemplateViewHolder extends RecyclerView.ViewHolder {
         TextView tvScheduleTitle;
         TextView tvScheduleDescription;
@@ -92,16 +68,20 @@ public class ScheduleTemplateAdapter extends RecyclerView.Adapter<ScheduleTempla
             chipGroupTags = itemView.findViewById(R.id.chip_group_tags);
             ivNext = itemView.findViewById(R.id.iv_next);
 
+            // Khi bấm mũi tên -> gửi primitive extras (an toàn hơn so với gửi object)
+            // inside your ScheduleTemplateViewHolder constructor
             ivNext.setOnClickListener(v -> {
                 int pos = getBindingAdapterPosition();
                 if (pos == RecyclerView.NO_POSITION) return;
                 ScheduleTemplate template = templateList.get(pos);
 
-                // If caller set an OnItemClickListener, call it; otherwise fall back to launching Layout6Activity.
-                if (onItemClickListener != null) {
-                    onItemClickListener.onItemClick(template, pos);
-                } else {
-                    startLayout6WithTemplate(template);
+                Intent intent = new Intent(context, Layout6Activity.class);
+                intent.putExtra("EXTRA_TEMPLATE_TITLE", template.getTitle());
+                intent.putExtra("EXTRA_TEMPLATE_DESCRIPTION", template.getDescription());
+                intent.putStringArrayListExtra("EXTRA_TEMPLATE_TAGS",
+                        new ArrayList<>(template.getTags() == null ? new ArrayList<>() : template.getTags()));
+                if (!(context instanceof android.app.Activity)) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 }
             });
 
@@ -124,20 +104,6 @@ public class ScheduleTemplateAdapter extends RecyclerView.Adapter<ScheduleTempla
                 chip.setCheckable(false);
                 chipGroupTags.addView(chip);
             }
-        }
-
-        private void startLayout6WithTemplate(ScheduleTemplate template) {
-            if (template == null) return;
-            Intent intent = new Intent(context, Layout6Activity.class);
-            // Use constants defined in Layout6Activity for keys when available
-            intent.putExtra(Layout6Activity.EXTRA_TEMPLATE_TITLE, template.getTitle());
-            intent.putExtra(Layout6Activity.EXTRA_TEMPLATE_DESCRIPTION, template.getDescription());
-            intent.putStringArrayListExtra("EXTRA_TEMPLATE_TAGS",
-                    new ArrayList<>(template.getTags() == null ? new ArrayList<>() : template.getTags()));
-            if (!(context instanceof android.app.Activity)) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            }
-            context.startActivity(intent);
         }
     }
 }

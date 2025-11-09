@@ -87,7 +87,8 @@
                         android:text="Áp dụng lịch"
                         android:textColor="#000000"
                         android:textSize="16sp"
-                        app:backgroundTint="#BFB3F1"
+                        android:background="@drawable/sign_bg"
+                        app:backgroundTint="@null"
                         app:cornerRadius="5dp"
                         app:icon="@drawable/ic_chevron_right"
                         app:iconGravity="textEnd"
@@ -133,7 +134,6 @@
                                 android:fontFamily="sans-serif-medium"
                                 android:gravity="center"
                                 android:text="THỨ\n2"
-
                                 android:textColor="@color/day_text_color_selector"
                                 android:textSize="16sp" />
                         </LinearLayout>
@@ -258,7 +258,7 @@
                             android:layout_width="60dp"
                             android:layout_height="match_parent"
                             android:layout_marginHorizontal="4dp"
-                            android:background="@drawable/day_item_background"
+                            android:background="@drawable/day_item_selector"
                             android:clickable="true"
                             android:focusable="true"
                             android:gravity="center"

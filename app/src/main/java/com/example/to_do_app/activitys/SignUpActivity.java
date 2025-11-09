@@ -1,47 +1,43 @@
 package com.example.to_do_app.activitys;
 
-import android.app.ProgressDialog;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.text.TextUtils;
-import android.util.Patterns;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.to_do_app.R;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ServerValue;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * SignUpActivity — updated to auto sign-in and confirm device after successful registration.
+ * SignUpActivity — corrected so lambda-captured locals are final/effectively-final.
  *
- * Flow:
- *  - Validate input and create user with email+password.
- *  - update displayName on the FirebaseUser profile (best-effort).
- *  - confirm/register device under /users/<userId>/devices/<deviceId> in Realtime Database.
- *  - After device confirmation (or if DB write fails), navigate to MainActivity with extra "open_home"=true
- *    so MainActivity should open HomeFragment on start.
- *
- * Notes:
- *  - createUserWithEmailAndPassword signs in the newly created user automatically.
- *  - We attempt to write device info and then proceed regardless of DB success/failure to avoid blocking the user.
+ * Fixes applied:
+ * - Marked local variables used inside nested lambdas as final.
+ * - Declared devRef, payload and fsPayload as final inside confirmDeviceAndProceed so nested listeners can capture them.
+ * - Uses AlertDialog + dialog_progress.xml for progress UI.
+ * - Writes device info to both RTDB and Firestore (best-effort), updates displayName, sends verification email.
  */
 public class SignUpActivity extends AppCompatActivity {
 
@@ -50,15 +46,18 @@ public class SignUpActivity extends AppCompatActivity {
     private EditText etPassword;
     private EditText etConfirm;
     private Button btnSignUp;
-    private TextView tvGoToSignIn;
+    private View tvGoToSignIn;
     private FirebaseAuth mAuth;
-    private ProgressDialog progress;
     private DatabaseReference rootRef;
+    private FirebaseFirestore firestore;
+
+    // Progress replacement
+    private AlertDialog progressDialog;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sign_up);
+        setContentView(R.layout.activity_sign_up); // the XML you provided
 
         etFullName = findViewById(R.id.text1);
         etEmail = findViewById(R.id.text2);
@@ -69,14 +68,11 @@ public class SignUpActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         rootRef = FirebaseDatabase.getInstance().getReference();
-
-        progress = new ProgressDialog(this);
-        progress.setCancelable(false);
-        progress.setMessage("Đang đăng ký...");
+        firestore = FirebaseFirestore.getInstance();
 
         // Prefill email if provided
         String prefill = getIntent().getStringExtra("prefillEmail");
-        if (prefill != null && !prefill.isEmpty() && Patterns.EMAIL_ADDRESS.matcher(prefill).matches()) {
+        if (prefill != null && !prefill.isEmpty() && android.util.Patterns.EMAIL_ADDRESS.matcher(prefill).matches()) {
             etEmail.setText(prefill);
         }
 
@@ -85,7 +81,7 @@ public class SignUpActivity extends AppCompatActivity {
         tvGoToSignIn.setOnClickListener(v -> {
             Intent i = new Intent(SignUpActivity.this, SignInActivity.class);
             String email = etEmail.getText() != null ? etEmail.getText().toString().trim() : "";
-            if (!email.isEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            if (!email.isEmpty() && android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 i.putExtra("prefillEmail", email);
             }
             startActivity(i);
@@ -102,22 +98,22 @@ public class SignUpActivity extends AppCompatActivity {
         final String confirm = etConfirm.getText() != null ? etConfirm.getText().toString() : "";
 
         // Validate inputs
-        if (TextUtils.isEmpty(fullName)) {
+        if (fullName.isEmpty()) {
             etFullName.setError("Nhập họ và tên");
             etFullName.requestFocus();
             return;
         }
-        if (TextUtils.isEmpty(email)) {
+        if (email.isEmpty()) {
             etEmail.setError("Nhập email");
             etEmail.requestFocus();
             return;
         }
-        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             etEmail.setError("Email không hợp lệ");
             etEmail.requestFocus();
             return;
         }
-        if (TextUtils.isEmpty(password)) {
+        if (password.isEmpty()) {
             etPassword.setError("Nhập mật khẩu");
             etPassword.requestFocus();
             return;
@@ -139,22 +135,21 @@ public class SignUpActivity extends AppCompatActivity {
 
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
-                    // Keep UI consistent: dismiss progress and re-enable on failure paths; on success we'll continue and finish activity.
                     if (task.isSuccessful()) {
-                        // The newly created user is signed in automatically.
-                        FirebaseUser user = mAuth.getCurrentUser();
+                        final FirebaseUser user = mAuth.getCurrentUser(); // final to avoid lambda-capture issues
                         if (user != null) {
                             // Update profile display name (best-effort)
-                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                            final UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                                     .setDisplayName(fullName)
                                     .build();
+
                             user.updateProfile(profileUpdates)
                                     .addOnCompleteListener(updateTask -> {
-                                        // proceed to confirm device and then MainActivity
+                                        // after updating profile, send verification email and confirm device
+                                        sendVerificationEmail(user);
                                         confirmDeviceAndProceed(user.getUid(), () -> {
                                             safeDismissProgress();
                                             btnSignUp.setEnabled(true);
-                                            // Navigate to MainActivity and open HomeFragment
                                             Intent intent = new Intent(SignUpActivity.this, MainActivity.class);
                                             intent.putExtra("from_startapp", true);
                                             intent.putExtra("open_home", true);
@@ -164,7 +159,8 @@ public class SignUpActivity extends AppCompatActivity {
                                         });
                                     })
                                     .addOnFailureListener(e -> {
-                                        // Even if profile update fails, proceed
+                                        // Proceed even if profile update fails
+                                        sendVerificationEmail(user);
                                         confirmDeviceAndProceed(user.getUid(), () -> {
                                             safeDismissProgress();
                                             btnSignUp.setEnabled(true);
@@ -177,7 +173,7 @@ public class SignUpActivity extends AppCompatActivity {
                                         });
                                     });
                         } else {
-                            // Unexpected: no user object, but treat as success and prompt sign-in fallback
+                            // unexpected: proceed to sign-in fallback
                             safeDismissProgress();
                             btnSignUp.setEnabled(true);
                             Toast.makeText(SignUpActivity.this, "Đăng ký thành công. Vui lòng đăng nhập.", Toast.LENGTH_SHORT).show();
@@ -214,8 +210,22 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     /**
-     * Confirm/register device under /users/<userId>/devices/<deviceId>.
-     * Always calls onDone.run() whether DB write succeeds or fails.
+     * Send verification email to the user (best-effort).
+     */
+    private void sendVerificationEmail(FirebaseUser user) {
+        try {
+            if (user == null) return;
+            user.sendEmailVerification()
+                    .addOnSuccessListener(aVoid -> Toast.makeText(SignUpActivity.this, "Đã gửi email xác thực. Vui lòng kiểm tra hộp thư.", Toast.LENGTH_LONG).show())
+                    .addOnFailureListener(e -> Log.w("SignUpActivity", "Failed to send verification email: " + (e != null ? e.getMessage() : "unknown")));
+        } catch (Exception ex) {
+            Log.w("SignUpActivity", "sendVerificationEmail exception", ex);
+        }
+    }
+
+    /**
+     * Confirm/register device under both RTDB and Firestore.
+     * Always calls onDone.run() whether writes succeed or fail.
      */
     private void confirmDeviceAndProceed(String userId, Runnable onDone) {
         if (userId == null || userId.isEmpty()) {
@@ -223,51 +233,85 @@ public class SignUpActivity extends AppCompatActivity {
             return;
         }
         try {
-            String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-            if (deviceId == null || deviceId.isEmpty()) {
-                deviceId = "android_" + Build.SERIAL;
-            }
-            DatabaseReference devRef = FirebaseDatabase.getInstance().getReference()
-                    .child("users").child(userId).child("devices").child(deviceId);
+            final String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+            final String finalDeviceId = (deviceId == null || deviceId.isEmpty()) ? ("android_" + Build.SERIAL) : deviceId;
 
-            Map<String, Object> payload = new HashMap<>();
+            final DatabaseReference devRef = rootRef.child("users").child(userId).child("devices").child(finalDeviceId);
+
+            final Map<String, Object> payload = new HashMap<>();
             payload.put("confirmed", true);
-            payload.put("deviceId", deviceId);
+            payload.put("deviceId", finalDeviceId);
             payload.put("model", Build.MODEL);
             payload.put("manufacturer", Build.MANUFACTURER);
             payload.put("sdk_int", Build.VERSION.SDK_INT);
             payload.put("timestamp", ServerValue.TIMESTAMP);
 
+            // write to RTDB
             devRef.setValue(payload)
-                    .addOnSuccessListener(aVoid -> onDone.run())
+                    .addOnSuccessListener(aVoid -> {
+                        // then write to Firestore
+                        final Map<String, Object> fsPayload = new HashMap<>();
+                        fsPayload.put("confirmed", true);
+                        fsPayload.put("deviceId", finalDeviceId);
+                        fsPayload.put("model", Build.MODEL);
+                        fsPayload.put("manufacturer", Build.MANUFACTURER);
+                        fsPayload.put("sdk_int", Build.VERSION.SDK_INT);
+                        fsPayload.put("timestamp", FieldValue.serverTimestamp());
+
+                        firestore.collection("users").document(userId)
+                                .collection("devices").document(finalDeviceId)
+                                .set(fsPayload)
+                                .addOnSuccessListener(aVoid2 -> onDone.run())
+                                .addOnFailureListener(e -> {
+                                    Log.w("SignUpActivity", "Firestore device write failed: " + (e != null ? e.getMessage() : "unknown"));
+                                    onDone.run();
+                                });
+                    })
                     .addOnFailureListener(e -> {
-                        // Log, but proceed
-                        android.util.Log.w("SignUpActivity", "Device confirmation failed: " + (e != null ? e.getMessage() : "unknown"));
-                        onDone.run();
+                        Log.w("SignUpActivity", "RTDB device write failed: " + (e != null ? e.getMessage() : "unknown"));
+                        // attempt Firestore anyway
+                        final Map<String, Object> fsPayload = new HashMap<>();
+                        fsPayload.put("confirmed", true);
+                        fsPayload.put("deviceId", finalDeviceId);
+                        fsPayload.put("model", Build.MODEL);
+                        fsPayload.put("manufacturer", Build.MANUFACTURER);
+                        fsPayload.put("sdk_int", Build.VERSION.SDK_INT);
+                        fsPayload.put("timestamp", FieldValue.serverTimestamp());
+
+                        firestore.collection("users").document(userId)
+                                .collection("devices").document(finalDeviceId)
+                                .set(fsPayload)
+                                .addOnSuccessListener(aVoid2 -> onDone.run())
+                                .addOnFailureListener(e2 -> {
+                                    Log.w("SignUpActivity", "Firestore device write also failed: " + (e2 != null ? e2.getMessage() : "unknown"));
+                                    onDone.run();
+                                });
                     });
         } catch (Exception ex) {
-            android.util.Log.w("SignUpActivity", "confirmDeviceAndProceed exception", ex);
+            Log.w("SignUpActivity", "confirmDeviceAndProceed exception", ex);
             onDone.run();
         }
     }
 
     private void safeShowProgress() {
         try {
-            if (!isFinishing() && !isDestroyed()) {
-                if (progress == null) {
-                    progress = new ProgressDialog(this);
-                    progress.setCancelable(false);
-                    progress.setMessage("Đang đăng ký...");
-                }
-                if (!progress.isShowing()) progress.show();
+            if (progressDialog == null) {
+                AlertDialog.Builder b = new AlertDialog.Builder(this);
+                b.setCancelable(false);
+                View v = LayoutInflater.from(this).inflate(R.layout.dialog_progress, null);
+                b.setView(v);
+                progressDialog = b.create();
+            }
+            if (!isFinishing() && !isDestroyed() && !progressDialog.isShowing()) {
+                progressDialog.show();
             }
         } catch (Exception ignored) {}
     }
 
     private void safeDismissProgress() {
         try {
-            if (!isFinishing() && !isDestroyed() && progress != null && progress.isShowing()) {
-                progress.dismiss();
+            if (progressDialog != null && !isFinishing() && !isDestroyed() && progressDialog.isShowing()) {
+                progressDialog.dismiss();
             }
         } catch (Exception ignored) {}
     }

@@ -15,7 +15,6 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-
     <color name="search_bar_background">#F3F4F6</color>
     <color name="filter_button_background">#99A067EA</color>
     <color name="filter_button_text_color">#000000</color>
@@ -26,5 +25,8 @@
     <color name="colorPrimaryVariant">#3700B3</color>
     <color name="colorOnPrimary">#FFFFFF</color>
 
-
+    <!-- Màu bổ sung đã thêm để khắc phục lỗi linking resources -->
+    <color name="main_button">#FF6200EE</color>        <!-- màu chính nút (tương tự purple_500) -->
+    <color name="day_button">#FFFFEB3B</color>         <!-- màu cho ngày (vàng) -->
+    <color name="doing_work_button">#FF03DAC5</color>  <!-- màu cho trạng thái đang làm (teal) -->
 </resources>

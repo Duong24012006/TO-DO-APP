@@ -46,9 +46,12 @@ public class AddFragment extends Fragment {
     private Map<String, String> optionTagMap; // optional mapping from option text to tag (if available)
     private String currentFilterCategory = "";
 
+    public AddFragment() { }
+
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.add_fragment, container, false);
     }
 
@@ -72,6 +75,7 @@ public class AddFragment extends Fragment {
 
     private void initializeFilterData() {
         loadSampleData();
+        if (allTemplates == null) allTemplates = new ArrayList<>();
         currentlyDisplayedTemplates = new ArrayList<>(allTemplates);
 
         filterCategoryMap = new HashMap<>();
@@ -93,10 +97,6 @@ public class AddFragment extends Fragment {
         categoryTagMap.put("Giải trí", "#GiaiTri");
         categoryTagMap.put("Giờ ngủ", "#GioNgu"); // fixed tag for sleep
 
-        // Option tag map is optional: if you have tags for specific options (e.g., durations),
-        // map them here so filter will be able to filter by both category and option.
-        // If your templates don't include such tags, the option filter will try to match the option
-        // text inside title or description as a fallback.
         optionTagMap = new HashMap<>();
         optionTagMap.put("Giờ ngủ:4 giờ", "#4h_sleep");
         optionTagMap.put("Giờ ngủ:6 giờ", "#6h_sleep");
@@ -123,10 +123,11 @@ public class AddFragment extends Fragment {
             }
         };
 
-        requireView().findViewById(R.id.btn_filter_sleep).setOnClickListener(filterButtonClickListener);
-        requireView().findViewById(R.id.btn_filter_study).setOnClickListener(filterButtonClickListener);
-        requireView().findViewById(R.id.btn_filter_entertainment).setOnClickListener(filterButtonClickListener);
-        requireView().findViewById(R.id.btn_filter_sports).setOnClickListener(filterButtonClickListener);
+        View root = requireView();
+        root.findViewById(R.id.btn_filter_sleep).setOnClickListener(filterButtonClickListener);
+        root.findViewById(R.id.btn_filter_study).setOnClickListener(filterButtonClickListener);
+        root.findViewById(R.id.btn_filter_entertainment).setOnClickListener(filterButtonClickListener);
+        root.findViewById(R.id.btn_filter_sports).setOnClickListener(filterButtonClickListener);
 
         btnApplyFilter.setOnClickListener(v -> {
             int selectedId = radioGroupFilterOptions.getCheckedRadioButtonId();
@@ -147,9 +148,26 @@ public class AddFragment extends Fragment {
     }
 
     private void setupRecyclerView() {
-        adapter = new ScheduleTemplateAdapter(getContext(), currentlyDisplayedTemplates);
+        if (currentlyDisplayedTemplates == null) currentlyDisplayedTemplates = new ArrayList<>();
+
+        // Use adapter constructor that accepts an OnItemClickListener so we avoid touch-listener hacks
+        adapter = new ScheduleTemplateAdapter(getContext(), currentlyDisplayedTemplates, (template, position) -> {
+            openLayout6WithTemplate(template);
+        });
+
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
+    }
+
+    private void openLayout6WithTemplate(@NonNull ScheduleTemplate template) {
+        if (template == null) return;
+        Intent i = new Intent(getContext(), Layout6Activity.class);
+        i.putExtra(Layout6Activity.EXTRA_TEMPLATE_TITLE, template.getTitle());
+        i.putExtra(Layout6Activity.EXTRA_TEMPLATE_DESCRIPTION, template.getDescription());
+        ArrayList<String> tags = new ArrayList<>();
+        if (template.getTags() != null) tags.addAll(template.getTags());
+        i.putStringArrayListExtra("EXTRA_TEMPLATE_TAGS", tags);
+        startActivity(i);
     }
 
     private void toggleFilterOptions(String category) {
@@ -168,7 +186,8 @@ public class AddFragment extends Fragment {
                 RadioButton radioButton = new RadioButton(getContext());
                 radioButton.setText(option);
                 radioButton.setTextSize(16f);
-                radioButton.setPadding(32, 32, 32, 32);
+                int pad = (int)(32 * getResources().getDisplayMetrics().density);
+                radioButton.setPadding(pad, pad/2, pad, pad/2);
                 radioGroupFilterOptions.addView(radioButton);
             }
         }
@@ -183,52 +202,57 @@ public class AddFragment extends Fragment {
         String optionKey = category + ":" + option; // consistent key used in optionTagMap
         String optionTag = optionTagMap.getOrDefault(optionKey, "");
 
-
         List<ScheduleTemplate> result = new ArrayList<>(allTemplates);
 
         if (!categoryTag.isEmpty() && !optionTag.isEmpty()) {
             final String ct = categoryTag;
             final String ot = optionTag;
             result = allTemplates.stream()
-                    .filter(template -> template.getTags().contains(ct) && template.getTags().contains(ot))
+                    .filter(template -> template.getTags() != null && template.getTags().contains(ct) && template.getTags().contains(ot))
                     .collect(Collectors.toList());
         } else if (!categoryTag.isEmpty()) {
             final String ct = categoryTag;
             result = allTemplates.stream()
-                    .filter(template -> template.getTags().contains(ct))
+                    .filter(template -> template.getTags() != null && template.getTags().contains(ct))
                     .collect(Collectors.toList());
         } else if (!optionTag.isEmpty()) {
             final String ot = optionTag;
             result = allTemplates.stream()
-                    .filter(template -> template.getTags().contains(ot))
+                    .filter(template -> template.getTags() != null && template.getTags().contains(ot))
                     .collect(Collectors.toList());
         } else {
             // Fallback: if there is no tag mapping available for this option/category,
             // attempt to match the option text inside title or description AND match category if possible.
-            final String optLower = option.toLowerCase();
+            final String optLower = option == null ? "" : option.toLowerCase();
             if (!categoryTag.isEmpty()) {
                 final String ct = categoryTag;
                 result = allTemplates.stream()
-                        .filter(template -> template.getTags().contains(ct) &&
-                                (template.getTitle().toLowerCase().contains(optLower) ||
-                                        template.getDescription().toLowerCase().contains(optLower)))
+                        .filter(template ->
+                                template.getTags() != null && template.getTags().contains(ct) &&
+                                        (template.getTitle().toLowerCase().contains(optLower) ||
+                                                template.getDescription().toLowerCase().contains(optLower)))
                         .collect(Collectors.toList());
             } else {
                 result = allTemplates.stream()
-                        .filter(template -> template.getTitle().toLowerCase().contains(optLower) ||
-                                template.getDescription().toLowerCase().contains(optLower) ||
-                                template.getTags().stream().anyMatch(tag -> tag.toLowerCase().contains(optLower)))
+                        .filter(template ->
+                                (template.getTitle() != null && template.getTitle().toLowerCase().contains(optLower)) ||
+                                        (template.getDescription() != null && template.getDescription().toLowerCase().contains(optLower)) ||
+                                        (template.getTags() != null && template.getTags().stream().anyMatch(tag -> tag.toLowerCase().contains(optLower))))
                         .collect(Collectors.toList());
             }
         }
 
+        currentlyDisplayedTemplates = result;
         adapter.updateList(result);
 
         Toast.makeText(getContext(), "Lọc theo: " + category + " - " + option, Toast.LENGTH_SHORT).show();
     }
 
     private void resetFilter() {
+        currentlyDisplayedTemplates = new ArrayList<>(allTemplates);
         adapter.updateList(allTemplates);
+        radioGroupFilterOptions.clearCheck();
+        currentFilterCategory = "";
         Toast.makeText(getContext(), "Đã xóa bộ lọc", Toast.LENGTH_SHORT).show();
     }
 

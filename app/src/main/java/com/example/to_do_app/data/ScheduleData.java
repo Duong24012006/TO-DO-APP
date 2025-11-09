@@ -173,18 +173,129 @@ public class ScheduleData {
         String title = "Học môn chuyên sâu";
         String description = "Ưu tiên tối đa hóa thời gian học cho một \"Môn Chính\" (ví dụ: môn thi cuối kỳ, đồ án tốt nghiệp) bằng cách dành gần như toàn bộ thời gian tự học trong ngày cho nó.";
         List<String> tags = Arrays.asList("8h_sleep", "8h_study", "30m_sport", "60m_relax");
-        Map<String, List<TimeSlot>> weeklyActivities = new HashMap<>(); // Thêm chi tiết nếu cần
+        Map<String, List<TimeSlot>> weeklyActivities = new HashMap<>();
+
+        // --- Lịch trình chung cho Thứ 2, 3, 5, 7 ---
+        List<TimeSlot> commonSchedule = new ArrayList<>(Arrays.asList(
+                new TimeSlot("06:30", "07:00", "Thức dậy, Ăn sáng, Vận động nhẹ"),
+                new TimeSlot("07:00", "09:00", "Học Môn Chính"),
+                new TimeSlot("09:00", "09:30", "Giải lao & vận động nhẹ"),
+                new TimeSlot("09:10", "11:40", "Tiếp tục Môn Chính (Luyện đề/Bài tập)"),
+                new TimeSlot("11:40", "14:00", "Ăn trưa, Nghỉ ngơi"),
+                new TimeSlot("14:00", "15:30", "Học Môn Phụ"),
+                new TimeSlot("15:30", "17:30", "Luyện đề / làm chuyên đề khó của môn chính"),
+                new TimeSlot("17:30", "19:30", "Ăn tối & Thư giãn (Tái tạo năng lượng)"),
+                new TimeSlot("19:30", "21:00", "Tiếp tục Môn Chính (Giải đề trọn vẹn)"),
+                new TimeSlot("21:00", "22:30", "Ghi \"Sổ tay kiến thức\" & Review môn khác"),
+                new TimeSlot("22:30", "", "Đi ngủ")
+        ));
+        weeklyActivities.put("Thứ 2", commonSchedule);
+        weeklyActivities.put("Thứ 3", commonSchedule);
+        weeklyActivities.put("Thứ 5", commonSchedule);
+        weeklyActivities.put("Thứ 7", commonSchedule);
+
+        // --- Lịch trình riêng cho Thứ 4, 6 (có đi học) ---
+        List<TimeSlot> schoolDaySchedule = new ArrayList<>(Arrays.asList(
+                new TimeSlot("06:30", "07:00", "Học trên trường (Tiết 1-3)"), // Gộp chung
+                new TimeSlot("07:00", "09:00", "Học Môn Chính"),
+                new TimeSlot("09:00", "09:30", "Giải lao & vận động nhẹ"),
+                new TimeSlot("09:10", "11:40", "Tiếp tục Môn Chính (Luyện đề/Bài tập)"),
+                new TimeSlot("11:40", "14:00", "Ăn trưa, Nghỉ ngơi"),
+                new TimeSlot("14:00", "15:30", "Học Môn Phụ"),
+                new TimeSlot("15:30", "17:30", "Luyện đề / làm chuyên đề khó của môn chính"),
+                new TimeSlot("17:30", "19:30", "Ăn tối & Thư giãn"),
+                new TimeSlot("19:30", "21:00", "Tiếp tục Môn Chính (Giải đề trọn vẹn)"),
+                new TimeSlot("21:00", "22:30", "Ghi \"Sổ tay kiến thức\" & Review môn khác"),
+                new TimeSlot("22:30", "", "Đi ngủ")
+        ));
+        weeklyActivities.put("Thứ 4", schoolDaySchedule);
+        weeklyActivities.put("Thứ 6", schoolDaySchedule);
+
+        // --- Lịch trình riêng cho Chủ Nhật ---
+        List<TimeSlot> sundaySchedule = new ArrayList<>(Arrays.asList(
+                new TimeSlot("06:30", "07:00", "Thức dậy, Ăn sáng, Vận động nhẹ"),
+                new TimeSlot("07:00", "09:00", "Học Môn Chính"),
+                new TimeSlot("09:00", "09:30", "Giải lao & vận động nhẹ"),
+                new TimeSlot("09:10", "11:40", "Tiếp tục Môn Chính (Luyện đề/Bài tập)"),
+                new TimeSlot("11:40", "14:00", "Ăn trưa, Nghỉ ngơi"),
+                new TimeSlot("14:00", "15:30", "Lập Kế hoạch Tuần mới"),
+                new TimeSlot("15:30", "17:30", "Tổng kết tuần/Giải trí"),
+                new TimeSlot("17:30", "19:30", "Ăn tối & Thư giãn"),
+                new TimeSlot("19:30", "21:00", "Giải trí/Thư giãn"),
+                new TimeSlot("21:00", "22:30", "Chuẩn bị đi ngủ"),
+                new TimeSlot("22:30", "", "Đi ngủ")
+        ));
+        weeklyActivities.put("Chủ Nhật", sundaySchedule);
+
         return new DetailedSchedule(title, description, tags, weeklyActivities);
     }
+
 
     // 4. Template "Sáng học, tối chơi"
     public static DetailedSchedule createWorkHardPlayHardTemplate() {
         String title = "Sáng học, tối chơi";
         String description = "Template này lý tưởng cho sinh viên muốn \"học ra học, chơi ra chơi\". Dành cho người dậy sớm, ưu tiên học buổi sáng và thể thao buổi tối.";
         List<String> tags = Arrays.asList("8h_sleep", "6h_study", "90m_sport", "60m_relax");
-        Map<String, List<TimeSlot>> weeklyActivities = new HashMap<>(); // Thêm chi tiết nếu cần
+        Map<String, List<TimeSlot>> weeklyActivities = new HashMap<>();
+
+        // --- Lịch trình cho Thứ 2 ---
+        List<TimeSlot> mondaySchedule = new ArrayList<>(Arrays.asList(
+                new TimeSlot("05:30", "06:00", "Thức dậy, Vệ sinh, Vận động nhẹ (Thiền, Yoga)"),
+                new TimeSlot("06:00", "07:00", "Học tập trung cao (Môn khó nhất)"),
+                new TimeSlot("07:00", "08:00", "Ăn sáng & Ôn bài nhẹ (Học thuộc)"),
+                new TimeSlot("08:00", "11:30", "Tự học (Thư viện)"),
+                new TimeSlot("11:30", "13:30", "Ăn trưa, Nghỉ ngơi, Ngủ trưa (20-30 phút)"),
+                new TimeSlot("13:30", "15:30", "Tự học (Môn vừa sức) & Ôn bài"),
+                new TimeSlot("15:30", "17:30", "Tự học (Ôn bài trong ngày)"),
+                new TimeSlot("17:30", "19:00", "THỂ THAO CƯỜNG ĐỘ CAO (90p - Gym/Chạy bộ/Bóng đá)"),
+                new TimeSlot("19:00", "20:30", "Ăn tối muộn & Tắm rửa, thư giãn"),
+                new TimeSlot("20:30", "21:30", "Giải trí/Sở thích (60 phút - Đọc sách, nghe nhạc)"),
+                new TimeSlot("21:30", "22:00", "Review nhanh ngày mai & Chuẩn bị đi ngủ"),
+                new TimeSlot("22:00", "", "Đi ngủ")
+        ));
+        weeklyActivities.put("Thứ 2", mondaySchedule);
+
+        // --- Lịch trình chung cho Thứ 3 -> Thứ 7 ---
+        List<TimeSlot> commonSchedule = new ArrayList<>(Arrays.asList(
+                new TimeSlot("05:30", "06:00", "Thức dậy, Vệ sinh, Vận động nhẹ"),
+                new TimeSlot("06:00", "07:00", "Học tập trung cao"),
+                new TimeSlot("07:00", "08:00", "Ăn sáng & Ôn bài nhẹ"),
+                new TimeSlot("08:00", "11:30", "Tự học (Thư viện)"),
+                new TimeSlot("11:30", "13:30", "Ăn trưa, Nghỉ ngơi, Ngủ trưa"),
+                new TimeSlot("13:30", "15:30", "Tự học (Môn vừa sức) & Ôn bài"),
+                new TimeSlot("15:30", "17:30", "Tự học (Ôn bài trong ngày)"),
+                new TimeSlot("17:30", "19:00", "THỂ THAO CƯỜNG ĐỘ CAO (90p)"),
+                new TimeSlot("19:00", "20:30", "Ăn tối muộn & Tắm rửa, thư giãn"),
+                new TimeSlot("20:30", "21:30", "Giải trí/Sở thích (60 phút)"),
+                new TimeSlot("21:30", "22:00", "Review nhanh ngày mai & Chuẩn bị đi ngủ"),
+                new TimeSlot("22:00", "", "Đi ngủ")
+        ));
+        weeklyActivities.put("Thứ 3", commonSchedule);
+        weeklyActivities.put("Thứ 4", commonSchedule);
+        weeklyActivities.put("Thứ 5", commonSchedule);
+        weeklyActivities.put("Thứ 6", commonSchedule);
+        weeklyActivities.put("Thứ 7", commonSchedule);
+
+        // --- Lịch trình riêng cho Chủ Nhật ---
+        List<TimeSlot> sundaySchedule = new ArrayList<>(Arrays.asList(
+                new TimeSlot("05:30", "06:00", "Thức dậy, Vệ sinh, Vận động nhẹ"),
+                new TimeSlot("06:00", "07:00", "Học tập trung cao"),
+                new TimeSlot("07:00", "08:00", "Ăn sáng & Lên kế hoạch tuần"),
+                new TimeSlot("08:00", "11:30", "Hoạt động cá nhân/Gia đình"),
+                new TimeSlot("11:30", "13:30", "Ăn trưa, Nghỉ ngơi"),
+                new TimeSlot("13:30", "15:30", "Tự học/Hoạt động xã hội"),
+                new TimeSlot("15:30", "17:30", "Giải trí/Hoạt động xã hội"),
+                new TimeSlot("17:30", "19:00", "THỂ THAO CƯỜNG ĐỘ CAO (90p)"),
+                new TimeSlot("19:00", "20:30", "Ăn tối muộn & Tắm rửa, thư giãn"),
+                new TimeSlot("20:30", "21:30", "Giải trí/Sở thích (60 phút)"),
+                new TimeSlot("21:30", "22:00", "Review nhanh ngày mai & Chuẩn bị đi ngủ"),
+                new TimeSlot("22:00", "", "Đi ngủ")
+        ));
+        weeklyActivities.put("Chủ Nhật", sundaySchedule);
+
         return new DetailedSchedule(title, description, tags, weeklyActivities);
     }
+
 
     // 5. Template "Tối ưu hóa chu kỳ ngủ" - Tên lịch gốc có vẻ không khớp mô tả, tạm dùng tên này
     public static DetailedSchedule createSprintWeekTemplate() {

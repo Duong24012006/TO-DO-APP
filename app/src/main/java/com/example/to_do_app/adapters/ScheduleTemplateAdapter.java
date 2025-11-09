@@ -1,3 +1,5 @@
+// java
+// File: app/src/main/java/com/example/to_do_app/adapters/ScheduleTemplateAdapter.java
 package com.example.to_do_app.adapters;
 
 import android.content.Context;
@@ -40,13 +42,15 @@ public class ScheduleTemplateAdapter extends RecyclerView.Adapter<ScheduleTempla
 
     @Override
     public void onBindViewHolder(@NonNull ScheduleTemplateViewHolder holder, int position) {
+        // Guard against inconsistent state: don't call get if position out of range
+        if (position < 0 || position >= templateList.size()) return;
         ScheduleTemplate template = templateList.get(position);
         holder.bind(template);
     }
 
     @Override
     public int getItemCount() {
-        return templateList.size();
+        return (templateList == null) ? 0 : templateList.size();
     }
 
     public void updateList(List<ScheduleTemplate> newList) {
@@ -68,11 +72,9 @@ public class ScheduleTemplateAdapter extends RecyclerView.Adapter<ScheduleTempla
             chipGroupTags = itemView.findViewById(R.id.chip_group_tags);
             ivNext = itemView.findViewById(R.id.iv_next);
 
-            // Khi bấm mũi tên -> gửi primitive extras (an toàn hơn so với gửi object)
-            // inside your ScheduleTemplateViewHolder constructor
             ivNext.setOnClickListener(v -> {
                 int pos = getBindingAdapterPosition();
-                if (pos == RecyclerView.NO_POSITION) return;
+                if (pos == RecyclerView.NO_POSITION || pos < 0 || pos >= templateList.size()) return;
                 ScheduleTemplate template = templateList.get(pos);
 
                 Intent intent = new Intent(context, Layout6Activity.class);
@@ -84,9 +86,8 @@ public class ScheduleTemplateAdapter extends RecyclerView.Adapter<ScheduleTempla
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 }
                 context.startActivity(intent);
-            }); 
+            });
 
-            // Click toàn item => tương tự như bấm mũi tên
             itemView.setOnClickListener(v -> ivNext.performClick());
         }
 

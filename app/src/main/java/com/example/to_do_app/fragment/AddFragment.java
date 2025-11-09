@@ -23,6 +23,8 @@ import com.example.to_do_app.R;
 import com.example.to_do_app.activitys.Layout6Activity;
 import com.example.to_do_app.adapters.ScheduleTemplateAdapter;
 import com.example.to_do_app.model.ScheduleTemplate;
+import com.example.to_do_app.data.ScheduleData;
+
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -127,9 +129,9 @@ public class AddFragment extends Fragment {
         optionTagMap.put("Học tập:4 giờ", "#4h_study");
         optionTagMap.put("Học tập:6 giờ", "#6h_study");
 
-        optionTagMap.put("Giải trí:30 phút", "#30m_fun");
-        optionTagMap.put("Giải trí:60 phút", "#60m_fun");
-        optionTagMap.put("Giải trí:90 phút", "#90m_fun");
+        optionTagMap.put("Giải trí:30 phút", "#30m_relax");
+        optionTagMap.put("Giải trí:60 phút", "#60m_relax");
+        optionTagMap.put("Giải trí:90 phút", "#90m_relax");
 
         optionTagMap.put("Thể thao:30 phút", "#30m_sport");
         optionTagMap.put("Thể thao:60 phút", "#60m_sport");
@@ -267,30 +269,7 @@ public class AddFragment extends Fragment {
 
     private void loadSampleData() {
         allTemplates = new ArrayList<>();
-        allTemplates.add(new ScheduleTemplate(
-                "Lịch học cho sinh viên",
-                "Template này dành cho sinh viên muốn tối đa hóa thời gian học tập nhưng với mức ngủ tối thiểu",
-                Arrays.asList("#HocTap", "#SinhVien", "#4h_study")
-        ));
-        allTemplates.add(new ScheduleTemplate(
-                "Lịch trình thể thao",
-                "Tối ưu hóa thời gian tập luyện và phục hồi để đạt hiệu suất cao nhất trong thể thao.",
-                Arrays.asList("#TheThao", "#CoHoi", "#60m_sport")
-        ));
-        allTemplates.add(new ScheduleTemplate(
-                "Lịch trình giải trí cuối tuần",
-                "Dành thời gian để thư giãn, giải trí và nạp lại năng lượng sau một tuần làm việc căng thẳng.",
-                Arrays.asList("#GiaiTri", "#CuoiTuan", "#60m_fun")
-        ));
-        allTemplates.add(new ScheduleTemplate(
-                "Lịch trình ăn uống lành mạnh",
-                "Thiết lập một chế độ ăn uống cân bằng và khoa học để cải thiện sức khỏe và vóc dáng.",
-                Arrays.asList("#AnUong", "#SucKhoe", "#SinhVien")
-        ));
-        allTemplates.add(new ScheduleTemplate(
-                "Lịch ngủ sâu",
-                "Tập trung vào chất lượng giấc ngủ để cải thiện năng lượng ngày tiếp theo.",
-                Arrays.asList("#GioNgu", "#8h_sleep")
-        ));
+        // Chỉ cần gọi một dòng duy nhất để lấy toàn bộ danh sách template
+        allTemplates.addAll(ScheduleData.getSampleTemplates());
     }
 }

@@ -37,7 +37,8 @@ public class TimeAdapter extends RecyclerView.Adapter<TimeAdapter.TimeViewHolder
         TimeSlot slot = list.get(position);
         holder.tvStart.setText(slot.getStartTime());
         holder.tvEnd.setText(slot.getEndTime());
-        holder.tvActivity.setText(slot.getActivity());
+        // Sửa dòng dưới đây
+        holder.tvActivity.setText(slot.getActivityName());
 
         holder.ivEdit.setOnClickListener(v -> {
             if (editListener != null) editListener.onEditClick(position, slot);

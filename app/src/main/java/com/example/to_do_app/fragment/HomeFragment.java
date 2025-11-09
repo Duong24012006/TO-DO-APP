@@ -138,8 +138,6 @@ public class HomeFragment extends Fragment {
                 view.findViewById(R.id.tvTaskNote7)
         };
 
-        // Khởi tạo dữ liệu mẫu (used when no home display saved)
-        initSampleTasks();
 
         // Gán click cho các ngày
         for (int i = 0; i < dayLayouts.size(); i++) {

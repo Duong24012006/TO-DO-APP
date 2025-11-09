@@ -260,42 +260,37 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    private void initSampleTasks() {
-        taskMap.put(2, List.of(
-                new Task("6:00 - 7:00", "Tập thể dục buổi sáng", "Công viên Lê Thị Riêng", "Mang theo nước và khăn tập"),
-                new Task("8:00 - 9:00", "Ăn sáng & chuẩn bị đi làm", "Nhà bếp", "Chuẩn bị tài liệu họp sáng"),
-                new Task("10:00 - 11:30", "Họp nhóm dự án", "Phòng họp tầng 3", "Chuẩn bị báo cáo sprint"),
-                new Task("14:00 - 16:00", "Làm việc tại văn phòng", "Công ty ABC", "Kiểm tra email khách hàng"),
-                new Task("17:00 - 19:00", "Tập gym", "Phòng gym California", "Tập ngực và tay"),
-                new Task("20:00 - 22:00", "Học lập trình Android", "Tại nhà", "Hoàn thành project app tính toán"),
-                new Task("22:00 - 23:00", "Thư giãn và đọc sách", "Phòng ngủ", "Đọc 30 phút sách Android")
-        ));
-
-        taskMap.put(3, List.of(
-                new Task("6:00 - 7:00", "Đọc sách buổi sáng", "Nhà", "Đọc 20 trang"),
-                new Task("8:00 - 9:00", "Ăn sáng & đi làm", "Nhà bếp", "Chuẩn bị tài liệu")
-        ));
-
-        taskMap.put(4, List.of(
-                new Task("10:00 - 12:00", "Họp khách hàng", "Công ty ABC", "Chuẩn bị hợp đồng")
-        ));
-
-        // Các ngày khác trống
-        taskMap.put(5, new ArrayList<>());
-        taskMap.put(6, new ArrayList<>());
-        taskMap.put(7, new ArrayList<>());
-        taskMap.put(1, new ArrayList<>());
-    }
+//    private void initSampleTasks() {
+//        taskMap.put(2, List.of(
+//                new Task("6:00 - 7:00", "Tập thể dục buổi sáng", "Công viên Lê Thị Riêng", "Mang theo nước và khăn tập"),
+//                new Task("8:00 - 9:00", "Ăn sáng & chuẩn bị đi làm", "Nhà bếp", "Chuẩn bị tài liệu họp sáng"),
+//                new Task("10:00 - 11:30", "Họp nhóm dự án", "Phòng họp tầng 3", "Chuẩn bị báo cáo sprint"),
+//                new Task("14:00 - 16:00", "Làm việc tại văn phòng", "Công ty ABC", "Kiểm tra email khách hàng"),
+//                new Task("17:00 - 19:00", "Tập gym", "Phòng gym California", "Tập ngực và tay"),
+//                new Task("20:00 - 22:00", "Học lập trình Android", "Tại nhà", "Hoàn thành project app tính toán"),
+//                new Task("22:00 - 23:00", "Thư giãn và đọc sách", "Phòng ngủ", "Đọc 30 phút sách Android")
+//        ));
+//
+//        taskMap.put(3, List.of(
+//                new Task("6:00 - 7:00", "Đọc sách buổi sáng", "Nhà", "Đọc 20 trang"),
+//                new Task("8:00 - 9:00", "Ăn sáng & đi làm", "Nhà bếp", "Chuẩn bị tài liệu")
+//        ));
+//
+//        taskMap.put(4, List.of(
+//                new Task("10:00 - 12:00", "Họp khách hàng", "Công ty ABC", "Chuẩn bị hợp đồng")
+//        ));
+//
+//        // Các ngày khác trống
+//        taskMap.put(5, new ArrayList<>());
+//        taskMap.put(6, new ArrayList<>());
+//        taskMap.put(7, new ArrayList<>());
+//        taskMap.put(1, new ArrayList<>());
+//    }
 
     private void selectDay(LinearLayout dayLayout, int dayKey) {
-        // Reset ngày trước
         if (selectedDay != null) selectedDay.setSelected(false);
-
-        // Chọn ngày hiện tại
         dayLayout.setSelected(true);
         selectedDay = dayLayout;
-
-        // Cập nhật nhiệm vụ
         List<Task> tasks = taskMap.get(dayKey);
         for (int i = 0; i < 7; i++) {
             if (tasks != null && i < tasks.size()) {

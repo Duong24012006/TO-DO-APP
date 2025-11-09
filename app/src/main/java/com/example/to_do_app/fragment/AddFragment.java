@@ -91,6 +91,7 @@ public class AddFragment extends Fragment {
         radioGroupFilterOptions = view.findViewById(R.id.radio_group_filter_options);
         btnApplyFilter = view.findViewById(R.id.btn_apply_filter);
         btnResetFilter = view.findViewById(R.id.btn_reset_filter);
+
     }
 
     private void initializeFilterData() {

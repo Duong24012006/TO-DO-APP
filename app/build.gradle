@@ -32,20 +32,28 @@ android {
 
 dependencies {
     implementation(libs.appcompat)
-    implementation(libs.material)
+    implementation(libs.material) // Giữ lại dòng này, xóa dòng trùng lặp
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation libs.firebase.auth
+
+    // Khai báo trực tiếp để tránh lỗi "No such property"
+    implementation("com.google.firebase:firebase-firestore")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 
-    implementation("com.google.android.material:material:1.13.0-alpha02")
+    // Giữ lại Gson
+    implementation 'com.google.code.gson:gson:2.10.1'
 
     // Firebase BOM để quản lý version
     implementation(platform("com.google.firebase:firebase-bom:34.5.0"))
 
     // Các thư viện Firebase bạn cần
+    implementation 'com.google.code.gson:gson:2.10.1'
     implementation("com.google.firebase:firebase-analytics")
-    implementation("com.google.firebase:firebase-database") // thêm Realtime Database
+    implementation("com.google.firebase:firebase-database")
+    implementation 'com.google.firebase:firebase-database:20.3.0'
+    // thêm Realtime Database
 }

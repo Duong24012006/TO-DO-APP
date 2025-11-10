@@ -34,24 +34,24 @@ public class AddFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private ScheduleTemplateAdapter adapter;
-    private List<ScheduleTemplate> allTemplates; // Full list
-    private List<ScheduleTemplate> currentlyDisplayedTemplates; // List hiển thị
+    private List<ScheduleTemplate> allTemplates;
+    private List<ScheduleTemplate> currentlyDisplayedTemplates;
 
     private LinearLayout filterOptionsContainer;
     private RadioGroup radioGroupFilterOptions;
     private Button btnApplyFilter, btnResetFilter;
 
     // Data for filters
-    private Map<Integer, String> filterCategoryMap;
-    private Map<String, List<String>> filterOptionsMap;
-    private Map<String, String> categoryTagMap;
-    private Map<String, String> optionTagMap;
-    private String currentFilterCategory = "";
+    private Map<Integer, String> filterCategoryMap; // Maps Button ID to Category Name
+    private Map<String, List<String>> filterOptionsMap; // Maps Category Name to List of Options
+    private Map<String, String> optionTagMap; // Maps "Category:Option" to a specific tag
+
+    // New state management
+    private Map<String, String> appliedFilters; // Stores currently applied filters, e.g., {"Giờ ngủ": "6 giờ"}
+    private String currentCategoryForEditing = ""; // Which category panel is currently open
 
     private SharedPreferences sharedPreferences;
-    private static final String PREFS_NAME = "FilterPrefs";
-    private static final String KEY_CATEGORY = "filter_category";
-    private static final String KEY_OPTION = "filter_option";
+    private static final String PREFS_NAME = "FilterStatePrefs";
 
     @Nullable
     @Override
@@ -65,29 +65,10 @@ public class AddFragment extends Fragment {
 
         initializeViews(view);
         initializeFilterData();
+        loadFiltersFromPrefs(); // Load saved filters
         setupListeners();
         setupRecyclerView();
-
-        sharedPreferences = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-
-        String savedCategory = sharedPreferences.getString(KEY_CATEGORY, null);
-        String savedOption = sharedPreferences.getString(KEY_OPTION, null);
-
-        if (savedCategory != null && savedOption != null) {
-            currentFilterCategory = savedCategory;
-            applyFilter(savedCategory, savedOption);
-
-            if (currentFilterCategory.equals("Giờ ngủ")) {
-                filterOptionsContainer.setVisibility(View.VISIBLE);
-                radioGroupFilterOptions.removeAllViews();
-                RadioButton rb = new RadioButton(getContext());
-                rb.setText(savedOption);
-                rb.setChecked(true);
-                rb.setTextSize(16f);
-                rb.setPadding(32, 32, 32, 32);
-                radioGroupFilterOptions.addView(rb);
-            }
-        }
+        applyAllFilters(); // Apply loaded filters on startup
     }
 
     private void initializeViews(View view) {
@@ -101,6 +82,8 @@ public class AddFragment extends Fragment {
     private void initializeFilterData() {
         loadSampleData();
         currentlyDisplayedTemplates = new ArrayList<>(allTemplates);
+        appliedFilters = new HashMap<>();
+        sharedPreferences = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
         filterCategoryMap = new HashMap<>();
         filterCategoryMap.put(R.id.btn_filter_sleep, "Giờ ngủ");
@@ -114,25 +97,16 @@ public class AddFragment extends Fragment {
         filterOptionsMap.put("Giải trí", Arrays.asList("30 phút", "60 phút", "90 phút"));
         filterOptionsMap.put("Thể thao", Arrays.asList("30 phút", "60 phút", "90 phút"));
 
-        categoryTagMap = new HashMap<>();
-        categoryTagMap.put("Học tập", "HocTap");
-        categoryTagMap.put("Thể thao", "TheThao");
-        categoryTagMap.put("Giải trí", "GiaiTri");
-        categoryTagMap.put("Giờ ngủ", "GioNgu");
-
         optionTagMap = new HashMap<>();
         optionTagMap.put("Giờ ngủ:4 giờ", "4h_sleep");
         optionTagMap.put("Giờ ngủ:6 giờ", "6h_sleep");
         optionTagMap.put("Giờ ngủ:8 giờ", "8h_sleep");
-
         optionTagMap.put("Học tập:4 giờ", "4h_study");
         optionTagMap.put("Học tập:6 giờ", "6h_study");
         optionTagMap.put("Học tập:8 giờ", "8h_study");
-
         optionTagMap.put("Giải trí:30 phút", "30m_relax");
         optionTagMap.put("Giải trí:60 phút", "60m_relax");
         optionTagMap.put("Giải trí:90 phút", "90m_relax");
-
         optionTagMap.put("Thể thao:30 phút", "30m_sport");
         optionTagMap.put("Thể thao:60 phút", "60m_sport");
         optionTagMap.put("Thể thao:90 phút", "90m_sport");
@@ -156,42 +130,29 @@ public class AddFragment extends Fragment {
             if (selectedId != -1) {
                 RadioButton selectedRadioButton = requireView().findViewById(selectedId);
                 String selectedOption = selectedRadioButton.getText().toString();
-                applyFilter(currentFilterCategory, selectedOption);
 
-                sharedPreferences.edit()
-                        .putString(KEY_CATEGORY, currentFilterCategory)
-                        .putString(KEY_OPTION, selectedOption)
-                        .apply();
+                // Save the selected filter
+                appliedFilters.put(currentCategoryForEditing, selectedOption);
+                saveFilterState(currentCategoryForEditing, selectedOption);
 
+                // Apply all filters and update UI
+                applyAllFilters();
+                filterOptionsContainer.setVisibility(View.GONE);
                 Toast.makeText(getContext(), "Đã áp dụng: " + selectedOption, Toast.LENGTH_SHORT).show();
-
-                if (currentFilterCategory.equals("Giờ ngủ")) {
-                    radioGroupFilterOptions.removeAllViews();
-                    RadioButton rb = new RadioButton(getContext());
-                    rb.setText(selectedOption);
-                    rb.setChecked(true);
-                    rb.setTextSize(16f);
-                    rb.setPadding(32, 32, 32, 32);
-                    radioGroupFilterOptions.addView(rb);
-                } else {
-                    filterOptionsContainer.setVisibility(View.GONE);
-                }
-
             } else {
                 Toast.makeText(getContext(), "Vui lòng chọn một tùy chọn", Toast.LENGTH_SHORT).show();
             }
         });
 
         btnResetFilter.setOnClickListener(v -> {
-            if (currentFilterCategory.equals("Giờ ngủ")) {
-                showFullSleepOptions();
-            }
+            // Remove the filter for the current category
+            appliedFilters.remove(currentCategoryForEditing);
+            clearFilterState(currentCategoryForEditing);
 
-            radioGroupFilterOptions.clearCheck();
-            resetFilter();
-            sharedPreferences.edit().clear().apply();
+            // Apply remaining filters and update UI
+            applyAllFilters();
             filterOptionsContainer.setVisibility(View.GONE);
-            Toast.makeText(getContext(), "Đã thiết lập lại bộ lọc", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Đã xóa bộ lọc cho " + currentCategoryForEditing, Toast.LENGTH_SHORT).show();
         });
     }
 
@@ -201,78 +162,76 @@ public class AddFragment extends Fragment {
         recyclerView.setAdapter(adapter);
     }
 
-    private void showFullSleepOptions() {
-        radioGroupFilterOptions.removeAllViews();
-        List<String> sleepOptions = filterOptionsMap.get("Giờ ngủ");
-        if (sleepOptions != null) {
-            for (String opt : sleepOptions) {
-                RadioButton rb = new RadioButton(getContext());
-                rb.setText(opt);
-                rb.setTextSize(16f);
-                rb.setPadding(32, 32, 32, 32);
-                radioGroupFilterOptions.addView(rb);
-            }
-        }
-    }
-
     private void toggleFilterOptions(String category) {
-        if (filterOptionsContainer.getVisibility() == View.VISIBLE && category.equals(currentFilterCategory)) {
+        // If the same filter is clicked again while visible, hide it.
+        if (filterOptionsContainer.getVisibility() == View.VISIBLE && category.equals(currentCategoryForEditing)) {
             filterOptionsContainer.setVisibility(View.GONE);
             return;
         }
 
-        currentFilterCategory = category;
+        currentCategoryForEditing = category;
         radioGroupFilterOptions.clearCheck();
         radioGroupFilterOptions.removeAllViews();
 
         List<String> options = filterOptionsMap.get(category);
+        String previouslySelectedOption = appliedFilters.get(category);
+
         if (options != null) {
             for (String option : options) {
                 RadioButton radioButton = new RadioButton(getContext());
                 radioButton.setText(option);
                 radioButton.setTextSize(16f);
                 radioButton.setPadding(32, 32, 32, 32);
+                if (option.equals(previouslySelectedOption)) {
+                    radioButton.setChecked(true); // Restore checked state
+                }
                 radioGroupFilterOptions.addView(radioButton);
             }
         }
         filterOptionsContainer.setVisibility(View.VISIBLE);
     }
 
-    private void applyFilter(String category, String option) {
-        String categoryTag = categoryTagMap.getOrDefault(category, "");
-        String optionKey = category + ":" + option;
-        String optionTag = optionTagMap.getOrDefault(optionKey, "");
+    private void applyAllFilters() {
+        List<ScheduleTemplate> filteredList = new ArrayList<>(allTemplates);
 
-        List<ScheduleTemplate> result;
+        // Sequentially apply each filter from the map
+        for (Map.Entry<String, String> entry : appliedFilters.entrySet()) {
+            String category = entry.getKey();
+            String option = entry.getValue();
+            String optionKey = category + ":" + option;
+            String optionTag = optionTagMap.get(optionKey);
 
-        // Sửa lỗi: Ưu tiên lọc theo tag tùy chọn cụ thể trước
-        if (!optionTag.isEmpty()) {
-            result = allTemplates.stream()
-                    .filter(template -> template.getTags().contains(optionTag))
-                    .collect(Collectors.toList());
-        } 
-        // Nếu không có tag tùy chọn, thử lọc theo tag danh mục chung
-        else if (!categoryTag.isEmpty()) {
-            result = allTemplates.stream()
-                    .filter(template -> template.getTags().contains(categoryTag))
-                    .collect(Collectors.toList());
-        } 
-        // Nếu không có tag nào, tìm kiếm theo văn bản
-        else {
-            final String optLower = option.toLowerCase();
-            result = allTemplates.stream()
-                    .filter(template -> template.getTitle().toLowerCase().contains(optLower) ||
-                            template.getDescription().toLowerCase().contains(optLower))
-                    .collect(Collectors.toList());
+            if (optionTag != null && !optionTag.isEmpty()) {
+                final String finalTag = optionTag;
+                filteredList = filteredList.stream()
+                        .filter(template -> template.getTags().contains(finalTag))
+                        .collect(Collectors.toList());
+            }
         }
 
-        adapter.updateList(result);
+        adapter.updateList(filteredList);
     }
 
-    private void resetFilter() {
-        adapter.updateList(allTemplates);
+    // --- SharedPreferences Logic ---
+
+    private void saveFilterState(String category, String option) {
+        sharedPreferences.edit().putString(category, option).apply();
     }
 
+    private void clearFilterState(String category) {
+        sharedPreferences.edit().remove(category).apply();
+    }
+
+    private void loadFiltersFromPrefs() {
+        for (String category : filterOptionsMap.keySet()) {
+            String savedOption = sharedPreferences.getString(category, null);
+            if (savedOption != null) {
+                appliedFilters.put(category, savedOption);
+            }
+        }
+    }
+
+    // --- Data Loading ---
     private void loadSampleData() {
         allTemplates = new ArrayList<>();
         allTemplates.addAll(ScheduleData.getSampleTemplates());

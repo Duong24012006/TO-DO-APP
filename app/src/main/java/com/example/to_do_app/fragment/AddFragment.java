@@ -2,7 +2,6 @@ package com.example.to_do_app.fragment;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,11 +19,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.to_do_app.R;
-import com.example.to_do_app.activitys.Layout6Activity;
 import com.example.to_do_app.adapters.ScheduleTemplateAdapter;
-import com.example.to_do_app.model.ScheduleTemplate;
 import com.example.to_do_app.data.ScheduleData;
-
+import com.example.to_do_app.model.ScheduleTemplate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,10 +45,9 @@ public class AddFragment extends Fragment {
     private Map<Integer, String> filterCategoryMap;
     private Map<String, List<String>> filterOptionsMap;
     private Map<String, String> categoryTagMap;
-    private Map<String, String> optionTagMap; // optional mapping from option text to tag (if available)
+    private Map<String, String> optionTagMap;
     private String currentFilterCategory = "";
 
-    // 🔹 SharedPreferences để lưu trạng thái lọc
     private SharedPreferences sharedPreferences;
     private static final String PREFS_NAME = "FilterPrefs";
     private static final String KEY_CATEGORY = "filter_category";
@@ -72,16 +68,25 @@ public class AddFragment extends Fragment {
         setupListeners();
         setupRecyclerView();
 
-        // 🔹 Khởi tạo SharedPreferences
         sharedPreferences = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
-        // 🔹 Khôi phục bộ lọc nếu có lưu trước đó
         String savedCategory = sharedPreferences.getString(KEY_CATEGORY, null);
         String savedOption = sharedPreferences.getString(KEY_OPTION, null);
 
         if (savedCategory != null && savedOption != null) {
             currentFilterCategory = savedCategory;
             applyFilter(savedCategory, savedOption);
+
+            if (currentFilterCategory.equals("Giờ ngủ")) {
+                filterOptionsContainer.setVisibility(View.VISIBLE);
+                radioGroupFilterOptions.removeAllViews();
+                RadioButton rb = new RadioButton(getContext());
+                rb.setText(savedOption);
+                rb.setChecked(true);
+                rb.setTextSize(16f);
+                rb.setPadding(32, 32, 32, 32);
+                radioGroupFilterOptions.addView(rb);
+            }
         }
     }
 
@@ -91,7 +96,6 @@ public class AddFragment extends Fragment {
         radioGroupFilterOptions = view.findViewById(R.id.radio_group_filter_options);
         btnApplyFilter = view.findViewById(R.id.btn_apply_filter);
         btnResetFilter = view.findViewById(R.id.btn_reset_filter);
-
     }
 
     private void initializeFilterData() {
@@ -106,37 +110,32 @@ public class AddFragment extends Fragment {
 
         filterOptionsMap = new HashMap<>();
         filterOptionsMap.put("Giờ ngủ", Arrays.asList("4 giờ", "6 giờ", "8 giờ"));
-        filterOptionsMap.put("Học tập", Arrays.asList("2 giờ", "4 giờ", "6 giờ"));
+        filterOptionsMap.put("Học tập", Arrays.asList("4 giờ", "6 giờ", "8 giờ"));
         filterOptionsMap.put("Giải trí", Arrays.asList("30 phút", "60 phút", "90 phút"));
         filterOptionsMap.put("Thể thao", Arrays.asList("30 phút", "60 phút", "90 phút"));
 
-        // Map category -> main tag used to identify templates of that category
         categoryTagMap = new HashMap<>();
-        categoryTagMap.put("Học tập", "#HocTap");
-        categoryTagMap.put("Thể thao", "#TheThao");
-        categoryTagMap.put("Giải trí", "#GiaiTri");
-        categoryTagMap.put("Giờ ngủ", "#GioNgu"); // fixed tag for sleep
+        categoryTagMap.put("Học tập", "HocTap");
+        categoryTagMap.put("Thể thao", "TheThao");
+        categoryTagMap.put("Giải trí", "GiaiTri");
+        categoryTagMap.put("Giờ ngủ", "GioNgu");
 
-        // Option tag map is optional: if you have tags for specific options (e.g., durations),
-        // map them here so filter will be able to filter by both category and option.
-        // If your templates don't include such tags, the option filter will try to match the option
-        // text inside title or description as a fallback.
         optionTagMap = new HashMap<>();
-        optionTagMap.put("Giờ ngủ:4 giờ", "#4h_sleep");
-        optionTagMap.put("Giờ ngủ:6 giờ", "#6h_sleep");
-        optionTagMap.put("Giờ ngủ:8 giờ", "#8h_sleep");
+        optionTagMap.put("Giờ ngủ:4 giờ", "4h_sleep");
+        optionTagMap.put("Giờ ngủ:6 giờ", "6h_sleep");
+        optionTagMap.put("Giờ ngủ:8 giờ", "8h_sleep");
 
-        optionTagMap.put("Học tập:2 giờ", "#2h_study");
-        optionTagMap.put("Học tập:4 giờ", "#4h_study");
-        optionTagMap.put("Học tập:6 giờ", "#6h_study");
+        optionTagMap.put("Học tập:4 giờ", "4h_study");
+        optionTagMap.put("Học tập:6 giờ", "6h_study");
+        optionTagMap.put("Học tập:8 giờ", "8h_study");
 
-        optionTagMap.put("Giải trí:30 phút", "#30m_relax");
-        optionTagMap.put("Giải trí:60 phút", "#60m_relax");
-        optionTagMap.put("Giải trí:90 phút", "#90m_relax");
+        optionTagMap.put("Giải trí:30 phút", "30m_relax");
+        optionTagMap.put("Giải trí:60 phút", "60m_relax");
+        optionTagMap.put("Giải trí:90 phút", "90m_relax");
 
-        optionTagMap.put("Thể thao:30 phút", "#30m_sport");
-        optionTagMap.put("Thể thao:60 phút", "#60m_sport");
-        optionTagMap.put("Thể thao:90 phút", "#90m_sport");
+        optionTagMap.put("Thể thao:30 phút", "30m_sport");
+        optionTagMap.put("Thể thao:60 phút", "60m_sport");
+        optionTagMap.put("Thể thao:90 phút", "90m_sport");
     }
 
     private void setupListeners() {
@@ -159,25 +158,40 @@ public class AddFragment extends Fragment {
                 String selectedOption = selectedRadioButton.getText().toString();
                 applyFilter(currentFilterCategory, selectedOption);
 
-                // 🔹 Lưu lại bộ lọc vào SharedPreferences
                 sharedPreferences.edit()
                         .putString(KEY_CATEGORY, currentFilterCategory)
                         .putString(KEY_OPTION, selectedOption)
                         .apply();
 
-                filterOptionsContainer.setVisibility(View.GONE);
+                Toast.makeText(getContext(), "Đã áp dụng: " + selectedOption, Toast.LENGTH_SHORT).show();
+
+                if (currentFilterCategory.equals("Giờ ngủ")) {
+                    radioGroupFilterOptions.removeAllViews();
+                    RadioButton rb = new RadioButton(getContext());
+                    rb.setText(selectedOption);
+                    rb.setChecked(true);
+                    rb.setTextSize(16f);
+                    rb.setPadding(32, 32, 32, 32);
+                    radioGroupFilterOptions.addView(rb);
+                } else {
+                    filterOptionsContainer.setVisibility(View.GONE);
+                }
+
             } else {
                 Toast.makeText(getContext(), "Vui lòng chọn một tùy chọn", Toast.LENGTH_SHORT).show();
             }
         });
 
         btnResetFilter.setOnClickListener(v -> {
+            if (currentFilterCategory.equals("Giờ ngủ")) {
+                showFullSleepOptions();
+            }
+
+            radioGroupFilterOptions.clearCheck();
             resetFilter();
-
-            // 🔹 Xóa dữ liệu lưu trữ
             sharedPreferences.edit().clear().apply();
-
             filterOptionsContainer.setVisibility(View.GONE);
+            Toast.makeText(getContext(), "Đã thiết lập lại bộ lọc", Toast.LENGTH_SHORT).show();
         });
     }
 
@@ -187,18 +201,31 @@ public class AddFragment extends Fragment {
         recyclerView.setAdapter(adapter);
     }
 
+    private void showFullSleepOptions() {
+        radioGroupFilterOptions.removeAllViews();
+        List<String> sleepOptions = filterOptionsMap.get("Giờ ngủ");
+        if (sleepOptions != null) {
+            for (String opt : sleepOptions) {
+                RadioButton rb = new RadioButton(getContext());
+                rb.setText(opt);
+                rb.setTextSize(16f);
+                rb.setPadding(32, 32, 32, 32);
+                radioGroupFilterOptions.addView(rb);
+            }
+        }
+    }
+
     private void toggleFilterOptions(String category) {
-        // If the same filter is clicked again while visible, hide it.
         if (filterOptionsContainer.getVisibility() == View.VISIBLE && category.equals(currentFilterCategory)) {
             filterOptionsContainer.setVisibility(View.GONE);
             return;
         }
-        
+
         currentFilterCategory = category;
-        List<String> options = filterOptionsMap.get(category);
         radioGroupFilterOptions.clearCheck();
         radioGroupFilterOptions.removeAllViews();
-        
+
+        List<String> options = filterOptionsMap.get(category);
         if (options != null) {
             for (String option : options) {
                 RadioButton radioButton = new RadioButton(getContext());
@@ -212,65 +239,42 @@ public class AddFragment extends Fragment {
     }
 
     private void applyFilter(String category, String option) {
-        // 1) find the category tag (if any)
         String categoryTag = categoryTagMap.getOrDefault(category, "");
-
-        // 2) find the option tag (if any)
-        String optionKey = category + ":" + option; // consistent key used in optionTagMap
+        String optionKey = category + ":" + option;
         String optionTag = optionTagMap.getOrDefault(optionKey, "");
 
+        List<ScheduleTemplate> result;
 
-        List<ScheduleTemplate> result = new ArrayList<>(allTemplates);
-
-        if (!categoryTag.isEmpty() && !optionTag.isEmpty()) {
-            final String ct = categoryTag;
-            final String ot = optionTag;
+        // Sửa lỗi: Ưu tiên lọc theo tag tùy chọn cụ thể trước
+        if (!optionTag.isEmpty()) {
             result = allTemplates.stream()
-                    .filter(template -> template.getTags().contains(ct) && template.getTags().contains(ot))
+                    .filter(template -> template.getTags().contains(optionTag))
                     .collect(Collectors.toList());
-        } else if (!categoryTag.isEmpty()) {
-            final String ct = categoryTag;
+        } 
+        // Nếu không có tag tùy chọn, thử lọc theo tag danh mục chung
+        else if (!categoryTag.isEmpty()) {
             result = allTemplates.stream()
-                    .filter(template -> template.getTags().contains(ct))
+                    .filter(template -> template.getTags().contains(categoryTag))
                     .collect(Collectors.toList());
-        } else if (!optionTag.isEmpty()) {
-            final String ot = optionTag;
-            result = allTemplates.stream()
-                    .filter(template -> template.getTags().contains(ot))
-                    .collect(Collectors.toList());
-        } else {
-            // Fallback: if there is no tag mapping available for this option/category,
-            // attempt to match the option text inside title or description AND match category if possible.
+        } 
+        // Nếu không có tag nào, tìm kiếm theo văn bản
+        else {
             final String optLower = option.toLowerCase();
-            if (!categoryTag.isEmpty()) {
-                final String ct = categoryTag;
-                result = allTemplates.stream()
-                        .filter(template -> template.getTags().contains(ct) &&
-                                (template.getTitle().toLowerCase().contains(optLower) ||
-                                        template.getDescription().toLowerCase().contains(optLower)))
-                        .collect(Collectors.toList());
-            } else {
-                result = allTemplates.stream()
-                        .filter(template -> template.getTitle().toLowerCase().contains(optLower) ||
-                                template.getDescription().toLowerCase().contains(optLower) ||
-                                template.getTags().stream().anyMatch(tag -> tag.toLowerCase().contains(optLower)))
-                        .collect(Collectors.toList());
-            }
+            result = allTemplates.stream()
+                    .filter(template -> template.getTitle().toLowerCase().contains(optLower) ||
+                            template.getDescription().toLowerCase().contains(optLower))
+                    .collect(Collectors.toList());
         }
 
         adapter.updateList(result);
-
-        Toast.makeText(getContext(), "Lọc theo: " + category + " - " + option, Toast.LENGTH_SHORT).show();
     }
 
     private void resetFilter() {
         adapter.updateList(allTemplates);
-        Toast.makeText(getContext(), "Đã xóa bộ lọc", Toast.LENGTH_SHORT).show();
     }
 
     private void loadSampleData() {
         allTemplates = new ArrayList<>();
-        // Chỉ cần gọi một dòng duy nhất để lấy toàn bộ danh sách template
         allTemplates.addAll(ScheduleData.getSampleTemplates());
     }
 }

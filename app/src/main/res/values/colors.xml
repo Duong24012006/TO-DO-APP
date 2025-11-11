@@ -16,7 +16,7 @@
     <color name="color_select_bottom_nav">#000000</color> <!-- Màu icon/text khi chưa chọn -->
 
     <color name="bottom_nav">#EAF8F9</color> <!-- Nền của thanh bottom nav -->
-
+    <color name="search_background">#EBF5F6</color> <!-- Nền của thanh search/ten lich ben man hinh lich duoc chon -->
 
     <color name="search_bar_background">#000000</color>
 

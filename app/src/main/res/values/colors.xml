@@ -9,7 +9,7 @@
 
     <color name="add_schedule_button">#FFF000</color> <!-- Nền cua lich trong addfragment -->
 
-    <color name="doing_work_button">#BFF0F5</color> <!-- Nền bao quanh của các hoạt động trong ngày -->
+    <color name="doing_work_button">#E5FDFF</color> <!-- Nền bao quanh của các hoạt động trong ngày -->
     <color name="time_button">#BFF0F5</color> <!-- Nền cua gio của các hoạt động trong ngày -->
 
     <color name="blue">#0020F1</color> <!-- Màu icon/text khi được chọn -->

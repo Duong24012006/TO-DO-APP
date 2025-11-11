@@ -3,12 +3,21 @@ package com.example.to_do_app.model;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
- * Model for a schedule item, now includes firebaseKey so each item can be edited/deleted individually.
- * Added 'locked' flag to represent "áp cứng" (không thể sửa / xóa).
+ * Model for a schedule item.
+ *
+ * Improvements:
+ * - Added optional fields location, note, order used by UI and persisted payloads.
+ * - Provides two map helpers:
+ *    - toMap(): generic map (legacy keys)
+ *    - toFirebaseMap(): payload shaped for HomeFragment/RTDB expects ("start","end","activity","location","note","day")
+ * - Implements Serializable with serialVersionUID (keep using Parcelable if you need Intent performance).
  */
 public class ScheduleItem implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private String firebaseKey; // Firebase key for this item (null if not persisted yet)
     private int id;
     private String title;       // alias for activity/name
@@ -18,7 +27,12 @@ public class ScheduleItem implements Serializable {
     private String endTime;
     private String activity;
     private int dayOfWeek;
-    private boolean locked = false; // NEW: áp cứng (true = không được sửa/xóa)
+    private boolean locked = false; // áp cứng (true = không được sửa/xóa)
+
+    // optional fields used by UI / payloads
+    private String location;
+    private String note;
+    private Integer order; // nullable order/index
 
     // Default constructor required by Firebase
     public ScheduleItem() { }
@@ -117,21 +131,54 @@ public class ScheduleItem implements Serializable {
     public boolean isLocked() { return locked; }
     public void setLocked(boolean locked) { this.locked = locked; }
 
+    // Optional: location / note / order
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
+
+    public String getNote() { return note; }
+    public void setNote(String note) { this.note = note; }
+
+    public Integer getOrder() { return order; }
+    public void setOrder(Integer order) { this.order = order; }
+
     /**
-     * Helper to convert to a Map for Firebase updates (if needed).
+     * Generic helper to convert to a Map (legacy keys). Keeps all fields, may include nulls.
      */
     public Map<String, Object> toMap() {
         Map<String, Object> m = new HashMap<>();
-        m.put("firebaseKey", firebaseKey);
+        if (firebaseKey != null) m.put("firebaseKey", firebaseKey);
         m.put("id", id);
-        m.put("title", title);
-        m.put("name", name);
-        m.put("time", time);
-        m.put("startTime", startTime);
-        m.put("endTime", endTime);
-        m.put("activity", activity);
+        if (title != null) m.put("title", title);
+        if (name != null) m.put("name", name);
+        if (time != null) m.put("time", time);
+        if (startTime != null) m.put("startTime", startTime);
+        if (endTime != null) m.put("endTime", endTime);
+        if (activity != null) m.put("activity", activity);
         m.put("dayOfWeek", dayOfWeek);
         m.put("locked", locked);
+        if (location != null) m.put("location", location);
+        if (note != null) m.put("note", note);
+        if (order != null) m.put("order", order);
+        return m;
+    }
+
+    /**
+     * Helper that returns a Map shaped for the HomeFragment / Layout6Activity parsing code:
+     * keys: "start", "end", "activity", "location", "note", "day"
+     * This is the recommended payload when writing to /home_display or sending in broadcasts.
+     */
+    public Map<String, Object> toFirebaseMap() {
+        Map<String, Object> m = new HashMap<>();
+        m.put("start", startTime == null ? "" : startTime);
+        m.put("end", endTime == null ? "" : endTime);
+        m.put("activity", getActivity() == null ? "" : getActivity());
+        if (location != null) m.put("location", location);
+        if (note != null) m.put("note", note);
+        // use "day" key to match HomeFragment parsing; the value is numeric int
+        m.put("day", dayOfWeek);
+        if (firebaseKey != null && !firebaseKey.isEmpty()) m.put("firebaseKey", firebaseKey);
+        if (order != null) m.put("order", order);
+        // not including title/name/time/timeStart/.. duplicate fields to keep payload compact
         return m;
     }
 
@@ -144,8 +191,33 @@ public class ScheduleItem implements Serializable {
                 ", startTime='" + startTime + '\'' +
                 ", endTime='" + endTime + '\'' +
                 ", activity='" + getActivity() + '\'' +
+                ", location='" + location + '\'' +
+                ", note='" + note + '\'' +
                 ", dayOfWeek=" + dayOfWeek +
                 ", locked=" + locked +
+                ", order=" + order +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ScheduleItem)) return false;
+        ScheduleItem that = (ScheduleItem) o;
+        // If firebaseKey available, prefer it for equality; otherwise compare fields
+        if (firebaseKey != null && that.firebaseKey != null) {
+            return Objects.equals(firebaseKey, that.firebaseKey);
+        }
+        return id == that.id &&
+                dayOfWeek == that.dayOfWeek &&
+                Objects.equals(getActivity(), that.getActivity()) &&
+                Objects.equals(startTime, that.startTime) &&
+                Objects.equals(endTime, that.endTime);
+    }
+
+    @Override
+    public int hashCode() {
+        if (firebaseKey != null) return firebaseKey.hashCode();
+        return Objects.hash(id, getActivity(), startTime, endTime, dayOfWeek);
     }
 }

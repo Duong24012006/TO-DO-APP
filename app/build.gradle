@@ -1,6 +1,10 @@
+// Cleaned module build.gradle (app)
+// I removed duplicate/conflicting dependencies that caused the "already contains entry 'com/google/android/material/R.class'"
+// and removed duplicate firebase-database declarations. Keep using your version catalog (libs.*) where present.
+
 plugins {
-    id("com.android.application")
-    id("com.google.gms.google-services") // plugin Firebase
+    id "com.android.application"
+    id "com.google.gms.google-services" // Firebase plugin
 }
 
 android {
@@ -32,24 +36,27 @@ android {
 
 dependencies {
     implementation(libs.appcompat)
-    implementation(libs.material)
+    implementation(libs.material)          // keep the version from versionCatalog (libs.versions.toml)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+
     implementation libs.firebase.auth
     implementation libs.firebase.firestore
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 
-    implementation("com.google.android.material:material:1.13.0-alpha02")
+    // Remove the explicit alpha material artifact to avoid duplicate class entry.
+    // implementation("com.google.android.material:material:1.13.0-alpha02") <-- REMOVED
 
     // Firebase BOM để quản lý version
     implementation(platform("com.google.firebase:firebase-bom:34.5.0"))
 
-    // Các thư viện Firebase bạn cần
-    implementation 'com.google.code.gson:gson:2.10.1'
-    implementation("com.google.firebase:firebase-analytics")
-    implementation("com.google.firebase:firebase-database")
-    implementation 'com.google.firebase:firebase-database:20.3.0'
-    // thêm Realtime Database
+    // Các thư viện Firebase bạn cần (no explicit versions when using BOM)
+    implementation "com.google.firebase:firebase-analytics"
+    implementation "com.google.firebase:firebase-database"
+   implementation "com.google.firebase:firebase-auth"
+    implementation "com.google.firebase:firebase-firestore"
+    implementation "com.google.code.gson:gson:2.10.1"
 }

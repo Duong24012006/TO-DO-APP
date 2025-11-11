@@ -3,6 +3,7 @@ package com.example.to_do_app.fragment;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -17,6 +18,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -42,11 +44,17 @@ import java.util.List;
  * - Attaches a ChildEventListener to /users/<userId>/history so newly pushed history items
  *   created by Layout6Activity appear immediately (child_added).
  * - loadHistory() reads from Firebase once as a fallback, but the listener keeps the UI realtime.
- * - onResume() also triggers reload (safe fallback).
+ * - onStart() also triggers reload (safe fallback).
  * - Local prefs are kept in sync (saveHistoryListToLocalWithKeys).
  *
- * Note:
- * - Layout6Activity should set "isUserAdded": true when it pushes single activity history entries.
+ * Also listens for Layout6Activity.ACTION_SCHEDULE_APPLIED broadcasts so profile UI refreshes
+ * when a schedule is applied (e.g. update active schedule name in prefs and reload history).
+ *
+ * NOTE: This version ensures the displayed user name comes from the most authoritative
+ * available source in this order:
+ *  1) todo_prefs (KEY_DISPLAY_NAME) — where MainActivity writes displayName extras
+ *  2) profile_prefs (KEY_NAME) — local profile name managed by this fragment
+ *  3) remote Firebase /users/<userId>/profile/name
  */
 public class ProfileFragment extends Fragment {
 
@@ -54,6 +62,11 @@ public class ProfileFragment extends Fragment {
     private static final String KEY_NAME = "profile_name";
     private static final String KEY_HISTORY = "profile_history";
     private static final String KEY_USER_ID = "profile_user_id";
+    private static final String PREF_ACTIVE_SCHEDULE = "active_schedule_name";
+
+    // todo_prefs used by MainActivity for displayName
+    private static final String TODO_PREFS = "todo_prefs";
+    private static final String KEY_DISPLAY_NAME = "display_name";
 
     private TextView tvProfileTitle;
     private ImageView ivAvatar;
@@ -69,6 +82,9 @@ public class ProfileFragment extends Fragment {
     private DatabaseReference historyRef;
     private ChildEventListener historyListener;
     private String userId;
+
+    // Broadcast receiver to react when Layout6Activity applies a schedule
+    private android.content.BroadcastReceiver scheduleAppliedReceiver;
 
     public ProfileFragment() { }
 
@@ -156,8 +172,6 @@ public class ProfileFragment extends Fragment {
         // edit name on tap
         tvUserName.setOnClickListener(v -> showEditNameDialog());
 
-        // NOTE: intentionally removed "add history" from this fragment — history is created by Layout6Activity when user applies.
-
         return root;
     }
 
@@ -165,12 +179,14 @@ public class ProfileFragment extends Fragment {
     public void onStart() {
         super.onStart();
         attachHistoryListener();
+        registerScheduleAppliedReceiver();
     }
 
     @Override
     public void onStop() {
         super.onStop();
         detachHistoryListener();
+        unregisterScheduleAppliedReceiver();
     }
 
     @Override
@@ -178,6 +194,56 @@ public class ProfileFragment extends Fragment {
         super.onResume();
         // ensure we have a fresh baseline (listener handles realtime updates)
         loadHistory();
+        // Also refresh name in case MainActivity or another flow updated todo_prefs
+        loadProfileName();
+    }
+
+    private void registerScheduleAppliedReceiver() {
+        try {
+            if (scheduleAppliedReceiver != null) return;
+            scheduleAppliedReceiver = new android.content.BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    if (intent == null) return;
+                    String scheduleName = intent.getStringExtra(Layout6Activity.EXTRA_SCHEDULE_NAME);
+                    String payload = intent.getStringExtra("home_payload");
+                    int selDay = intent.getIntExtra("selected_day", -1);
+
+                    // If there is an active schedule name, persist it so other fragments (Home) use it
+                    if (scheduleName != null && !scheduleName.trim().isEmpty()) {
+                        prefs.edit().putString(PREF_ACTIVE_SCHEDULE, scheduleName).apply();
+                    }
+
+                    // Reload history to reflect any new entries Layout6Activity pushed
+                    loadHistory();
+
+                    // Refresh displayed user name (in case Layout6Activity or MainActivity passed a displayName to todo_prefs)
+                    loadProfileName();
+
+                    // Optionally notify user
+                    if (scheduleName != null && !scheduleName.isEmpty()) {
+                        Toast.makeText(requireContext(), "Đã áp dụng lịch: " + scheduleName, Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(requireContext(), "Đã áp dụng lịch", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            };
+            IntentFilter f = new IntentFilter(Layout6Activity.ACTION_SCHEDULE_APPLIED);
+            LocalBroadcastManager.getInstance(requireContext()).registerReceiver(scheduleAppliedReceiver, f);
+        } catch (Exception ex) {
+            android.util.Log.w("ProfileFragment", "registerScheduleAppliedReceiver failed", ex);
+        }
+    }
+
+    private void unregisterScheduleAppliedReceiver() {
+        try {
+            if (scheduleAppliedReceiver != null) {
+                LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(scheduleAppliedReceiver);
+                scheduleAppliedReceiver = null;
+            }
+        } catch (Exception ex) {
+            android.util.Log.w("ProfileFragment", "unregisterScheduleAppliedReceiver failed", ex);
+        }
     }
 
     private void attachHistoryListener() {
@@ -306,12 +372,34 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+    /**
+     * Load profile name with preference order:
+     * 1) todo_prefs.KEY_DISPLAY_NAME (written by MainActivity when it receives displayName)
+     * 2) profile_prefs.KEY_NAME (local profile edited by user)
+     * 3) remote Firebase /users/<userId>/profile/name
+     *
+     * After determining name, update tvUserName and persist into profile_prefs for future.
+     */
     private void loadProfileName() {
-        String name = prefs.getString(KEY_NAME, null);
-        if (!TextUtils.isEmpty(name)) tvUserName.setText(name);
-        else tvUserName.setText("User");
+        // 1) check todo_prefs (set by MainActivity)
+        SharedPreferences todoPrefs = requireContext().getSharedPreferences(TODO_PREFS, Context.MODE_PRIVATE);
+        String displayName = todoPrefs.getString(KEY_DISPLAY_NAME, null);
+        if (!TextUtils.isEmpty(displayName)) {
+            tvUserName.setText(displayName);
+            // also persist into profile_prefs KEY_NAME for consistency
+            prefs.edit().putString(KEY_NAME, displayName).apply();
+            return;
+        }
 
-        // try remote once
+        // 2) check profile_prefs
+        String name = prefs.getString(KEY_NAME, null);
+        if (!TextUtils.isEmpty(name)) {
+            tvUserName.setText(name);
+            return;
+        }
+
+        // 3) fallback: try remote once and update both tv and prefs when present
+        tvUserName.setText("User"); // temporary placeholder while waiting for remote
         rootRef.child("users").child(userId).child("profile").get().addOnCompleteListener(task -> {
             if (!task.isSuccessful()) return;
             DataSnapshot snap = task.getResult();
@@ -483,7 +571,11 @@ public class ProfileFragment extends Fragment {
                 Toast.makeText(requireContext(), "Tên không được để trống", Toast.LENGTH_SHORT).show();
                 return;
             }
+            // persist in both prefs stores for consistency across app
             prefs.edit().putString(KEY_NAME, newName).apply();
+            requireContext().getSharedPreferences(TODO_PREFS, Context.MODE_PRIVATE)
+                    .edit().putString(KEY_DISPLAY_NAME, newName).apply();
+
             tvUserName.setText(newName);
             rootRef.child("users").child(userId).child("profile").child("name").setValue(newName);
             Toast.makeText(requireContext(), "Đã lưu tên", Toast.LENGTH_SHORT).show();

@@ -4,7 +4,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -25,7 +27,6 @@ import com.example.to_do_app.adapters.ScheduleTemplateAdapter;
 import com.example.to_do_app.model.ScheduleTemplate;
 import com.example.to_do_app.data.ScheduleData;
 
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -33,6 +34,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * AddFragment — updated:
+ *  - fix SharedPreferences init order (avoid NPE)
+ *  - add item click handling on RecyclerView to open Layout6Activity and pass template data
+ *  - robust click handling using RecyclerView.OnItemTouchListener + GestureDetector (no dependency on adapter API)
+ */
 public class AddFragment extends Fragment {
 
     private RecyclerView recyclerView;
@@ -69,11 +76,12 @@ public class AddFragment extends Fragment {
 
         initializeViews(view);
         initializeFilterData();
+
+        // 🔹 Khởi tạo SharedPreferences BEFORE setupListeners so listeners can use it safely
+        sharedPreferences = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+
         setupListeners();
         setupRecyclerView();
-
-        // 🔹 Khởi tạo SharedPreferences
-        sharedPreferences = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
         // 🔹 Khôi phục bộ lọc nếu có lưu trước đó
         String savedCategory = sharedPreferences.getString(KEY_CATEGORY, null);
@@ -91,7 +99,6 @@ public class AddFragment extends Fragment {
         radioGroupFilterOptions = view.findViewById(R.id.radio_group_filter_options);
         btnApplyFilter = view.findViewById(R.id.btn_apply_filter);
         btnResetFilter = view.findViewById(R.id.btn_reset_filter);
-
     }
 
     private void initializeFilterData() {
@@ -117,10 +124,6 @@ public class AddFragment extends Fragment {
         categoryTagMap.put("Giải trí", "#GiaiTri");
         categoryTagMap.put("Giờ ngủ", "#GioNgu"); // fixed tag for sleep
 
-        // Option tag map is optional: if you have tags for specific options (e.g., durations),
-        // map them here so filter will be able to filter by both category and option.
-        // If your templates don't include such tags, the option filter will try to match the option
-        // text inside title or description as a fallback.
         optionTagMap = new HashMap<>();
         optionTagMap.put("Giờ ngủ:4 giờ", "#4h_sleep");
         optionTagMap.put("Giờ ngủ:6 giờ", "#6h_sleep");
@@ -185,6 +188,49 @@ public class AddFragment extends Fragment {
         adapter = new ScheduleTemplateAdapter(getContext(), currentlyDisplayedTemplates);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
+
+        // Add item click handling without depending on adapter's API.
+        final GestureDetector gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
+            @Override public boolean onSingleTapUp(MotionEvent e) { return true; }
+        });
+
+        recyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+            @Override
+            public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
+                View child = rv.findChildViewUnder(e.getX(), e.getY());
+                if (child != null && gestureDetector.onTouchEvent(e)) {
+                    int position = rv.getChildAdapterPosition(child);
+                    if (position != RecyclerView.NO_POSITION && position < currentlyDisplayedTemplates.size()) {
+                        ScheduleTemplate template = currentlyDisplayedTemplates.get(position);
+                        openLayout6WithTemplate(template);
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            @Override public void onTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) { /* no-op */ }
+
+            @Override public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) { /* no-op */ }
+        });
+    }
+
+    /**
+     * Open Layout6Activity with template details passed as Intent extras.
+     * Keys used:
+     *  - Layout6Activity.EXTRA_TEMPLATE_TITLE
+     *  - Layout6Activity.EXTRA_TEMPLATE_DESCRIPTION
+     *  - "EXTRA_TEMPLATE_TAGS" (ArrayList<String>) — Layout6Activity expects this key in existing code
+     */
+    private void openLayout6WithTemplate(ScheduleTemplate template) {
+        if (template == null) return;
+        Intent intent = new Intent(getContext(), Layout6Activity.class);
+        intent.putExtra(Layout6Activity.EXTRA_TEMPLATE_TITLE, template.getTitle());
+        intent.putExtra(Layout6Activity.EXTRA_TEMPLATE_DESCRIPTION, template.getDescription());
+        ArrayList<String> tags = new ArrayList<>();
+        if (template.getTags() != null) tags.addAll(template.getTags());
+        intent.putStringArrayListExtra("EXTRA_TEMPLATE_TAGS", tags);
+        startActivity(intent);
     }
 
     private void toggleFilterOptions(String category) {
@@ -258,12 +304,18 @@ public class AddFragment extends Fragment {
             }
         }
 
+        // update currentlyDisplayedTemplates so click handling references correct list
+        currentlyDisplayedTemplates.clear();
+        currentlyDisplayedTemplates.addAll(result);
+
         adapter.updateList(result);
 
         Toast.makeText(getContext(), "Lọc theo: " + category + " - " + option, Toast.LENGTH_SHORT).show();
     }
 
     private void resetFilter() {
+        currentlyDisplayedTemplates.clear();
+        currentlyDisplayedTemplates.addAll(allTemplates);
         adapter.updateList(allTemplates);
         Toast.makeText(getContext(), "Đã xóa bộ lọc", Toast.LENGTH_SHORT).show();
     }

@@ -1,6 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">coder</string>
     <string name="action_home" translatable="false">Home</string>
     <string name="action_profile" translatable="false">Profile</string>
     <string name="action_add" translatable="false">Add</string>
+
+    <!-- Added to fix contentDescription reference in activity_main.xml -->
+    <string name="profile">Profile</string>
+
+    <!-- Optional helpful strings -->
+    <string name="greeting_default">Xin chào, User</string>
+    <string name="greeting_subtitle">Chúc bạn một ngày tốt lành</string>
 </resources>

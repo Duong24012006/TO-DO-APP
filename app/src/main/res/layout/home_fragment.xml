@@ -1,762 +1,264 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+    android:id="@+id/root_home_fragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFFFFF"
-    tools:context=".activitys.MainActivity"
-    >
+    tools:context=".fragment.HomeFragment">
 
-    <!-- Nội dung chính -->
-    <LinearLayout
-        android:id="@+id/layoutContent"
+    <!-- Main title -->
+    <TextView
+        android:id="@+id/tvMainTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@id/bottom_nav"
-        android:orientation="vertical"
-        tools:ignore="NotSibling">
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:text="Lịch trình chung"
+        android:textColor="#000"
+        android:textSize="32sp"
+        android:fontFamily="sans-serif-medium" />
+
+    <!-- Day selector (Thứ 2 .. Chủ nhật) -->
+    <HorizontalScrollView
+        android:id="@+id/day_bar_scroll"
+        android:layout_below="@id/tvMainTitle"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:overScrollMode="never"
+        android:scrollbars="none"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
 
         <LinearLayout
-            android:id="@+id/welcome"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:orientation="horizontal">
+            android:id="@+id/weekDaysLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-            <ImageView
-                android:layout_width="71dp"
-                android:layout_height="71dp"
-                android:src="@drawable/ic_profile" />
-
+            <!-- Thứ 2 -->
             <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
-                android:orientation="vertical">
+                android:id="@+id/llMon"
+                android:layout_width="72dp"
+                android:layout_height="56dp"
+                android:layout_margin="6dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="6dp">
 
                 <TextView
-                    android:id="@+id/tvGreeting"
-                    android:layout_width="match_parent"
+                    android:id="@+id/tvMonDay"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:fontFamily="sans-serif"
-                    android:text="Xin chào, User"
-                    android:textSize="24sp"
+                    android:text="THỨ"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvMonDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="2"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Thứ 3 -->
+            <LinearLayout
+                android:id="@+id/llTue"
+                android:layout_width="72dp"
+                android:layout_height="56dp"
+                android:layout_margin="6dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="6dp">
 
                 <TextView
-                    android:id="@+id/tvSubtitle"
-                    android:layout_width="match_parent"
+                    android:id="@+id/tvTueDay"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:fontFamily="sans-serif-medium"
-                    android:text="Chúc bạn một ngày tốt lành"
-                    android:textColor="#555"
-                    android:textSize="20sp" />
+                    android:text="THỨ"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvTueDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="3"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Thứ 4 -->
+            <LinearLayout
+                android:id="@+id/llWed"
+                android:layout_width="72dp"
+                android:layout_height="56dp"
+                android:layout_margin="6dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="6dp">
+
+                <TextView
+                    android:id="@+id/tvWedDay"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="THỨ"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvWedDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="4"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Thứ 5 -->
+            <LinearLayout
+                android:id="@+id/llThu"
+                android:layout_width="72dp"
+                android:layout_height="56dp"
+                android:layout_margin="6dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="6dp">
+
+                <TextView
+                    android:id="@+id/tvThuDay"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="THỨ"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvThuDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="5"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Thứ 6 -->
+            <LinearLayout
+                android:id="@+id/llFri"
+                android:layout_width="72dp"
+                android:layout_height="56dp"
+                android:layout_margin="6dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="6dp">
+
+                <TextView
+                    android:id="@+id/tvFriDay"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="THỨ"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvFriDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="6"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Thứ 7 -->
+            <LinearLayout
+                android:id="@+id/llSat"
+                android:layout_width="72dp"
+                android:layout_height="56dp"
+                android:layout_margin="6dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="6dp">
+
+                <TextView
+                    android:id="@+id/tvSatDay"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="THỨ"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvSatDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="7"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Chủ nhật -->
+            <LinearLayout
+                android:id="@+id/llSun"
+                android:layout_width="72dp"
+                android:layout_height="56dp"
+                android:layout_margin="6dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="6dp">
+
+                <TextView
+                    android:id="@+id/tvSunDay"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="CHỦ"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvSunDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="NHẬT"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
             </LinearLayout>
 
         </LinearLayout>
+    </HorizontalScrollView>
 
-        <!-- Thanh tiêu đề -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="12dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="12dp"
-            android:fontFamily="sans-serif-medium"
-            android:gravity="left"
-            android:text="Lịch trình chung"
-            android:textColor="#000"
-            android:textSize="36sp"
+    <!-- Container: single RecyclerView to show schedule items (no time column) -->
+    <FrameLayout
+        android:id="@+id/home_schedule_container"
+        android:layout_below="@id/day_bar_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="8dp">
 
-            />
-
-
-        <HorizontalScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#FFFFFF"
-            android:overScrollMode="never"
-            android:scrollbars="none">
-
-            <LinearLayout
-                android:id="@+id/weekDaysLayout"
-                android:layout_width="wrap_content"
-                android:layout_height="80dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="8dp">
-
-                <!-- Thứ 2 -->
-                <LinearLayout
-                    android:id="@+id/llMon"
-                    android:layout_width="60dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginHorizontal="4dp"
-                    android:background="@drawable/day_item_selector"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="8dp">
-
-                    <TextView
-                        android:id="@+id/tvMonDay"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="THỨ"
-                        android:textColor="#000"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/tvMonDate"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="2"
-                        android:textColor="#000"
-                        android:textSize="16sp" />
-                </LinearLayout>
-
-                <!-- Thứ 3 -->
-                <LinearLayout
-                    android:id="@+id/llTue"
-                    android:layout_width="60dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginHorizontal="4dp"
-                    android:background="@drawable/day_item_selector"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="8dp">
-
-                    <TextView
-                        android:id="@+id/tvTueDay"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="THỨ"
-                        android:textColor="#000"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/tvTueDate"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="3"
-                        android:textColor="#000"
-                        android:textSize="16sp" />
-                </LinearLayout>
-
-                <!-- Thứ 4 -->
-                <LinearLayout
-                    android:id="@+id/llWed"
-                    android:layout_width="60dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginHorizontal="4dp"
-                    android:background="@drawable/day_item_selector"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="8dp">
-
-                    <TextView
-                        android:id="@+id/tvWedDay"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="THỨ"
-                        android:textColor="#000"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/tvWedDate"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="4"
-                        android:textColor="#000"
-                        android:textSize="16sp" />
-                </LinearLayout>
-
-                <!-- Thứ 5 -->
-                <LinearLayout
-                    android:id="@+id/llThu"
-                    android:layout_width="60dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginHorizontal="4dp"
-                    android:background="@drawable/day_item_selector"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="8dp">
-
-                    <TextView
-                        android:id="@+id/tvThuDay"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="THỨ"
-                        android:textColor="#000"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/tvThuDate"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="5"
-                        android:textColor="#000"
-                        android:textSize="16sp" />
-                </LinearLayout>
-
-                <!-- Thứ 6 -->
-                <LinearLayout
-                    android:id="@+id/llFri"
-                    android:layout_width="60dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginHorizontal="4dp"
-                    android:background="@drawable/day_item_selector"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="8dp">
-
-                    <TextView
-                        android:id="@+id/tvFriDay"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="THỨ"
-                        android:textColor="#000"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/tvFriDate"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="6"
-                        android:textColor="#000"
-                        android:textSize="16sp" />
-                </LinearLayout>
-
-                <!-- Thứ 7 -->
-                <LinearLayout
-                    android:id="@+id/llSat"
-                    android:layout_width="60dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginHorizontal="4dp"
-                    android:background="@drawable/day_item_selector"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="8dp">
-
-                    <TextView
-                        android:id="@+id/tvSatDay"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="THỨ"
-                        android:textColor="#000"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/tvSatDate"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="7"
-                        android:textColor="#000"
-                        android:textSize="16sp" />
-                </LinearLayout>
-
-                <!-- Chủ nhật -->
-                <LinearLayout
-                    android:id="@+id/llSun"
-                    android:layout_width="60dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginHorizontal="4dp"
-                    android:background="@drawable/day_item_selector"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="8dp">
-
-                    <TextView
-                        android:id="@+id/tvSunDay"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="CHỦ"
-                        android:textColor="#000000"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/tvSunDate"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="NHẬT"
-                        android:textColor="#000000"
-                        android:textSize="16sp" />
-                </LinearLayout>
-
-            </LinearLayout>
-        </HorizontalScrollView>
-
-
-        <!-- Danh sách lịch -->
-        <!--
-          Thay thế phần ScrollView cũ bằng file này (hoặc cắt/paste phần <ScrollView> trong layout hiện tại).
-          Chứa:
-           - RecyclerView id=rvHomeActivities : dùng để hiển thị danh sách hoạt động động (khi Layout6 áp dụng lịch hoàn chỉnh)
-           - ScrollView id=scroll_legacy_slots : vùng 7 slot tĩnh tương thích ngược (tvTaskTitle1..7, tvTaskLocation1..7, tvTaskNote1..7)
-        -->
-        <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            android:id="@+id/home_schedule_container"
+        <!-- Use this RecyclerView to display per-day activities as simple cards (title / location / note).
+             Adapter should bind a list of activities for the selected day.
+             Replace tools:listitem with your item layout (item_schedule_simple.xml) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvHomeActivities"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="24dp"
-            android:background="#FFFFFF"
-            android:paddingBottom="8dp">
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:clipToPadding="false"
+            android:visibility="visible"
+            tools:listitem="@layout/item_schedule_simple" />
 
-            <!-- RecyclerView dynamic: hiển thị khi HomeFragment nhận được danh sách activities đầy đủ -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvHomeActivities"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:clipToPadding="false"
-                android:visibility="gone"
-                tools:listitem="@layout/item_home_activity" />
+    </FrameLayout>
 
-            <!-- Legacy 7 slots - giữ nguyên ids để không phải thay đổi HomeFragment hiện tại.
-                 HomeFragment có thể chọn show/hide giữa rvHomeActivities và scroll_legacy_slots.
-            -->
-            <ScrollView
-                android:id="@+id/scroll_legacy_slots"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:fillViewport="true">
-
-                <LinearLayout
-                    android:id="@+id/layoutSchedule"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingBottom="24dp"
-                    android:paddingTop="8dp">
-
-                    <!-- SLOT 1 -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:id="@+id/tvTime1"
-                            android:layout_width="120dp"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/time_bg"
-                            android:gravity="center"
-                            android:padding="8dp"
-                            android:text="06:00 - 07:00"
-                            android:textSize="14sp" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical"
-                            android:layout_marginStart="16dp"
-                            android:layout_marginEnd="16dp"
-                            android:background="@drawable/schedule_item_bg"
-                            android:padding="8dp">
-
-                            <TextView
-                                android:id="@+id/tvTaskTitle1"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Tập thể dục buổi sáng"
-                                android:textSize="18sp"
-                                android:textStyle="normal" />
-
-                            <TextView
-                                android:id="@+id/tvTaskLocation1"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Địa điểm: Công viên Lê Thị Riêng"
-                                android:textSize="14sp" />
-
-                            <TextView
-                                android:id="@+id/tvTaskNote1"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Ghi chú: Mang theo nước và khăn tập"
-                                android:textSize="14sp" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- SLOT 2 -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:id="@+id/tvTime2"
-                            android:layout_width="120dp"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/time_bg"
-                            android:gravity="center"
-                            android:padding="8dp"
-                            android:text="08:00 - 09:00"
-                            android:textSize="14sp" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical"
-                            android:layout_marginStart="16dp"
-                            android:layout_marginEnd="16dp"
-                            android:background="@drawable/schedule_item_bg"
-                            android:padding="8dp">
-
-                            <TextView
-                                android:id="@+id/tvTaskTitle2"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Ăn sáng và chuẩn bị đi làm"
-                                android:textSize="18sp" />
-
-                            <TextView
-                                android:id="@+id/tvTaskLocation2"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Địa điểm: Nhà bếp"
-                                android:textSize="14sp" />
-
-                            <TextView
-                                android:id="@+id/tvTaskNote2"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Ghi chú: Chuẩn bị tài liệu họp sáng"
-                                android:textSize="14sp" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- SLOT 3 -->
-                    <!-- (giữ nguyên nội dung tương tự cho slots 3..7) -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:id="@+id/tvTime3"
-                            android:layout_width="120dp"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/time_bg"
-                            android:gravity="center"
-                            android:padding="8dp"
-                            android:text="10:00 - 11:30"
-                            android:textSize="14sp" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical"
-                            android:layout_marginStart="16dp"
-                            android:layout_marginEnd="16dp"
-                            android:background="@drawable/schedule_item_bg"
-                            android:padding="8dp">
-
-                            <TextView
-                                android:id="@+id/tvTaskTitle3"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Họp nhóm dự án"
-                                android:textSize="18sp" />
-
-                            <TextView
-                                android:id="@+id/tvTaskLocation3"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Địa điểm: Phòng họp tầng 3"
-                                android:textSize="14sp" />
-
-                            <TextView
-                                android:id="@+id/tvTaskNote3"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Ghi chú: Chuẩn bị báo cáo sprint"
-                                android:textSize="14sp" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- SLOT 4 -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:id="@+id/tvTime4"
-                            android:layout_width="120dp"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/time_bg"
-                            android:gravity="center"
-                            android:padding="8dp"
-                            android:text="14:00 - 16:00"
-                            android:textSize="14sp" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical"
-                            android:layout_marginStart="16dp"
-                            android:layout_marginEnd="16dp"
-                            android:background="@drawable/schedule_item_bg"
-                            android:padding="8dp">
-
-                            <TextView
-                                android:id="@+id/tvTaskTitle4"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Làm việc tại văn phòng"
-                                android:textSize="18sp" />
-
-                            <TextView
-                                android:id="@+id/tvTaskLocation4"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Địa điểm: Công ty ABC"
-                                android:textSize="14sp" />
-
-                            <TextView
-                                android:id="@+id/tvTaskNote4"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Ghi chú: Kiểm tra email khách hàng"
-                                android:textSize="14sp" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- SLOT 5 -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:id="@+id/tvTime5"
-                            android:layout_width="120dp"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/time_bg"
-                            android:gravity="center"
-                            android:padding="8dp"
-                            android:text="17:00 - 19:00"
-                            android:textSize="14sp" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical"
-                            android:layout_marginStart="16dp"
-                            android:layout_marginEnd="16dp"
-                            android:background="@drawable/schedule_item_bg"
-                            android:padding="8dp">
-
-                            <TextView
-                                android:id="@+id/tvTaskTitle5"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Tập gym"
-                                android:textSize="18sp" />
-
-                            <TextView
-                                android:id="@+id/tvTaskLocation5"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Địa điểm: Phòng gym California"
-                                android:textSize="14sp" />
-
-                            <TextView
-                                android:id="@+id/tvTaskNote5"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Ghi chú: Tập ngực và tay"
-                                android:textSize="14sp" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- SLOT 6 -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:id="@+id/tvTime6"
-                            android:layout_width="120dp"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/time_bg"
-                            android:gravity="center"
-                            android:padding="8dp"
-                            android:text="20:00 - 22:00"
-                            android:textSize="14sp" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical"
-                            android:layout_marginStart="16dp"
-                            android:layout_marginEnd="16dp"
-                            android:background="@drawable/schedule_item_bg"
-                            android:padding="8dp">
-
-                            <TextView
-                                android:id="@+id/tvTaskTitle6"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Học lập trình Android"
-                                android:textSize="18sp" />
-
-                            <TextView
-                                android:id="@+id/tvTaskLocation6"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Địa điểm: Tại nhà"
-                                android:textSize="14sp" />
-
-                            <TextView
-                                android:id="@+id/tvTaskNote6"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Ghi chú: Hoàn thành project app tính toán"
-                                android:textSize="14sp" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- SLOT 7 -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:id="@+id/tvTime7"
-                            android:layout_width="120dp"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/time_bg"
-                            android:gravity="center"
-                            android:padding="8dp"
-                            android:text="22:00 - 23:00"
-                            android:textSize="14sp" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical"
-                            android:layout_marginStart="16dp"
-                            android:layout_marginEnd="16dp"
-                            android:background="@drawable/schedule_item_bg"
-                            android:padding="8dp">
-
-                            <TextView
-                                android:id="@+id/tvTaskTitle7"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Thư giãn và đọc sách"
-                                android:textSize="18sp" />
-
-                            <TextView
-                                android:id="@+id/tvTaskLocation7"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Địa điểm: Phòng ngủ"
-                                android:textSize="14sp" />
-
-                            <TextView
-                                android:id="@+id/tvTaskNote7"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Ghi chú: Đọc 30 phút sách Android"
-                                android:textSize="14sp" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                </LinearLayout>
-            </ScrollView>
-
-        </FrameLayout>
-
-    </LinearLayout>
 </RelativeLayout>

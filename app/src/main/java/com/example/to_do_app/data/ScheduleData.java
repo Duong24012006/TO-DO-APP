@@ -1,7 +1,7 @@
 package com.example.to_do_app.data;
 
 import com.example.to_do_app.model.DetailedSchedule;
-import com.example.to_do_app.model.ScheduleTemplate; // Cần import lớp cha
+import com.example.to_do_app.model.ScheduleTemplate;
 import com.example.to_do_app.model.TimeSlot;
 
 import java.util.ArrayList;
@@ -19,11 +19,14 @@ public class ScheduleData {
     public static List<ScheduleTemplate> getSampleTemplates() {
         List<ScheduleTemplate> templates = new ArrayList<>();
 
-        // Giờ đây, thay vì hardcode, chúng ta chỉ cần gọi các phương thức tạo template chi tiết.
+        // Thêm template mặc định (chuyển từ getDefaultItemsForDay -> dạng DetailedSchedule)
+        templates.add(createDefaultWeekTemplate());
+
+        // Các template mẫu chi tiết khác
         templates.add(createNightOwlTemplate());           // 1. CÚ ĐÊM
-        templates.add(createMorningPersonTemplate());    // 2. Chuyên buổi sáng
+        templates.add(createMorningPersonTemplate());      // 2. Chuyên buổi sáng
         templates.add(createDeepWorkTemplate());           // 3. Học môn chuyên sâu
-        templates.add(createWorkHardPlayHardTemplate()); // 4. Sáng học, tối chơi
+        templates.add(createWorkHardPlayHardTemplate());   // 4. Sáng học, tối chơi
         templates.add(createSprintWeekTemplate());         // 5. Tối ưu hóa chu kỳ ngủ
         templates.add(createIntermittentFastingTemplate());// 6. Vừa học vừa ăn gián đoạn 16-8
         templates.add(createWorkAndLearnTemplate());       // 7. Vừa học vừa làm
@@ -33,8 +36,105 @@ public class ScheduleData {
         return templates;
     }
 
-    // --- Các phương thức tạo từng Template chi tiết ---
+    // --- New: Default weekly schedule converted from getDefaultItemsForDay() ---
+    public static DetailedSchedule createDefaultWeekTemplate() {
+        String title = "Mẫu mặc định (Daily defaults)";
+        String description = "Lịch mặc định theo ngày (bản chuyển từ getDefaultItemsForDay).";
+        List<String> tags = Arrays.asList("default", "weekly", "7slots");
+        Map<String, List<TimeSlot>> weeklyActivities = new HashMap<>();
 
+        // map days 2..8 -> names
+        weeklyActivities.put("Thứ 2", defaultSlotsForDay(2));
+        weeklyActivities.put("Thứ 3", defaultSlotsForDay(3));
+        weeklyActivities.put("Thứ 4", defaultSlotsForDay(4));
+        weeklyActivities.put("Thứ 5", defaultSlotsForDay(5));
+        weeklyActivities.put("Thứ 6", defaultSlotsForDay(6));
+        weeklyActivities.put("Thứ 7", defaultSlotsForDay(7));
+        weeklyActivities.put("Chủ Nhật", defaultSlotsForDay(8));
+
+        return new DetailedSchedule(title, description, tags, weeklyActivities);
+    }
+
+    private static List<TimeSlot> defaultSlotsForDay(int day) {
+        List<TimeSlot> defaults = new ArrayList<>();
+        switch (day) {
+            case 2:
+                defaults.add(new TimeSlot("06:00", "08:00", "Thức dậy & vệ sinh"));
+                defaults.add(new TimeSlot("08:00", "10:00", "Ăn sáng & Chuẩn bị"));
+                defaults.add(new TimeSlot("10:00", "12:00", "Làm việc / Học buổi sáng"));
+                defaults.add(new TimeSlot("12:00", "14:00", "Ăn trưa & nghỉ"));
+                defaults.add(new TimeSlot("14:00", "16:00", "Tiếp tục công việc"));
+                defaults.add(new TimeSlot("16:00", "18:00", "Ôn tập / Học thêm"));
+                defaults.add(new TimeSlot("19:00", "21:00", "Thư giãn / Gia đình"));
+                break;
+            case 3:
+                defaults.add(new TimeSlot("06:00", "08:00", "Yoga & Sáng"));
+                defaults.add(new TimeSlot("08:00", "10:00", "Ăn sáng & chuẩn bị"));
+                defaults.add(new TimeSlot("10:00", "12:00", "Họp nhóm / Công việc"));
+                defaults.add(new TimeSlot("12:00", "14:00", "Ăn trưa & nghỉ"));
+                defaults.add(new TimeSlot("14:00", "16:00", "Công việc chuyên môn"));
+                defaults.add(new TimeSlot("16:00", "18:00", "Task cá nhân"));
+                defaults.add(new TimeSlot("19:00", "21:00", "Thư giãn"));
+                break;
+            case 4:
+                defaults.add(new TimeSlot("06:00", "08:00", "Chạy bộ & vệ sinh"));
+                defaults.add(new TimeSlot("08:00", "10:00", "Ăn sáng & chuẩn bị"));
+                defaults.add(new TimeSlot("10:00", "12:00", "Học / Khóa học"));
+                defaults.add(new TimeSlot("12:00", "14:00", "Ăn trưa & nghỉ"));
+                defaults.add(new TimeSlot("14:00", "16:00", "Side project"));
+                defaults.add(new TimeSlot("16:00", "18:00", "Gym / Thể dục"));
+                defaults.add(new TimeSlot("19:00", "21:00", "Lập kế hoạch tuần"));
+                break;
+            case 5:
+                defaults.add(new TimeSlot("06:00", "08:00", "Thiền & Chuẩn bị"));
+                defaults.add(new TimeSlot("08:00", "10:00", "Ăn sáng & công việc nhẹ"));
+                defaults.add(new TimeSlot("10:00", "12:00", "Deep work"));
+                defaults.add(new TimeSlot("12:00", "14:00", "Ăn trưa & nghỉ"));
+                defaults.add(new TimeSlot("14:00", "16:00", "Chạy việc / Mua sắm"));
+                defaults.add(new TimeSlot("16:00", "18:00", "Học thêm"));
+                defaults.add(new TimeSlot("19:00", "21:00", "Giải trí"));
+                break;
+            case 6:
+                defaults.add(new TimeSlot("06:00", "08:00", "Đi bộ & Sáng"));
+                defaults.add(new TimeSlot("08:00", "10:00", "Ăn sáng & đọc tin"));
+                defaults.add(new TimeSlot("10:00", "12:00", "Hoàn thiện công việc"));
+                defaults.add(new TimeSlot("12:00", "14:00", "Ăn trưa"));
+                defaults.add(new TimeSlot("14:00", "16:00", "Kiểm tra email"));
+                defaults.add(new TimeSlot("16:00", "18:00", "Gặp gỡ bạn bè"));
+                defaults.add(new TimeSlot("19:00", "21:00", "Thư giãn"));
+                break;
+            case 7:
+                defaults.add(new TimeSlot("08:00", "10:00", "Dọn dẹp & Chuẩn bị"));
+                defaults.add(new TimeSlot("10:00", "12:00", "Mua sắm / Công việc gia đình"));
+                defaults.add(new TimeSlot("12:00", "14:00", "Nấu ăn & ăn trưa"));
+                defaults.add(new TimeSlot("14:00", "16:00", "Hobby / Sở thích"));
+                defaults.add(new TimeSlot("16:00", "18:00", "Thể dục"));
+                defaults.add(new TimeSlot("18:00", "20:00", "Gặp gỡ"));
+                defaults.add(new TimeSlot("20:00", "22:00", "Chuẩn bị cho CN"));
+                break;
+            case 8:
+                defaults.add(new TimeSlot("08:00", "10:00", "Ngủ nướng & ăn sáng"));
+                defaults.add(new TimeSlot("10:00", "12:00", "Thư giãn (sách, cafe)"));
+                defaults.add(new TimeSlot("12:00", "14:00", "Ăn trưa gia đình"));
+                defaults.add(new TimeSlot("14:00", "16:00", "Lập kế hoạch tuần"));
+                defaults.add(new TimeSlot("16:00", "18:00", "Đi dạo"));
+                defaults.add(new TimeSlot("18:00", "20:00", "Chuẩn bị thức ăn"));
+                defaults.add(new TimeSlot("20:00", "22:00", "Xem phim / Thư giãn"));
+                break;
+            default:
+                defaults.add(new TimeSlot("06:00", "08:00", "Thức dậy & vệ sinh"));
+                defaults.add(new TimeSlot("08:00", "10:00", "Ăn sáng"));
+                defaults.add(new TimeSlot("10:00", "12:00", "Làm việc"));
+                defaults.add(new TimeSlot("12:00", "14:00", "Ăn trưa"));
+                defaults.add(new TimeSlot("14:00", "16:00", "Tiếp tục"));
+                defaults.add(new TimeSlot("16:00", "18:00", "Thư giãn"));
+                defaults.add(new TimeSlot("19:00", "21:00", "Gia đình"));
+                break;
+        }
+        return defaults;
+    }
+
+    // --- Các phương thức tạo từng Template chi tiết ---
     // 1. Template "CÚ ĐÊM"
     public static DetailedSchedule createNightOwlTemplate() {
         String title = "CÚ ĐÊM";
@@ -85,10 +185,8 @@ public class ScheduleData {
         ));
         weeklyActivities.put("Chủ Nhật", sundaySchedule);
 
-        // Trả về đối tượng DetailedSchedule đã có đầy đủ thông tin chi tiết
         return new DetailedSchedule(title, description, tags, weeklyActivities);
     }
-
 
     // 2. Template "Chuyên buổi sáng"
     public static DetailedSchedule createMorningPersonTemplate() {
@@ -167,69 +265,64 @@ public class ScheduleData {
         return new DetailedSchedule(title, description, tags, weeklyActivities);
     }
 
-
     // 3. Template "Học môn chuyên sâu"
     public static DetailedSchedule createDeepWorkTemplate() {
         String title = "Học môn chuyên sâu";
-        String description = "Ưu tiên tối đa hóa thời gian học cho một \"Môn Chính\" (ví dụ: môn thi cuối kỳ, đồ án tốt nghiệp) bằng cách dành gần như toàn bộ thời gian tự học trong ngày cho nó.";
+        String description = "Ưu tiên tối đa hóa thời gian học cho một \"Môn Chính\" bằng cách dành phần lớn thời gian tự học cho nó.";
         List<String> tags = Arrays.asList("8h_sleep", "8h_study", "30m_sport", "60m_relax");
         Map<String, List<TimeSlot>> weeklyActivities = new HashMap<>();
 
-        // --- Lịch trình chung cho Thứ 2, 3, 5, 7 ---
-        List<TimeSlot> commonSchedule = new ArrayList<>(Arrays.asList(
-                new TimeSlot("06:30", "07:00", "Thức dậy, Ăn sáng, Vận động nhẹ"),
-                new TimeSlot("07:00", "09:00", "Học Môn Chính"),
+        // Common deep-work blocks used across multiple days
+        List<TimeSlot> deepMorning = new ArrayList<>(Arrays.asList(
+                new TimeSlot("06:30", "07:00", "Thức dậy, Ăn sáng nhẹ"),
+                new TimeSlot("07:00", "09:00", "Deep work: Môn chính"),
                 new TimeSlot("09:00", "09:30", "Giải lao & vận động nhẹ"),
-                new TimeSlot("09:10", "11:40", "Tiếp tục Môn Chính (Luyện đề/Bài tập)"),
-                new TimeSlot("11:40", "14:00", "Ăn trưa, Nghỉ ngơi"),
-                new TimeSlot("14:00", "15:30", "Học Môn Phụ"),
-                new TimeSlot("15:30", "17:30", "Luyện đề / làm chuyên đề khó của môn chính"),
-                new TimeSlot("17:30", "19:30", "Ăn tối & Thư giãn (Tái tạo năng lượng)"),
-                new TimeSlot("19:30", "21:00", "Tiếp tục Môn Chính (Giải đề trọn vẹn)"),
-                new TimeSlot("21:00", "22:30", "Ghi \"Sổ tay kiến thức\" & Review môn khác"),
-                new TimeSlot("22:30", "", "Đi ngủ")
+                new TimeSlot("09:30", "11:30", "Deep work: Môn chính (tiếp tục)")
         ));
-        weeklyActivities.put("Thứ 2", commonSchedule);
-        weeklyActivities.put("Thứ 3", commonSchedule);
-        weeklyActivities.put("Thứ 5", commonSchedule);
-        weeklyActivities.put("Thứ 7", commonSchedule);
 
-        // --- Lịch trình riêng cho Thứ 4, 6 (có đi học) ---
-        List<TimeSlot> schoolDaySchedule = new ArrayList<>(Arrays.asList(
-                new TimeSlot("06:30", "07:00", "Học trên trường (Tiết 1-3)"), // Gộp chung
-                new TimeSlot("07:00", "09:00", "Học Môn Chính"),
-                new TimeSlot("09:00", "09:30", "Giải lao & vận động nhẹ"),
-                new TimeSlot("09:10", "11:40", "Tiếp tục Môn Chính (Luyện đề/Bài tập)"),
-                new TimeSlot("11:40", "14:00", "Ăn trưa, Nghỉ ngơi"),
-                new TimeSlot("14:00", "15:30", "Học Môn Phụ"),
-                new TimeSlot("15:30", "17:30", "Luyện đề / làm chuyên đề khó của môn chính"),
-                new TimeSlot("17:30", "19:30", "Ăn tối & Thư giãn"),
-                new TimeSlot("19:30", "21:00", "Tiếp tục Môn Chính (Giải đề trọn vẹn)"),
-                new TimeSlot("21:00", "22:30", "Ghi \"Sổ tay kiến thức\" & Review môn khác"),
-                new TimeSlot("22:30", "", "Đi ngủ")
+        List<TimeSlot> midDay = new ArrayList<>(Arrays.asList(
+                new TimeSlot("11:30", "13:30", "Ăn trưa & nghỉ ngơi"),
+                new TimeSlot("13:30", "15:30", "Học môn phụ / Làm bài tập"),
+                new TimeSlot("15:30", "17:30", "Luyện đề / Thực hành")
         ));
-        weeklyActivities.put("Thứ 4", schoolDaySchedule);
-        weeklyActivities.put("Thứ 6", schoolDaySchedule);
 
-        // --- Lịch trình riêng cho Chủ Nhật ---
-        List<TimeSlot> sundaySchedule = new ArrayList<>(Arrays.asList(
-                new TimeSlot("06:30", "07:00", "Thức dậy, Ăn sáng, Vận động nhẹ"),
-                new TimeSlot("07:00", "09:00", "Học Môn Chính"),
-                new TimeSlot("09:00", "09:30", "Giải lao & vận động nhẹ"),
-                new TimeSlot("09:10", "11:40", "Tiếp tục Môn Chính (Luyện đề/Bài tập)"),
-                new TimeSlot("11:40", "14:00", "Ăn trưa, Nghỉ ngơi"),
-                new TimeSlot("14:00", "15:30", "Lập Kế hoạch Tuần mới"),
-                new TimeSlot("15:30", "17:30", "Tổng kết tuần/Giải trí"),
-                new TimeSlot("17:30", "19:30", "Ăn tối & Thư giãn"),
-                new TimeSlot("19:30", "21:00", "Giải trí/Thư giãn"),
-                new TimeSlot("21:00", "22:30", "Chuẩn bị đi ngủ"),
+        List<TimeSlot> evening = new ArrayList<>(Arrays.asList(
+                new TimeSlot("17:30", "19:00", "Ăn tối & Thư giãn"),
+                new TimeSlot("19:00", "21:00", "Deep review / Ôn tập"),
+                new TimeSlot("21:00", "22:30", "Ghi chú & Lập kế hoạch học ngày mai"),
                 new TimeSlot("22:30", "", "Đi ngủ")
         ));
-        weeklyActivities.put("Chủ Nhật", sundaySchedule);
+
+        // Assign schedules to specific weekdays (2..8)
+        weeklyActivities.put("Thứ 2", concatenate(deepMorning, midDay, evening));
+        weeklyActivities.put("Thứ 3", concatenate(deepMorning, midDay, evening));
+        weeklyActivities.put("Thứ 4", concatenate(deepMorning, midDay, evening));
+        weeklyActivities.put("Thứ 5", concatenate(deepMorning, midDay, evening));
+        weeklyActivities.put("Thứ 6", concatenate(deepMorning, midDay, evening));
+        weeklyActivities.put("Thứ 7", concatenate(deepMorning, midDay, evening));
+
+        // Chủ nhật: giảm cường độ, tập trung vào review và lập kế hoạch
+        weeklyActivities.put("Chủ Nhật", new ArrayList<>(Arrays.asList(
+                new TimeSlot("08:00", "10:00", "Ôn tập nhẹ / Xử lý lỗi"),
+                new TimeSlot("10:00", "12:00", "Dự án cá nhân"),
+                new TimeSlot("12:00", "14:00", "Ăn trưa & Nghỉ ngơi"),
+                new TimeSlot("14:00", "16:00", "Lập kế hoạch Tuần"),
+                new TimeSlot("16:00", "18:00", "Giải trí nhẹ"),
+                new TimeSlot("18:00", "20:00", "Chuẩn bị tuần mới"),
+                new TimeSlot("20:00", "22:00", "Đọc & ôn lại tài liệu"),
+                new TimeSlot("22:00", "", "Đi ngủ")
+        )));
 
         return new DetailedSchedule(title, description, tags, weeklyActivities);
     }
 
+    private static List<TimeSlot> concatenate(List<TimeSlot> a, List<TimeSlot> b, List<TimeSlot> c) {
+        List<TimeSlot> res = new ArrayList<>();
+        if (a != null) res.addAll(a);
+        if (b != null) res.addAll(b);
+        if (c != null) res.addAll(c);
+        return res;
+    }
 
     // 4. Template "Sáng học, tối chơi"
     public static DetailedSchedule createWorkHardPlayHardTemplate() {
@@ -295,7 +388,6 @@ public class ScheduleData {
 
         return new DetailedSchedule(title, description, tags, weeklyActivities);
     }
-
 
     // 5. Template "Tối ưu hóa chu kỳ ngủ" - Tên lịch gốc có vẻ không khớp mô tả, tạm dùng tên này
     public static DetailedSchedule createSprintWeekTemplate() {

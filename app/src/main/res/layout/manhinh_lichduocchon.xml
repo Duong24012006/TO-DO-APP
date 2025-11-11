@@ -1,32 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/root_manhinh_lichduocchon"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFFFFF">
 
-        <!-- Main white card -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/mainContentCard"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            app:cardBackgroundColor="#FFFFFF"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="0dp">
+    <androidx.cardview.widget.CardView
+        android:id="@+id/mainContentCard"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:padding="18dp">
+            android:padding="16dp">
 
             <!-- Header -->
             <LinearLayout
-                android:id="@+id/headerLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -35,38 +29,31 @@
                 <androidx.cardview.widget.CardView
                     android:id="@+id/btnBack"
                     android:layout_width="44dp"
-                    android:background="@color/white"
                     android:layout_height="44dp"
                     android:layout_marginEnd="12dp">
 
                     <ImageView
                         android:layout_width="32dp"
                         android:layout_height="32dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/ic_back"
-                        android:contentDescription="Back" />
+                        android:src="@drawable/ic_back" />
                 </androidx.cardview.widget.CardView>
 
                 <TextView
                     android:id="@+id/tvTitleHeader"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:fontFamily="sans-serif-medium"
-                    android:background="@drawable/border_ten_lich"
                     android:text="Tên lịch"
-                    android:padding="4dp"
-                    android:textColor="#000"
-                    android:textSize="28sp" />
-
+                    android:textSize="20sp"
+                    android:padding="6dp" />
             </LinearLayout>
 
-            <!-- Title row and Apply button -->
+            <!-- Section + Apply -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
+                android:layout_marginTop="12dp"
                 android:layout_marginBottom="12dp">
 
                 <TextView
@@ -74,231 +61,151 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-medium"
                     android:text="Lịch trình"
-                    android:textSize="32sp"
-                    android:textStyle="normal"
-                    android:textColor="#000" />
+                    android:textSize="24sp" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnApplySchedule"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Áp dụng lịch"
-                        android:textColor="#000000"
-                        android:textSize="16sp"
-                        android:background="@drawable/sign_bg"
-                        app:backgroundTint="@null"
-                        app:cornerRadius="5dp"
-                        app:icon="@drawable/ic_chevron_right"
-                        app:iconGravity="textEnd"
-                        app:iconPadding="4dp"
-                        app:iconSize="32dp"
-                        app:iconTint="#000000" />
-                </LinearLayout>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnApplySchedule"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Áp dụng lịch" />
+            </LinearLayout>
 
             <!-- Days horizontal -->
-
-            <HorizontalScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+            <HorizontalScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="#FFFFFF"
+                android:layout_height="80dp"
                 android:overScrollMode="never"
                 android:scrollbars="none">
 
                 <LinearLayout
                     android:id="@+id/daysContainer"
                     android:layout_width="wrap_content"
-                    android:layout_height="80dp"
-                    android:gravity="center_vertical"
+                    android:layout_height="match_parent"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="8dp">
+                    android:padding="8dp">
 
-                    <!-- Thứ 2 -->
                     <LinearLayout
                         android:id="@+id/day2"
                         android:layout_width="60dp"
                         android:layout_height="match_parent"
-                        android:layout_marginHorizontal="4dp"
-                        android:background="@drawable/day_item_selector"
-                        android:clickable="true"
-                        android:focusable="true"
                         android:gravity="center"
-                        android:orientation="vertical"
                         android:padding="8dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="THỨ\n2"
+                            android:gravity="center" />
+                    </LinearLayout>
 
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:fontFamily="sans-serif-medium"
-                                android:gravity="center"
-                                android:text="THỨ\n2"
-                                android:textColor="@color/day_text_color_selector"
-                                android:textSize="16sp" />
-                        </LinearLayout>
-
-                    <!-- Thứ 3 -->
                     <LinearLayout
                         android:id="@+id/day3"
                         android:layout_width="60dp"
                         android:layout_height="match_parent"
-                        android:layout_marginHorizontal="4dp"
-                        android:background="@drawable/day_item_selector"
-                        android:clickable="true"
-                        android:focusable="true"
                         android:gravity="center"
-                        android:orientation="vertical"
                         android:padding="8dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="THỨ\n3"
+                            android:gravity="center" />
+                    </LinearLayout>
 
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:fontFamily="sans-serif-medium"
-                                android:gravity="center"
-                                android:text="THỨ\n3"
-                                android:textColor="@color/day_text_color_selector"
-                                android:textSize="16sp" />
-                        </LinearLayout>
-
-                    <!-- Thứ 4 -->
                     <LinearLayout
                         android:id="@+id/day4"
                         android:layout_width="60dp"
                         android:layout_height="match_parent"
-                        android:layout_marginHorizontal="4dp"
-                        android:background="@drawable/day_item_selector"
-                        android:clickable="true"
-                        android:focusable="true"
                         android:gravity="center"
-                        android:orientation="vertical"
                         android:padding="8dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="THỨ\n4"
+                            android:gravity="center" />
+                    </LinearLayout>
 
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:fontFamily="sans-serif-medium"
-                                android:gravity="center"
-                                android:text="THỨ\n4"
-                                android:textColor="@color/day_text_color_selector"
-                                android:textSize="16sp" />
-                        </LinearLayout>
-
-                    <!-- Thứ 5 -->
                     <LinearLayout
                         android:id="@+id/day5"
                         android:layout_width="60dp"
                         android:layout_height="match_parent"
-                        android:layout_marginHorizontal="4dp"
-                        android:background="@drawable/day_item_selector"
-                        android:clickable="true"
-                        android:focusable="true"
                         android:gravity="center"
-                        android:orientation="vertical"
                         android:padding="8dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="THỨ\n5"
+                            android:gravity="center" />
+                    </LinearLayout>
 
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:gravity="center"
-                                android:text="THỨ\n5"
-                                android:textColor="@color/day_text_color_selector"
-                                android:textSize="16sp" />
-                        </LinearLayout>
-
-                    <!-- Thứ 6 -->
                     <LinearLayout
                         android:id="@+id/day6"
                         android:layout_width="60dp"
                         android:layout_height="match_parent"
-                        android:layout_marginHorizontal="4dp"
-                        android:background="@drawable/day_item_selector"
-                        android:clickable="true"
-                        android:focusable="true"
                         android:gravity="center"
-                        android:orientation="vertical"
                         android:padding="8dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="THỨ\n6"
+                            android:gravity="center" />
+                    </LinearLayout>
 
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:fontFamily="sans-serif-medium"
-                                android:gravity="center"
-                                android:text="THỨ\n6"
-                                android:textColor="@color/day_text_color_selector"
-                                android:textSize="16sp" />
-                        </LinearLayout>
-
-                    <!-- Thứ 7 -->
                     <LinearLayout
                         android:id="@+id/day7"
                         android:layout_width="60dp"
                         android:layout_height="match_parent"
-                        android:layout_marginHorizontal="4dp"
-                        android:background="@drawable/day_item_selector"
-                        android:clickable="true"
-                        android:focusable="true"
                         android:gravity="center"
-                        android:orientation="vertical"
                         android:padding="8dp">
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:fontFamily="sans-serif-medium"
-                                android:gravity="center"
-                                android:text="THỨ\n7"
-                                android:textColor="@color/day_text_color_selector"
-                                android:textSize="16sp" />
-                        </LinearLayout>
-
-                        <!-- Chủ Nhật -->
-                        <LinearLayout
-                            android:id="@+id/dayCN"
-                            android:layout_width="60dp"
-                            android:layout_height="match_parent"
-                            android:layout_marginHorizontal="4dp"
-                            android:background="@drawable/day_item_selector"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:gravity="center"
-                            android:orientation="vertical"
-                            android:padding="8dp">
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:fontFamily="sans-serif-medium"
-                                android:gravity="center"
-                                android:text="CHỦ\nNHẬT"
-                                android:textColor="@color/day_text_color_selector"
-                                android:textSize="16sp" />
-                        </LinearLayout>
-
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="THỨ\n7"
+                            android:gravity="center" />
                     </LinearLayout>
-                </HorizontalScrollView>
 
+                    <LinearLayout
+                        android:id="@+id/dayCN"
+                        android:layout_width="60dp"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:padding="8dp">
+                        <!-- FIX: provide required width & height attributes -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="CN"
+                            android:gravity="center" />
+                    </LinearLayout>
 
-            <!-- RecyclerView for time slots -->
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <!-- RecyclerView: schedule slots editable -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/scheduleRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:clipToPadding="false"
-                android:paddingBottom="8dp" />
+                android:padding="8dp" />
+
+            <!-- Floating add -->
+            <!-- FIX: removed layout_alignParentEnd (not valid inside LinearLayout) and use gravity -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:paddingTop="8dp">
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/fabAddSlot"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:layout_margin="16dp"
+                    android:src="@drawable/ic_add" />
+            </LinearLayout>
+
         </LinearLayout>
+
     </androidx.cardview.widget.CardView>
 
-    <!-- Bottom Navigation placeholder -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAddSlot"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:layout_margin="16dp"
-        android:contentDescription="Thêm lịch"
-        app:srcCompat="@drawable/ic_add"
-        app:backgroundTint="@color/main_button"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"/>
 </RelativeLayout>

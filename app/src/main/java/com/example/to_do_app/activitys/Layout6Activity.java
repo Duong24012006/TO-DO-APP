@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -58,7 +59,7 @@ public class Layout6Activity extends AppCompatActivity {
     public static final String EXTRA_TEMPLATE_DESCRIPTION = "EXTRA_TEMPLATE_DESCRIPTION";
     public static final String EXTRA_HISTORY_KEY = "EXTRA_HISTORY_KEY";
 
-    private CardView btnBack;
+    private ImageView btnBack;
     private android.widget.TextView tvTitleHeader;
     private Button btnApplySchedule;
     private RecyclerView scheduleRecyclerView;

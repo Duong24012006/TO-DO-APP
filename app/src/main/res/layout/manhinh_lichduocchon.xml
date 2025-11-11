@@ -34,6 +34,7 @@
                 android:paddingStart="8dp"
                 android:gravity="center_vertical">
                 <ImageView
+                    android:id="@+id/btnBack"
                     android:layout_width="32dp"
                     android:layout_height="32dp"
                     android:layout_gravity="center"

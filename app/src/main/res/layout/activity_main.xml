@@ -22,7 +22,7 @@
         android:layout_marginEnd="0dp"
         android:layout_alignParentBottom="true"
         app:menu="@menu/menu_bottom_navigation"
-        app:itemBackground="@color/bottom_nav"
+        app:backgroundTint="@color/bottom_nav"
         app:itemIconTint="@color/custom_color_bottom_nav"
         app:itemTextColor="@color/custom_color_bottom_nav" />
 

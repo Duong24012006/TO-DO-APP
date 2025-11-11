@@ -14,12 +14,14 @@
         <item name="android:textAllCaps">false</item>
     </style>
 
-    xml
-    <!-- Thêm đoạn này vào file themes.xml -->
+    <style name="MyShapeAppearance" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">40dp</item>
+    </style>
+
     <style name="MyChipStyle" parent="Widget.Material3.Chip.Suggestion">
         <!-- Bạn có thể tùy chỉnh thêm các thuộc tính khác ở đây nếu muốn -->
         <!-- Ví dụ: <item name="android:textColor">@color/your_color</item> -->
     </style>
-
 
 </resources>

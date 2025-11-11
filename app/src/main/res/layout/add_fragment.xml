@@ -14,6 +14,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Tìm kiếm tên lịch"
+        app:boxBackgroundColor="#EBF5F6"
+        app:shapeAppearanceOverlay="@style/MyShapeAppearance"
         app:startIconDrawable="@android:drawable/ic_menu_search">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -52,6 +54,7 @@
                 style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/add_schedule_button"
                 android:layout_marginEnd="8dp"
                 android:text="Giờ ngủ"
                 android:textSize="16sp"
@@ -64,6 +67,7 @@
                 style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/add_schedule_button"
                 android:layout_marginEnd="8dp"
                 android:text="Học tập"
                 android:textSize="16sp"
@@ -76,6 +80,7 @@
                 style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/add_schedule_button"
                 android:layout_marginEnd="8dp"
                 android:text="Giải trí"
                 android:textSize="16sp"
@@ -88,6 +93,7 @@
                 style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/add_schedule_button"
                 android:text="Thể thao"
                 android:textSize="16sp"
                 android:textColor="@color/black"
@@ -137,7 +143,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:text="Áp dụng" />
+                android:backgroundTint="@color/add_schedule_button"
+                android:text="Áp dụng"
+                android:textColor="@color/black"/>
 
         </LinearLayout>
 

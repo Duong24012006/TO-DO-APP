@@ -7,18 +7,18 @@
   <!-- Path 1: Hình tròn nền màu tím nhạt (Giữ nguyên) -->
   <path
       android:pathData="M16,16m-16,0a16,16 0,1 1,32 0a16,16 0,1 1,-32 0"
-      android:fillColor="#E6E0F8"/>
+      android:fillColor="#D9FBFF"/>
 
   <!-- Path 2: Vòng tròn cho cái đầu (Nét mảnh hơn, nhỏ hơn, dịch xuống) -->
   <path
       android:pathData="M16,14.5a3.5,3.5 0,1 1,0 -7a3.5,3.5 0,1 1,0 7"
       android:strokeWidth="2.5"
-      android:strokeColor="#67529A"/>
+      android:strokeColor="#008E8E"/>
 
   <!-- Path 3: Đường cong cho vai (Nét mảnh hơn, nhỏ hơn, dịch xuống) -->
   <path
       android:pathData="M7,26 C7,21 11,18 16,18 C21,18 25,21 25,26"
       android:strokeWidth="2.5"
-      android:strokeColor="#67529A"/>
+      android:strokeColor="#008E8E"/>
 
 </vector>

@@ -44,7 +44,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:fontFamily="sans-serif"
                     android:text="Xin chào, User"
                     android:textSize="24sp"
                     android:textStyle="bold" />
@@ -54,7 +53,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:fontFamily="sans-serif-medium"
                     android:text="Chúc bạn một ngày tốt lành"
                     android:textColor="#555"
                     android:textSize="20sp" />
@@ -70,16 +68,15 @@
             android:layout_marginTop="12dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="12dp"
-            android:fontFamily="sans-serif-medium"
             android:gravity="left"
-            android:text="Lịch trình chung"
+            android:text="Lịch trình"
             android:textColor="#000"
             android:textSize="36sp"
 
             />
 
 
-        <HorizontalScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+        <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="#FFFFFF"
@@ -112,19 +109,9 @@
                         android:id="@+id/tvMonDay"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
+                        android:background="@drawable/day_item_selector"
                         android:gravity="center"
-                        android:text="THỨ"
-                        android:textColor="#000"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/tvMonDate"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="2"
+                        android:text="THỨ\n2"
                         android:textColor="#000"
                         android:textSize="16sp" />
                 </LinearLayout>
@@ -146,19 +133,8 @@
                         android:id="@+id/tvTueDay"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
                         android:gravity="center"
-                        android:text="THỨ"
-                        android:textColor="#000"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/tvTueDate"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="3"
+                        android:text="THỨ\n3"
                         android:textColor="#000"
                         android:textSize="16sp" />
                 </LinearLayout>
@@ -180,19 +156,8 @@
                         android:id="@+id/tvWedDay"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
                         android:gravity="center"
-                        android:text="THỨ"
-                        android:textColor="#000"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/tvWedDate"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="4"
+                        android:text="THỨ\n4"
                         android:textColor="#000"
                         android:textSize="16sp" />
                 </LinearLayout>
@@ -214,19 +179,8 @@
                         android:id="@+id/tvThuDay"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
                         android:gravity="center"
-                        android:text="THỨ"
-                        android:textColor="#000"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/tvThuDate"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="5"
+                        android:text="THỨ\n5"
                         android:textColor="#000"
                         android:textSize="16sp" />
                 </LinearLayout>
@@ -248,19 +202,8 @@
                         android:id="@+id/tvFriDay"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
                         android:gravity="center"
-                        android:text="THỨ"
-                        android:textColor="#000"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/tvFriDate"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="6"
+                        android:text="THỨ\n6"
                         android:textColor="#000"
                         android:textSize="16sp" />
                 </LinearLayout>
@@ -282,19 +225,8 @@
                         android:id="@+id/tvSatDay"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
                         android:gravity="center"
-                        android:text="THỨ"
-                        android:textColor="#000"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/tvSatDate"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="7"
+                        android:text="THỨ\n7"
                         android:textColor="#000"
                         android:textSize="16sp" />
                 </LinearLayout>
@@ -316,19 +248,8 @@
                         android:id="@+id/tvSunDay"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
                         android:gravity="center"
-                        android:text="CHỦ"
-                        android:textColor="#000000"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/tvSunDate"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="NHẬT"
+                        android:text="CHỦ\nNHẬT"
                         android:textColor="#000000"
                         android:textSize="16sp" />
                 </LinearLayout>
@@ -373,7 +294,6 @@
                         android:layout_width="120dp"
                         android:layout_height="wrap_content"
                         android:background="@drawable/time_bg"
-                        android:fontFamily="sans-serif-medium"
                         android:gravity="center"
                         android:layout_marginStart="16dp"
                         android:paddingHorizontal="16dp"
@@ -396,7 +316,6 @@
                             android:id="@+id/tvTaskTitle1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
                             android:text="Tập thể dục buổi sáng"
                             android:textColor="#000"
                             android:textSize="18sp"
@@ -407,7 +326,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:fontFamily="sans-serif"
                             android:text="Địa điểm: Công viên Lê Thị Riêng"
                             android:textColor="#000"
                             android:textSize="14sp" />
@@ -417,7 +335,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:fontFamily="sans-serif"
                             android:text="Ghi chú: Mang theo nước và khăn tập"
                             android:textColor="#000"
                             android:textSize="14sp" />
@@ -435,7 +352,6 @@
                         android:layout_width="120dp"
                         android:layout_height="wrap_content"
                         android:background="@drawable/time_bg"
-                        android:fontFamily="sans-serif-medium"
                         android:gravity="center"
                         android:paddingHorizontal="16dp"
                         android:paddingVertical="6dp"
@@ -458,7 +374,6 @@
                             android:id="@+id/tvTaskTitle2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
                             android:text="Ăn sáng và chuẩn bị đi làm"
                             android:textColor="#000"
                             android:textSize="18sp"
@@ -469,7 +384,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:fontFamily="sans-serif"
                             android:text="Địa điểm: Nhà bếp"
                             android:textColor="#000"
                             android:textSize="14sp" />
@@ -479,7 +393,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:fontFamily="sans-serif"
                             android:text="Ghi chú: Chuẩn bị tài liệu họp sáng"
                             android:textColor="#000"
                             android:textSize="14sp" />
@@ -498,7 +411,6 @@
                         android:layout_width="120dp"
                         android:layout_height="wrap_content"
                         android:background="@drawable/time_bg"
-                        android:fontFamily="sans-serif-medium"
                         android:gravity="center"
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="6dp"
@@ -521,7 +433,6 @@
                             android:id="@+id/tvTaskTitle3"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
                             android:text="Họp nhóm dự án"
                             android:textColor="#000"
                             android:textSize="18sp"
@@ -532,7 +443,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:fontFamily="sans-serif"
                             android:text="Địa điểm: Phòng họp tầng 3"
                             android:textColor="#000"
                             android:textSize="14sp" />
@@ -542,7 +452,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:fontFamily="sans-serif"
                             android:text="Ghi chú: Chuẩn bị báo cáo sprint"
                             android:textColor="#000"
                             android:textSize="14sp" />
@@ -561,7 +470,6 @@
                         android:layout_width="120dp"
                         android:layout_height="wrap_content"
                         android:background="@drawable/time_bg"
-                        android:fontFamily="sans-serif-medium"
                         android:gravity="center"
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="6dp"
@@ -584,7 +492,6 @@
                             android:id="@+id/tvTaskTitle4"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
                             android:text="Làm việc tại văn phòng"
                             android:textColor="#000"
                             android:textSize="18sp"
@@ -595,7 +502,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:fontFamily="sans-serif"
                             android:text="Địa điểm: Công ty ABC"
                             android:textColor="#000"
                             android:textSize="14sp" />
@@ -605,7 +511,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:fontFamily="sans-serif"
                             android:text="Ghi chú: Kiểm tra email khách hàng"
                             android:textColor="#000"
                             android:textSize="14sp" />
@@ -624,7 +529,6 @@
                         android:layout_width="120dp"
                         android:layout_height="wrap_content"
                         android:background="@drawable/time_bg"
-                        android:fontFamily="sans-serif-medium"
                         android:gravity="center"
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="6dp"
@@ -647,7 +551,6 @@
                             android:id="@+id/tvTaskTitle5"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
                             android:text="Tập gym"
                             android:textColor="#000"
                             android:textSize="18sp"
@@ -658,7 +561,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:fontFamily="sans-serif"
                             android:text="Địa điểm: Phòng gym California"
                             android:textColor="#000"
                             android:textSize="14sp" />
@@ -668,7 +570,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:fontFamily="sans-serif"
                             android:text="Ghi chú: Tập ngực và tay"
                             android:textColor="#000"
                             android:textSize="14sp" />
@@ -687,7 +588,6 @@
                         android:layout_width="120dp"
                         android:layout_height="wrap_content"
                         android:background="@drawable/time_bg"
-                        android:fontFamily="sans-serif-medium"
                         android:gravity="center"
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="6dp"
@@ -710,7 +610,6 @@
                             android:id="@+id/tvTaskTitle6"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
                             android:text="Học lập trình Android"
                             android:textColor="#000"
                             android:textSize="18sp"
@@ -721,7 +620,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:fontFamily="sans-serif"
                             android:text="Địa điểm: Tại nhà"
                             android:textColor="#000"
                             android:textSize="14sp" />
@@ -731,7 +629,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:fontFamily="sans-serif"
                             android:text="Ghi chú: Hoàn thành project app tính toán"
                             android:textColor="#000"
                             android:textSize="14sp" />
@@ -750,7 +647,6 @@
                         android:layout_width="120dp"
                         android:layout_height="wrap_content"
                         android:background="@drawable/time_bg"
-                        android:fontFamily="sans-serif-medium"
                         android:gravity="center"
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="6dp"
@@ -773,7 +669,6 @@
                             android:id="@+id/tvTaskTitle7"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
                             android:text="Thư giãn và đọc sách"
                             android:textColor="#000"
                             android:textSize="18sp"
@@ -784,7 +679,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:fontFamily="sans-serif"
                             android:text="Địa điểm: Phòng ngủ"
                             android:textColor="#000"
                             android:textSize="14sp" />
@@ -794,7 +688,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:fontFamily="sans-serif"
                             android:text="Ghi chú: Đọc 30 phút sách Android"
                             android:textColor="#000"
                             android:textSize="14sp" />

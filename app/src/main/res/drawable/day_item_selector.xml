@@ -13,5 +13,11 @@
     </item>
 
     <!-- Default state -->
-    <item android:drawable="@color/day_button" />
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/day_button" />
+            <corners android:radius="5dp" />
+        </shape>
+    </item>
+
 </selector>

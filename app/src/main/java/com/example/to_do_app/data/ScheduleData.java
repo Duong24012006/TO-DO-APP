@@ -19,9 +19,6 @@ public class ScheduleData {
     public static List<ScheduleTemplate> getSampleTemplates() {
         List<ScheduleTemplate> templates = new ArrayList<>();
 
-        // Thêm template mặc định (chuyển từ getDefaultItemsForDay -> dạng DetailedSchedule)
-        templates.add(createDefaultWeekTemplate());
-
         // Các template mẫu chi tiết khác
         templates.add(createNightOwlTemplate());           // 1. CÚ ĐÊM
         templates.add(createMorningPersonTemplate());      // 2. Chuyên buổi sáng
@@ -35,105 +32,6 @@ public class ScheduleData {
 
         return templates;
     }
-
-    // --- New: Default weekly schedule converted from getDefaultItemsForDay() ---
-    public static DetailedSchedule createDefaultWeekTemplate() {
-        String title = "Mẫu mặc định (Daily defaults)";
-        String description = "Lịch mặc định theo ngày (bản chuyển từ getDefaultItemsForDay).";
-        List<String> tags = Arrays.asList("default", "weekly", "7slots");
-        Map<String, List<TimeSlot>> weeklyActivities = new HashMap<>();
-
-        // map days 2..8 -> names
-        weeklyActivities.put("Thứ 2", defaultSlotsForDay(2));
-        weeklyActivities.put("Thứ 3", defaultSlotsForDay(3));
-        weeklyActivities.put("Thứ 4", defaultSlotsForDay(4));
-        weeklyActivities.put("Thứ 5", defaultSlotsForDay(5));
-        weeklyActivities.put("Thứ 6", defaultSlotsForDay(6));
-        weeklyActivities.put("Thứ 7", defaultSlotsForDay(7));
-        weeklyActivities.put("Chủ Nhật", defaultSlotsForDay(8));
-
-        return new DetailedSchedule(title, description, tags, weeklyActivities);
-    }
-
-    private static List<TimeSlot> defaultSlotsForDay(int day) {
-        List<TimeSlot> defaults = new ArrayList<>();
-        switch (day) {
-            case 2:
-                defaults.add(new TimeSlot("06:00", "08:00", "Thức dậy & vệ sinh"));
-                defaults.add(new TimeSlot("08:00", "10:00", "Ăn sáng & Chuẩn bị"));
-                defaults.add(new TimeSlot("10:00", "12:00", "Làm việc / Học buổi sáng"));
-                defaults.add(new TimeSlot("12:00", "14:00", "Ăn trưa & nghỉ"));
-                defaults.add(new TimeSlot("14:00", "16:00", "Tiếp tục công việc"));
-                defaults.add(new TimeSlot("16:00", "18:00", "Ôn tập / Học thêm"));
-                defaults.add(new TimeSlot("19:00", "21:00", "Thư giãn / Gia đình"));
-                break;
-            case 3:
-                defaults.add(new TimeSlot("06:00", "08:00", "Yoga & Sáng"));
-                defaults.add(new TimeSlot("08:00", "10:00", "Ăn sáng & chuẩn bị"));
-                defaults.add(new TimeSlot("10:00", "12:00", "Họp nhóm / Công việc"));
-                defaults.add(new TimeSlot("12:00", "14:00", "Ăn trưa & nghỉ"));
-                defaults.add(new TimeSlot("14:00", "16:00", "Công việc chuyên môn"));
-                defaults.add(new TimeSlot("16:00", "18:00", "Task cá nhân"));
-                defaults.add(new TimeSlot("19:00", "21:00", "Thư giãn"));
-                break;
-            case 4:
-                defaults.add(new TimeSlot("06:00", "08:00", "Chạy bộ & vệ sinh"));
-                defaults.add(new TimeSlot("08:00", "10:00", "Ăn sáng & chuẩn bị"));
-                defaults.add(new TimeSlot("10:00", "12:00", "Học / Khóa học"));
-                defaults.add(new TimeSlot("12:00", "14:00", "Ăn trưa & nghỉ"));
-                defaults.add(new TimeSlot("14:00", "16:00", "Side project"));
-                defaults.add(new TimeSlot("16:00", "18:00", "Gym / Thể dục"));
-                defaults.add(new TimeSlot("19:00", "21:00", "Lập kế hoạch tuần"));
-                break;
-            case 5:
-                defaults.add(new TimeSlot("06:00", "08:00", "Thiền & Chuẩn bị"));
-                defaults.add(new TimeSlot("08:00", "10:00", "Ăn sáng & công việc nhẹ"));
-                defaults.add(new TimeSlot("10:00", "12:00", "Deep work"));
-                defaults.add(new TimeSlot("12:00", "14:00", "Ăn trưa & nghỉ"));
-                defaults.add(new TimeSlot("14:00", "16:00", "Chạy việc / Mua sắm"));
-                defaults.add(new TimeSlot("16:00", "18:00", "Học thêm"));
-                defaults.add(new TimeSlot("19:00", "21:00", "Giải trí"));
-                break;
-            case 6:
-                defaults.add(new TimeSlot("06:00", "08:00", "Đi bộ & Sáng"));
-                defaults.add(new TimeSlot("08:00", "10:00", "Ăn sáng & đọc tin"));
-                defaults.add(new TimeSlot("10:00", "12:00", "Hoàn thiện công việc"));
-                defaults.add(new TimeSlot("12:00", "14:00", "Ăn trưa"));
-                defaults.add(new TimeSlot("14:00", "16:00", "Kiểm tra email"));
-                defaults.add(new TimeSlot("16:00", "18:00", "Gặp gỡ bạn bè"));
-                defaults.add(new TimeSlot("19:00", "21:00", "Thư giãn"));
-                break;
-            case 7:
-                defaults.add(new TimeSlot("08:00", "10:00", "Dọn dẹp & Chuẩn bị"));
-                defaults.add(new TimeSlot("10:00", "12:00", "Mua sắm / Công việc gia đình"));
-                defaults.add(new TimeSlot("12:00", "14:00", "Nấu ăn & ăn trưa"));
-                defaults.add(new TimeSlot("14:00", "16:00", "Hobby / Sở thích"));
-                defaults.add(new TimeSlot("16:00", "18:00", "Thể dục"));
-                defaults.add(new TimeSlot("18:00", "20:00", "Gặp gỡ"));
-                defaults.add(new TimeSlot("20:00", "22:00", "Chuẩn bị cho CN"));
-                break;
-            case 8:
-                defaults.add(new TimeSlot("08:00", "10:00", "Ngủ nướng & ăn sáng"));
-                defaults.add(new TimeSlot("10:00", "12:00", "Thư giãn (sách, cafe)"));
-                defaults.add(new TimeSlot("12:00", "14:00", "Ăn trưa gia đình"));
-                defaults.add(new TimeSlot("14:00", "16:00", "Lập kế hoạch tuần"));
-                defaults.add(new TimeSlot("16:00", "18:00", "Đi dạo"));
-                defaults.add(new TimeSlot("18:00", "20:00", "Chuẩn bị thức ăn"));
-                defaults.add(new TimeSlot("20:00", "22:00", "Xem phim / Thư giãn"));
-                break;
-            default:
-                defaults.add(new TimeSlot("06:00", "08:00", "Thức dậy & vệ sinh"));
-                defaults.add(new TimeSlot("08:00", "10:00", "Ăn sáng"));
-                defaults.add(new TimeSlot("10:00", "12:00", "Làm việc"));
-                defaults.add(new TimeSlot("12:00", "14:00", "Ăn trưa"));
-                defaults.add(new TimeSlot("14:00", "16:00", "Tiếp tục"));
-                defaults.add(new TimeSlot("16:00", "18:00", "Thư giãn"));
-                defaults.add(new TimeSlot("19:00", "21:00", "Gia đình"));
-                break;
-        }
-        return defaults;
-    }
-
     // --- Các phương thức tạo từng Template chi tiết ---
     // 1. Template "CÚ ĐÊM"
     public static DetailedSchedule createNightOwlTemplate() {

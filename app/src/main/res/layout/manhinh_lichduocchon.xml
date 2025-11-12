@@ -126,7 +126,7 @@
                                 android:fontFamily="sans-serif-medium"
                                 android:gravity="center"
                                 android:text="THỨ\n2"
-                                android:textColor="@color/day_text_color_selector"
+                                android:textColor="@color/black"
                                 android:textSize="16sp" />
                         </LinearLayout>
 
@@ -149,7 +149,7 @@
                                 android:fontFamily="sans-serif-medium"
                                 android:gravity="center"
                                 android:text="THỨ\n3"
-                                android:textColor="@color/day_text_color_selector"
+                                android:textColor="@color/black"
                                 android:textSize="16sp" />
                         </LinearLayout>
 
@@ -172,7 +172,7 @@
                                 android:fontFamily="sans-serif-medium"
                                 android:gravity="center"
                                 android:text="THỨ\n4"
-                                android:textColor="@color/day_text_color_selector"
+                                android:textColor="@color/black"
                                 android:textSize="16sp" />
                         </LinearLayout>
 
@@ -194,7 +194,7 @@
                                 android:layout_height="wrap_content"
                                 android:gravity="center"
                                 android:text="THỨ\n5"
-                                android:textColor="@color/day_text_color_selector"
+                                android:textColor="@color/black"
                                 android:textSize="16sp" />
                         </LinearLayout>
 
@@ -217,7 +217,7 @@
                                 android:fontFamily="sans-serif-medium"
                                 android:gravity="center"
                                 android:text="THỨ\n6"
-                                android:textColor="@color/day_text_color_selector"
+                                android:textColor="@color/black"
                                 android:textSize="16sp" />
                         </LinearLayout>
 
@@ -240,7 +240,7 @@
                                 android:fontFamily="sans-serif-medium"
                                 android:gravity="center"
                                 android:text="THỨ\n7"
-                                android:textColor="@color/day_text_color_selector"
+                                android:textColor="@color/black"
                                 android:textSize="16sp" />
                         </LinearLayout>
 
@@ -263,7 +263,7 @@
                                 android:fontFamily="sans-serif-medium"
                                 android:gravity="center"
                                 android:text="CHỦ\nNHẬT"
-                                android:textColor="@color/day_text_color_selector"
+                                android:textColor="@color/black"
                                 android:textSize="16sp" />
                         </LinearLayout>
 

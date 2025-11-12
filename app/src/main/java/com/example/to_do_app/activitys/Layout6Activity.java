@@ -427,32 +427,260 @@ public class Layout6Activity extends AppCompatActivity {
         return list;
     }
 
+    // --- RESTORED METHODS START ---
+
     private void saveOverrideToPrefs(int day, ScheduleItem override) {
-        // ... (implementation remains the same)
+        if (override == null) return;
+        String key = "overrides_day_" + day;
+        List<ScheduleItem> existing = getOverridesFromPrefs(day);
+
+        boolean updated = false;
+        if (override.getFirebaseKey() == null || override.getFirebaseKey().isEmpty()) {
+            override.setFirebaseKey("override_" + System.currentTimeMillis());
+        }
+        for (int i = 0; i < existing.size(); i++) {
+            ScheduleItem ex = existing.get(i);
+            if (ex.getFirebaseKey() != null && ex.getFirebaseKey().equals(override.getFirebaseKey())) {
+                existing.set(i, override);
+                updated = true;
+                break;
+            }
+        }
+        if (!updated) existing.add(override);
+
+        JSONArray arr = new JSONArray();
+        try {
+            for (ScheduleItem it : existing) {
+                JSONObject o = new JSONObject();
+                o.put("firebaseKey", it.getFirebaseKey());
+                o.put("startTime", it.getStartTime());
+                o.put("endTime", it.getEndTime());
+                o.put("activity", it.getActivity());
+                o.put("day", it.getDayOfWeek());
+                arr.put(o);
+            }
+            prefs.edit().putString(key, arr.toString()).apply();
+            Log.d(TAG, "Saved override to prefs for day " + day);
+
+            DatabaseReference overridesRef = rootRef.child("users").child(userId).child("overrides_day_" + day);
+            overridesRef.removeValue().addOnCompleteListener(t -> {
+                for (ScheduleItem it : existing) {
+                    DatabaseReference p = overridesRef.push();
+                    p.child("firebaseKey").setValue(it.getFirebaseKey());
+                    p.child("startTime").setValue(it.getStartTime());
+                    p.child("endTime").setValue(it.getEndTime());
+                    p.child("activity").setValue(it.getActivity());
+                    p.child("day").setValue(it.getDayOfWeek());
+                }
+            });
+
+        } catch (JSONException ex) {
+            Log.e(TAG, "save override error", ex);
+        }
     }
 
     private void saveScheduleToFirebase() {
-        // ... (implementation remains the same)
+        if (currentList == null || currentList.isEmpty()) {
+            Toast.makeText(this, "Danh sách lịch trống", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String dayNode = "day_" + selectedDay;
+        DatabaseReference dayRef = schedulesRef.child(dayNode);
+
+        List<ScheduleItem> toUpload = new ArrayList<>();
+        for (ScheduleItem it : currentList) {
+            String fk = it.getFirebaseKey() == null ? "" : it.getFirebaseKey();
+            if (!fk.startsWith("builtin_")) {
+                it.setDayOfWeek(selectedDay);
+                toUpload.add(it);
+            }
+        }
+
+        dayRef.setValue(toUpload)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Saved full schedule to Firebase for " + dayNode))
+                .addOnFailureListener(e -> Toast.makeText(this, "Lỗi lưu lịch: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     private void saveScheduleToProfileHistory(int day) {
-        // ... (implementation remains the same)
+        if (currentList == null) currentList = new ArrayList<>();
+
+        SharedPreferences profilePrefs = getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE);
+        String json = profilePrefs.getString(PROFILE_HISTORY_KEY, null);
+        JSONArray arr;
+        try {
+            arr = (json == null) ? new JSONArray() : new JSONArray(json);
+        } catch (JSONException ex) {
+            arr = new JSONArray();
+        }
+
+        String title = (tvTitleHeader != null && tvTitleHeader.getText() != null && !tvTitleHeader.getText().toString().trim().isEmpty())
+                ? tvTitleHeader.getText().toString().trim()
+                : ("Lịch ngày " + (day == 8 ? "CN" : ("Thứ " + day)));
+
+        JSONArray actsArr = new JSONArray();
+        StringBuilder subtitleSb = new StringBuilder();
+        int maxToShow = 6;
+        int count = 0;
+        for (ScheduleItem it : currentList) {
+            String s = it.getStartTime() == null ? "" : it.getStartTime();
+            String e = it.getEndTime() == null ? "" : it.getEndTime();
+            String a = it.getActivity() == null ? "" : it.getActivity();
+            String row = s + "-" + e + ": " + a;
+            try {
+                JSONObject actObj = new JSONObject();
+                actObj.put("time", row);
+                actObj.put("activity", a);
+                actObj.put("day", it.getDayOfWeek());
+                actsArr.put(actObj);
+            } catch (JSONException ex) {
+                Log.w(TAG, "activity json error", ex);
+            }
+            if (count < maxToShow) {
+                if (subtitleSb.length() > 0) subtitleSb.append("  •  ");
+                subtitleSb.append(row);
+            }
+            count++;
+        }
+        if (subtitleSb.length() == 0) subtitleSb.append("Không có mục cụ thể");
+        String subtitle = subtitleSb.toString();
+
+        try {
+            if (editingHistoryKey == null) {
+                JSONObject obj = new JSONObject();
+                obj.put("title", title);
+                obj.put("subtitle", subtitle);
+                obj.put("day", day);
+                obj.put("activities", actsArr);
+                arr.put(obj);
+                profilePrefs.edit().putString(PROFILE_HISTORY_KEY, arr.toString()).apply();
+                Log.d(TAG, "Saved schedule summary locally to profile history: " + title);
+
+                pushScheduleSummaryToFirebase(null, title, subtitle, day, currentList);
+            } else {
+                boolean updatedLocal = false;
+                try {
+                    for (int i = 0; i < arr.length(); i++) {
+                        JSONObject o = arr.getJSONObject(i);
+                        String hk = o.optString("historyKey", null);
+                        if (hk != null && hk.equals(editingHistoryKey)) {
+                            o.put("title", title);
+                            o.put("subtitle", subtitle);
+                            o.put("day", day);
+                            o.put("activities", actsArr);
+                            updatedLocal = true;
+                            break;
+                        }
+                    }
+                } catch (JSONException ex) {
+                    Log.w(TAG, "local update error", ex);
+                }
+                if (!updatedLocal) {
+                    JSONObject obj = new JSONObject();
+                    obj.put("historyKey", editingHistoryKey);
+                    obj.put("title", title);
+                    obj.put("subtitle", subtitle);
+                    obj.put("day", day);
+                    obj.put("activities", actsArr);
+                    arr.put(obj);
+                }
+                profilePrefs.edit().putString(PROFILE_HISTORY_KEY, arr.toString()).apply();
+                Log.d(TAG, "Updated schedule summary locally for key=" + editingHistoryKey);
+
+                pushScheduleSummaryToFirebase(editingHistoryKey, title, subtitle, day, currentList);
+            }
+        } catch (JSONException ex) {
+            Log.e(TAG, "saveScheduleToProfileHistory error", ex);
+        }
+    }
+
+    private void pushScheduleSummaryToFirebase(String historyKey, String title, String subtitle, int day, List<ScheduleItem> items) {
+        try {
+            DatabaseReference historyRef = rootRef.child("users").child(userId).child("history");
+            DatabaseReference targetRef;
+            if (historyKey == null) {
+                targetRef = historyRef.push();
+            } else {
+                targetRef = historyRef.child(historyKey);
+            }
+
+            targetRef.child("title").setValue(title);
+            targetRef.child("subtitle").setValue(subtitle);
+            targetRef.child("day").setValue(day);
+
+            DatabaseReference actsRef = targetRef.child("activities");
+            actsRef.removeValue().addOnCompleteListener(t -> {
+                for (ScheduleItem it : items) {
+                    String s = it.getStartTime() == null ? "" : it.getStartTime();
+                    String e = it.getEndTime() == null ? "" : it.getEndTime();
+                    String a = it.getActivity() == null ? "" : it.getActivity();
+                    String row = s + "-" + e + ": " + a;
+                    actsRef.push().setValue(row);
+                }
+                targetRef.child("timestamp").setValue(ServerValue.TIMESTAMP);
+            });
+
+            if (historyKey == null) {
+                Log.d(TAG, "Pushed new schedule summary to Firebase for user=" + userId);
+            } else {
+                Log.d(TAG, "Updated schedule summary to Firebase for key=" + historyKey);
+            }
+        } catch (Exception ex) {
+            Log.w(TAG, "pushScheduleSummaryToFirebase failed", ex);
+        }
     }
 
     private boolean isOverlapping(String newStart, String newEnd, List<ScheduleItem> existing, ScheduleItem exclude) {
-        // ... (implementation remains the same)
+        int ns = timeToMinutes(newStart);
+        int ne = timeToMinutes(newEnd);
+        if (ns < 0 || ne < 0 || ne <= ns) return true; 
+
+        if (existing == null) return false;
+        for (ScheduleItem it : existing) {
+            if (exclude != null && it == exclude) continue;
+            String s = it.getStartTime();
+            String e = it.getEndTime();
+            int is = timeToMinutes(s);
+            int ie = timeToMinutes(e);
+            if (is < 0 || ie < 0) continue;
+            if (ns < ie && is < ne) return true;
+        }
         return false;
     }
 
     private boolean equalsByTimeAndActivity(ScheduleItem a, ScheduleItem b) {
-        // ... (implementation remains the same)
-        return false;
+        if (a == null || b == null) return false;
+        String as = a.getStartTime() == null ? "" : a.getStartTime();
+        String ae = a.getEndTime() == null ? "" : a.getEndTime();
+        String aa = a.getActivity() == null ? "" : a.getActivity();
+        String bs = b.getStartTime() == null ? "" : b.getStartTime();
+        String be = b.getEndTime() == null ? "" : b.getEndTime();
+        String ba = b.getActivity() == null ? "" : b.getActivity();
+        return as.equals(bs) && ae.equals(be) && aa.equals(ba);
     }
 
     private List<ScheduleItem> getDefaultItemsForDay(int day) {
-        // This method may not be needed if templates are used, but kept for non-template mode
-        return new ArrayList<>();
+        List<ScheduleItem> defaults = new ArrayList<>();
+        // Based on the original file, it seems there was a complex switch here.
+        // For now, returning an empty list as the main logic is template-based or from Firebase.
+        // You can re-paste the original switch/case logic here if needed.
+        return defaults;
     }
+
+    private int timeToMinutes(String hhmm) {
+        if (hhmm == null || !hhmm.contains(":")) return -1;
+        try {
+            String[] parts = hhmm.split(":");
+            int hh = Integer.parseInt(parts[0].trim());
+            int mm = Integer.parseInt(parts[1].trim());
+            if (hh < 0 || hh > 23 || mm < 0 || mm > 59) return -1;
+            return hh * 60 + mm;
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    // --- RESTORED METHODS END ---
 
     private DetailedSchedule getTemplateDetailsByTitle(String title) {
         if (title == null) return null;

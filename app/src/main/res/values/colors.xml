@@ -13,7 +13,6 @@
     <color name="doing_work_button">#E5FDFF</color> <!-- Nền bao quanh của các hoạt động trong ngày -->
     <color name="time_button">#BFF0F5</color> <!-- Nền cua gio của các hoạt động trong ngày -->
 
-    <color name="blue">#0020F1</color> <!-- Màu icon/text khi được chọn -->
     <color name="color_select_bottom_nav">#000000</color> <!-- Màu icon/text khi chưa chọn -->
 
     <color name="bottom_nav">#EAF8F9</color> <!-- Nền của thanh bottom nav -->

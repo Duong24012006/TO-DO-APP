@@ -1,5 +1,3 @@
-// java
-// File: app/src/main/java/com/example/to_do_app/adapters/ScheduleTemplateAdapter.java
 package com.example.to_do_app.adapters;
 
 import android.content.Context;
@@ -42,7 +40,6 @@ public class ScheduleTemplateAdapter extends RecyclerView.Adapter<ScheduleTempla
 
     @Override
     public void onBindViewHolder(@NonNull ScheduleTemplateViewHolder holder, int position) {
-        // Guard against inconsistent state: don't call get if position out of range
         if (position < 0 || position >= templateList.size()) return;
         ScheduleTemplate template = templateList.get(position);
         holder.bind(template);
@@ -72,23 +69,23 @@ public class ScheduleTemplateAdapter extends RecyclerView.Adapter<ScheduleTempla
             chipGroupTags = itemView.findViewById(R.id.chip_group_tags);
             ivNext = itemView.findViewById(R.id.iv_next);
 
-            ivNext.setOnClickListener(v -> {
+            View.OnClickListener clickListener = v -> {
                 int pos = getBindingAdapterPosition();
                 if (pos == RecyclerView.NO_POSITION || pos < 0 || pos >= templateList.size()) return;
                 ScheduleTemplate template = templateList.get(pos);
 
                 Intent intent = new Intent(context, Layout6Activity.class);
-                intent.putExtra("EXTRA_TEMPLATE_TITLE", template.getTitle());
-                intent.putExtra("EXTRA_TEMPLATE_DESCRIPTION", template.getDescription());
-                intent.putStringArrayListExtra("EXTRA_TEMPLATE_TAGS",
-                        new ArrayList<>(template.getTags() == null ? new ArrayList<>() : template.getTags()));
+                // Use Serializable to pass the whole object
+                intent.putExtra("EXTRA_SCHEDULE_TEMPLATE", template);
+
                 if (!(context instanceof android.app.Activity)) {
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 }
                 context.startActivity(intent);
-            });
+            };
 
-            itemView.setOnClickListener(v -> ivNext.performClick());
+            itemView.setOnClickListener(clickListener);
+            ivNext.setOnClickListener(clickListener);
         }
 
         void bind(ScheduleTemplate template) {

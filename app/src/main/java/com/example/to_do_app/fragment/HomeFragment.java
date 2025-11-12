@@ -7,18 +7,22 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.to_do_app.R;
-import com.google.firebase.database.ChildEventListener;
+import com.example.to_do_app.adapters.ScheduleItemAdapter;
+import com.example.to_do_app.model.ScheduleItem;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -29,41 +33,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * HomeFragment — now reads "home display" from Firebase /users/<userId>/home_display realtime.
- * Falls back to SharedPreferences if Firebase value not present.
- *
- * Behavior:
- * - When Layout6Activity saves schedule for Home, it writes JSON string to /users/<userId>/home_display
- *   and also to SharedPreferences profile_prefs.home_display_activities.
- * - HomeFragment listens for changes and updates UI immediately.
- */
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItemClickListener {
 
     private LinearLayout llMon, llTue, llWed, llThu, llFri, llSat, llSun;
-    private List<LinearLayout> dayLayouts;
     private View selectedDay = null;
 
-    private TextView[] taskTitles, taskLocations, taskNotes;
+    // RecyclerView components
+    private RecyclerView recyclerView;
+    private ScheduleItemAdapter scheduleAdapter;
 
-    private Map<Integer, List<Task>> taskMap = new HashMap<>();
+    // Data map using ScheduleItem model
+    private Map<Integer, List<ScheduleItem>> taskMap = new HashMap<>();
 
-    private static class Task {
-        String time, title, location, note;
-        Task(String time, String title, String location, String note) {
-            this.time = time; this.title = title; this.location = location; this.note = note;
-        }
-    }
-
-    // Shared prefs / firebase keys
+    // Firebase and SharedPreferences keys
     private static final String PROFILE_PREFS = "profile_prefs";
     private static final String HOME_DISPLAY_ACTIVITIES_KEY = "home_display_activities";
     private static final String HOME_DISPLAY_DAY_KEY = "home_display_day";
 
     private SharedPreferences profilePrefs;
-    private DatabaseReference rootRef;
     private DatabaseReference homeDisplayRef;
-    private ChildEventListener dummyListener; // not used but kept for pattern
+    private ValueEventListener homeDisplayListener;
 
     private String userId;
 
@@ -78,7 +67,7 @@ public class HomeFragment extends Fragment {
         View view = inflater.inflate(R.layout.home_fragment, container, false);
 
         profilePrefs = requireContext().getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE);
-        rootRef = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
 
         userId = profilePrefs.getString("profile_user_id", null);
         if (userId == null) {
@@ -86,10 +75,9 @@ public class HomeFragment extends Fragment {
             profilePrefs.edit().putString("profile_user_id", userId).apply();
         }
 
-        // history/home node reference
         homeDisplayRef = rootRef.child("users").child(userId).child("home_display");
 
-        // Ánh xạ LinearLayout các ngày
+        // Map day layouts
         llMon = view.findViewById(R.id.llMon);
         llTue = view.findViewById(R.id.llTue);
         llWed = view.findViewById(R.id.llWed);
@@ -98,59 +86,27 @@ public class HomeFragment extends Fragment {
         llSat = view.findViewById(R.id.llSat);
         llSun = view.findViewById(R.id.llSun);
 
-        dayLayouts = new ArrayList<>();
-        dayLayouts.add(llMon); // Thứ 2 = key 2
-        dayLayouts.add(llTue); // 3
-        dayLayouts.add(llWed); // 4
-        dayLayouts.add(llThu); // 5
-        dayLayouts.add(llFri); // 6
-        dayLayouts.add(llSat); // 7
-        dayLayouts.add(llSun); // CN = 1
+        List<LinearLayout> dayLayouts = new ArrayList<>();
+        dayLayouts.add(llMon); dayLayouts.add(llTue); dayLayouts.add(llWed);
+        dayLayouts.add(llThu); dayLayouts.add(llFri); dayLayouts.add(llSat); dayLayouts.add(llSun);
 
-        // Ánh xạ các TextView nhiệm vụ
-        taskTitles = new TextView[]{
-                view.findViewById(R.id.tvTaskTitle1),
-                view.findViewById(R.id.tvTaskTitle2),
-                view.findViewById(R.id.tvTaskTitle3),
-                view.findViewById(R.id.tvTaskTitle4),
-                view.findViewById(R.id.tvTaskTitle5),
-                view.findViewById(R.id.tvTaskTitle6),
-                view.findViewById(R.id.tvTaskTitle7)
-        };
+        // Setup RecyclerView
+        recyclerView = view.findViewById(R.id.homerecyclerview);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        scheduleAdapter = new ScheduleItemAdapter(getContext(), new ArrayList<>(), this);
+        recyclerView.setAdapter(scheduleAdapter);
 
-        taskLocations = new TextView[]{
-                view.findViewById(R.id.tvTaskLocation1),
-                view.findViewById(R.id.tvTaskLocation2),
-                view.findViewById(R.id.tvTaskLocation3),
-                view.findViewById(R.id.tvTaskLocation4),
-                view.findViewById(R.id.tvTaskLocation5),
-                view.findViewById(R.id.tvTaskLocation6),
-                view.findViewById(R.id.tvTaskLocation7)
-        };
-
-        taskNotes = new TextView[]{
-                view.findViewById(R.id.tvTaskNote1),
-                view.findViewById(R.id.tvTaskNote2),
-                view.findViewById(R.id.tvTaskNote3),
-                view.findViewById(R.id.tvTaskNote4),
-                view.findViewById(R.id.tvTaskNote5),
-                view.findViewById(R.id.tvTaskNote6),
-                view.findViewById(R.id.tvTaskNote7)
-        };
-
-
-        // Gán click cho các ngày
+        // Assign click listeners to days
         for (int i = 0; i < dayLayouts.size(); i++) {
-            int dayKey = (i + 2) <= 7 ? i + 2 : 1; // Thứ 2 = 2, CN = 1
+            int dayKey = (i + 2) <= 7 ? i + 2 : 1; // Mon=2, Sun=1
             final LinearLayout dayLayout = dayLayouts.get(i);
-            final int key = dayKey;
-            dayLayout.setOnClickListener(v -> selectDay(dayLayout, key));
+            dayLayout.setOnClickListener(v -> selectDay(dayLayout, dayKey)); // Fixed: Changed 'key' to 'dayKey'
         }
 
-        // Chọn mặc định Thứ 2
+        // Select Monday by default
         selectDay(llMon, 2);
 
-        // Attach realtime listener to home_display so UI updates immediately
+        // Attach realtime listener
         attachHomeDisplayListener();
 
         return view;
@@ -159,56 +115,46 @@ public class HomeFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // load fallback prefs if firebase value not available
         loadHomeDisplayFromPrefsIfAny();
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // detach listener
-        if (homeDisplayRef != null && dummyListener != null) {
-            homeDisplayRef.removeEventListener(dummyListener);
-            dummyListener = null;
+        if (homeDisplayRef != null && homeDisplayListener != null) {
+            homeDisplayRef.removeEventListener(homeDisplayListener);
         }
     }
 
     private void attachHomeDisplayListener() {
         if (homeDisplayRef == null) return;
 
-        // Use a ValueEventListener via addValueEventListener to get the entire JSON string/object
-        homeDisplayRef.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
+        homeDisplayListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Object v = snapshot.getValue();
-                if (v == null) {
-                    // no remote home_display — fallback to prefs
+                if (!snapshot.exists()) {
                     loadHomeDisplayFromPrefsIfAny();
                     return;
                 }
-                String jsonString = String.valueOf(v);
+                String jsonString = String.valueOf(snapshot.getValue());
                 applyHomeDisplayJson(jsonString);
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                // On error, fallback to prefs
                 loadHomeDisplayFromPrefsIfAny();
             }
-        });
+        };
+        homeDisplayRef.addValueEventListener(homeDisplayListener);
     }
 
     private void loadHomeDisplayFromPrefsIfAny() {
         String json = profilePrefs.getString(HOME_DISPLAY_ACTIVITIES_KEY, null);
-        if (json == null) return;
-        applyHomeDisplayJson(json);
+        if (json != null) {
+            applyHomeDisplayJson(json);
+        }
     }
 
-    /**
-     * Parse stored JSON (same format saved by Layout6Activity) and update taskMap + UI.
-     * Format:
-     * { "day": <int>, "activities":[ { "start":"06:00","end":"08:00","activity":"..." , "day":2}, ... ] }
-     */
     private void applyHomeDisplayJson(String json) {
         if (json == null || json.isEmpty()) return;
         try {
@@ -217,37 +163,24 @@ public class HomeFragment extends Fragment {
             JSONArray acts = root.optJSONArray("activities");
             if (acts == null) return;
 
-            List<Task> list = new ArrayList<>();
+            List<ScheduleItem> list = new ArrayList<>();
             for (int i = 0; i < acts.length(); i++) {
                 JSONObject o = acts.optJSONObject(i);
                 if (o == null) continue;
-                String start = o.optString("start", "");
-                String end = o.optString("end", "");
-                String activity = o.optString("activity", "");
-                String time = (start.isEmpty() && end.isEmpty()) ? "" : (start + " - " + end);
-                Task t = new Task(time, activity, "", "");
-                list.add(t);
+                ScheduleItem item = new ScheduleItem();
+                item.setStartTime(o.optString("start", ""));
+                item.setEndTime(o.optString("end", ""));
+                item.setActivity(o.optString("activity", ""));
+                list.add(item);
             }
 
-            // replace tasks for that day
             taskMap.put(day, list);
 
-            // switch UI to that day
-            LinearLayout targetLayout;
-            switch (day) {
-                case 2: targetLayout = llMon; break;
-                case 3: targetLayout = llTue; break;
-                case 4: targetLayout = llWed; break;
-                case 5: targetLayout = llThu; break;
-                case 6: targetLayout = llFri; break;
-                case 7: targetLayout = llSat; break;
-                case 1: targetLayout = llSun; break;
-                default: targetLayout = llMon; break;
-            }
-
+            // Select the day that was loaded
+            LinearLayout targetLayout = getLayoutForDay(day);
             if (targetLayout != null) selectDay(targetLayout, day);
 
-            // also persist locally (keep prefs in sync if remote updated)
+            // Persist locally
             profilePrefs.edit()
                     .putString(HOME_DISPLAY_ACTIVITIES_KEY, json)
                     .putInt(HOME_DISPLAY_DAY_KEY, day)
@@ -258,48 +191,42 @@ public class HomeFragment extends Fragment {
         }
     }
 
-//    private void initSampleTasks() {
-//        taskMap.put(2, List.of(
-//                new Task("6:00 - 7:00", "Tập thể dục buổi sáng", "Công viên Lê Thị Riêng", "Mang theo nước và khăn tập"),
-//                new Task("8:00 - 9:00", "Ăn sáng & chuẩn bị đi làm", "Nhà bếp", "Chuẩn bị tài liệu họp sáng"),
-//                new Task("10:00 - 11:30", "Họp nhóm dự án", "Phòng họp tầng 3", "Chuẩn bị báo cáo sprint"),
-//                new Task("14:00 - 16:00", "Làm việc tại văn phòng", "Công ty ABC", "Kiểm tra email khách hàng"),
-//                new Task("17:00 - 19:00", "Tập gym", "Phòng gym California", "Tập ngực và tay"),
-//                new Task("20:00 - 22:00", "Học lập trình Android", "Tại nhà", "Hoàn thành project app tính toán"),
-//                new Task("22:00 - 23:00", "Thư giãn và đọc sách", "Phòng ngủ", "Đọc 30 phút sách Android")
-//        ));
-//
-//        taskMap.put(3, List.of(
-//                new Task("6:00 - 7:00", "Đọc sách buổi sáng", "Nhà", "Đọc 20 trang"),
-//                new Task("8:00 - 9:00", "Ăn sáng & đi làm", "Nhà bếp", "Chuẩn bị tài liệu")
-//        ));
-//
-//        taskMap.put(4, List.of(
-//                new Task("10:00 - 12:00", "Họp khách hàng", "Công ty ABC", "Chuẩn bị hợp đồng")
-//        ));
-//
-//        // Các ngày khác trống
-//        taskMap.put(5, new ArrayList<>());
-//        taskMap.put(6, new ArrayList<>());
-//        taskMap.put(7, new ArrayList<>());
-//        taskMap.put(1, new ArrayList<>());
-//    }
-
     private void selectDay(LinearLayout dayLayout, int dayKey) {
-        if (selectedDay != null) selectedDay.setSelected(false);
+        if (selectedDay != null) {
+            selectedDay.setSelected(false);
+        }
         dayLayout.setSelected(true);
         selectedDay = dayLayout;
-        List<Task> tasks = taskMap.get(dayKey);
-        for (int i = 0; i < 7; i++) {
-            if (tasks != null && i < tasks.size()) {
-                taskTitles[i].setText(tasks.get(i).title);
-                taskLocations[i].setText("Địa điểm: " + tasks.get(i).location);
-                taskNotes[i].setText("Ghi chú: " + tasks.get(i).note);
-            } else {
-                taskTitles[i].setText("");
-                taskLocations[i].setText("");
-                taskNotes[i].setText("");
-            }
+
+        List<ScheduleItem> tasks = taskMap.get(dayKey);
+        if (tasks == null) {
+            tasks = new ArrayList<>(); // Use an empty list if no tasks for the day
         }
+        scheduleAdapter.updateList(tasks);
+    }
+
+    private LinearLayout getLayoutForDay(int day) {
+        switch (day) {
+            case 2: return llMon;
+            case 3: return llTue;
+            case 4: return llWed;
+            case 5: return llThu;
+            case 6: return llFri;
+            case 7: return llSat;
+            case 1: return llSun;
+            default: return llMon;
+        }
+    }
+
+    @Override
+    public void onItemClick(int position, ScheduleItem item) {
+        // Handle item clicks, e.g., show details
+        Toast.makeText(getContext(), "Clicked: " + item.getActivity(), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onEditClick(int position, ScheduleItem item) {
+        // Handle edit clicks, e.g., open edit screen
+        Toast.makeText(getContext(), "Edit: " + item.getActivity(), Toast.LENGTH_SHORT).show();
     }
 }

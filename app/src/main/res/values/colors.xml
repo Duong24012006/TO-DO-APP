@@ -25,11 +25,9 @@
 
     <color name="filter_button_text_color">#000000</color>
 
-    <color name="schedule_card_background">#FCE7F3</color>
+    <color name="schedule_card_background">#BFF0F5</color>
 
-    <color name="schedule_tag_background">#A5B4FC</color>
-
-
+    <color name="schedule_tag_background">#BFF0F5</color>
 
 
 </resources>

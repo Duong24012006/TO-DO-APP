@@ -21,7 +21,16 @@
 
     <style name="MyChipStyle" parent="Widget.Material3.Chip.Suggestion">
         <!-- Bạn có thể tùy chỉnh thêm các thuộc tính khác ở đây nếu muốn -->
-        <!-- Ví dụ: <item name="android:textColor">@color/your_color</item> -->
+    </style>
+
+    <!-- Style for the BottomNavigationView itself -->
+    <style name="App.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
+        <item name="itemActiveIndicatorStyle">@style/App.BottomNavigationView.ActiveIndicator</item>
+    </style>
+
+    <!-- Style for the active item indicator -->
+    <style name="App.BottomNavigationView.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">#BFF0F5</item>
     </style>
 
 </resources>

@@ -27,11 +27,19 @@ public class ScheduleItemAdapter extends RecyclerView.Adapter<ScheduleItemAdapte
     private final Context ctx;
     private List<ScheduleItem> items;
     private final OnItemClickListener listener;
+    private final boolean showEditButton; // Field to control edit button visibility
 
+    // Constructor for Layout6Activity (defaults to showing edit button)
     public ScheduleItemAdapter(Context ctx, List<ScheduleItem> items, OnItemClickListener listener) {
+        this(ctx, items, listener, true);
+    }
+
+    // Overloaded constructor for HomeFragment (allows hiding the edit button)
+    public ScheduleItemAdapter(Context ctx, List<ScheduleItem> items, OnItemClickListener listener, boolean showEditButton) {
         this.ctx = ctx;
         this.items = (items == null) ? new ArrayList<>() : items;
         this.listener = listener;
+        this.showEditButton = showEditButton;
     }
 
     @NonNull
@@ -54,9 +62,15 @@ public class ScheduleItemAdapter extends RecyclerView.Adapter<ScheduleItemAdapte
             if (listener != null) listener.onItemClick(holder.getBindingAdapterPosition(), item);
         });
 
-        holder.ivEdit.setOnClickListener(v -> {
-            if (listener != null) listener.onEditClick(holder.getBindingAdapterPosition(), item);
-        });
+        // Conditionally set visibility and click listener for the edit icon
+        if (showEditButton) {
+            holder.ivEdit.setVisibility(View.VISIBLE);
+            holder.ivEdit.setOnClickListener(v -> {
+                if (listener != null) listener.onEditClick(holder.getBindingAdapterPosition(), item);
+            });
+        } else {
+            holder.ivEdit.setVisibility(View.GONE);
+        }
     }
 
     @Override

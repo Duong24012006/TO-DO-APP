@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Color when the view is selected -->
-    <item android:state_selected="true" android:color="#6750A4" />
+    <item android:state_selected="true" android:color="#BFF0F5" />
     <!-- Default color -->
     <item android:color="#49454F" />
 </selector>

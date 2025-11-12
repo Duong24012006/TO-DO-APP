@@ -38,14 +38,11 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
     private LinearLayout llMon, llTue, llWed, llThu, llFri, llSat, llSun;
     private View selectedDay = null;
 
-    // RecyclerView components
     private RecyclerView recyclerView;
     private ScheduleItemAdapter scheduleAdapter;
 
-    // Data map using ScheduleItem model
     private Map<Integer, List<ScheduleItem>> taskMap = new HashMap<>();
 
-    // Firebase and SharedPreferences keys
     private static final String PROFILE_PREFS = "profile_prefs";
     private static final String HOME_DISPLAY_ACTIVITIES_KEY = "home_display_activities";
     private static final String HOME_DISPLAY_DAY_KEY = "home_display_day";
@@ -77,7 +74,6 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
 
         homeDisplayRef = rootRef.child("users").child(userId).child("home_display");
 
-        // Map day layouts
         llMon = view.findViewById(R.id.llMon);
         llTue = view.findViewById(R.id.llTue);
         llWed = view.findViewById(R.id.llWed);
@@ -90,23 +86,19 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
         dayLayouts.add(llMon); dayLayouts.add(llTue); dayLayouts.add(llWed);
         dayLayouts.add(llThu); dayLayouts.add(llFri); dayLayouts.add(llSat); dayLayouts.add(llSun);
 
-        // Setup RecyclerView
         recyclerView = view.findViewById(R.id.homerecyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        scheduleAdapter = new ScheduleItemAdapter(getContext(), new ArrayList<>(), this);
+        // MODIFIED: Use the new constructor to hide the edit button
+        scheduleAdapter = new ScheduleItemAdapter(getContext(), new ArrayList<>(), this, false);
         recyclerView.setAdapter(scheduleAdapter);
 
-        // Assign click listeners to days
         for (int i = 0; i < dayLayouts.size(); i++) {
-            int dayKey = (i + 2) <= 7 ? i + 2 : 1; // Mon=2, Sun=1
+            int dayKey = (i + 2) <= 7 ? i + 2 : 1;
             final LinearLayout dayLayout = dayLayouts.get(i);
-            dayLayout.setOnClickListener(v -> selectDay(dayLayout, dayKey)); // Fixed: Changed 'key' to 'dayKey'
+            dayLayout.setOnClickListener(v -> selectDay(dayLayout, dayKey));
         }
 
-        // Select Monday by default
         selectDay(llMon, 2);
-
-        // Attach realtime listener
         attachHomeDisplayListener();
 
         return view;
@@ -176,11 +168,9 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
 
             taskMap.put(day, list);
 
-            // Select the day that was loaded
             LinearLayout targetLayout = getLayoutForDay(day);
             if (targetLayout != null) selectDay(targetLayout, day);
 
-            // Persist locally
             profilePrefs.edit()
                     .putString(HOME_DISPLAY_ACTIVITIES_KEY, json)
                     .putInt(HOME_DISPLAY_DAY_KEY, day)
@@ -200,7 +190,7 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
 
         List<ScheduleItem> tasks = taskMap.get(dayKey);
         if (tasks == null) {
-            tasks = new ArrayList<>(); // Use an empty list if no tasks for the day
+            tasks = new ArrayList<>();
         }
         scheduleAdapter.updateList(tasks);
     }
@@ -220,13 +210,13 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
 
     @Override
     public void onItemClick(int position, ScheduleItem item) {
-        // Handle item clicks, e.g., show details
-        Toast.makeText(getContext(), "Clicked: " + item.getActivity(), Toast.LENGTH_SHORT).show();
+        // In HomeFragment, clicks might not do anything, or could show a read-only detail view.
+        // For now, a simple Toast is fine.
+        Toast.makeText(getContext(), "Công việc: " + item.getActivity(), Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onEditClick(int position, ScheduleItem item) {
-        // Handle edit clicks, e.g., open edit screen
-        Toast.makeText(getContext(), "Edit: " + item.getActivity(), Toast.LENGTH_SHORT).show();
+        // This will not be called in HomeFragment as the button is hidden.
     }
 }

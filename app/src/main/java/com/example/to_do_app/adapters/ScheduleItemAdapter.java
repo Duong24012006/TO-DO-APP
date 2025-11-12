@@ -45,7 +45,7 @@ public class ScheduleItemAdapter extends RecyclerView.Adapter<ScheduleItemAdapte
     public void onBindViewHolder(@NonNull VH holder, int position) {
         ScheduleItem item = items.get(position);
 
-        // Bind start/end/activity to the views in item_time_row.xml
+        // Bind start/end/activity to the views
         holder.tvStart.setText(item.getStartTime() != null ? item.getStartTime() : "");
         holder.tvEnd.setText(item.getEndTime() != null ? item.getEndTime() : "");
         holder.tvActivity.setText(item.getActivity() != null ? item.getActivity() : "");

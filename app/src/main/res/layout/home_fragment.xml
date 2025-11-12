@@ -283,6 +283,7 @@
                      → tất cả marginStart = 16dp, layout_marginBottom = 16dp, padding = 8dp -->
 
                 <!-- ====== MỤC 2 ====== -->
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -293,9 +294,9 @@
                     <TextView
                         android:layout_width="120dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
                         android:background="@drawable/time_bg"
                         android:gravity="center"
-                        android:layout_marginStart="16dp"
                         android:paddingHorizontal="16dp"
                         android:paddingVertical="6dp"
                         android:text="6:00 - 7:00"
@@ -306,8 +307,8 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="16dp"
-                        android:layout_weight="1"
                         android:layout_marginEnd="16dp"
+                        android:layout_weight="1"
                         android:background="@drawable/schedule_item_bg"
                         android:orientation="vertical"
                         android:padding="8dp">

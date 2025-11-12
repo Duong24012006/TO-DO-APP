@@ -93,7 +93,7 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
         recyclerView.setAdapter(scheduleAdapter);
 
         for (int i = 0; i < dayLayouts.size(); i++) {
-            int dayKey = (i + 2) <= 7 ? i + 2 : 1;
+            int dayKey = (i + 2) <= 7 ? i + 2 : 8;  // Chủ Nhật = 8
             final LinearLayout dayLayout = dayLayouts.get(i);
             dayLayout.setOnClickListener(v -> selectDay(dayLayout, dayKey));
         }
@@ -151,29 +151,63 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
         if (json == null || json.isEmpty()) return;
         try {
             JSONObject root = new JSONObject(json);
-            int day = root.optInt("day", 2);
-            JSONArray acts = root.optJSONArray("activities");
-            if (acts == null) return;
 
-            List<ScheduleItem> list = new ArrayList<>();
-            for (int i = 0; i < acts.length(); i++) {
-                JSONObject o = acts.optJSONObject(i);
-                if (o == null) continue;
-                ScheduleItem item = new ScheduleItem();
-                item.setStartTime(o.optString("start", ""));
-                item.setEndTime(o.optString("end", ""));
-                item.setActivity(o.optString("activity", ""));
-                list.add(item);
+            // Kiểm tra xem có phải dữ liệu mới (toàn bộ tuần) hay dữ liệu cũ (một ngày)
+            if (root.has("day_2") || root.has("day_3") || root.has("day_4") ||
+                root.has("day_5") || root.has("day_6") || root.has("day_7") || root.has("day_8")) {
+                // Dữ liệu mới - toàn bộ tuần
+                taskMap.clear();
+
+                for (int day = 2; day <= 8; day++) {
+                    String dayKey = "day_" + day;
+                    JSONArray acts = root.optJSONArray(dayKey);
+
+                    if (acts != null) {
+                        List<ScheduleItem> list = new ArrayList<>();
+                        for (int i = 0; i < acts.length(); i++) {
+                            JSONObject o = acts.optJSONObject(i);
+                            if (o == null) continue;
+                            ScheduleItem item = new ScheduleItem();
+                            item.setStartTime(o.optString("start", ""));
+                            item.setEndTime(o.optString("end", ""));
+                            item.setActivity(o.optString("activity", ""));
+                            item.setDayOfWeek(o.optInt("day", day));
+                            list.add(item);
+                        }
+                        taskMap.put(day, list);
+                    }
+                }
+
+                // Hiển thị ngày đã lưu hoặc mặc định Thứ 2
+                int savedDay = profilePrefs.getInt(HOME_DISPLAY_DAY_KEY, 2);
+                LinearLayout targetLayout = getLayoutForDay(savedDay);
+                if (targetLayout != null) selectDay(targetLayout, savedDay);
+
+            } else {
+                // Dữ liệu cũ - chỉ một ngày (để tương thích ngược)
+                int day = root.optInt("day", 2);
+                JSONArray acts = root.optJSONArray("activities");
+                if (acts == null) return;
+
+                List<ScheduleItem> list = new ArrayList<>();
+                for (int i = 0; i < acts.length(); i++) {
+                    JSONObject o = acts.optJSONObject(i);
+                    if (o == null) continue;
+                    ScheduleItem item = new ScheduleItem();
+                    item.setStartTime(o.optString("start", ""));
+                    item.setEndTime(o.optString("end", ""));
+                    item.setActivity(o.optString("activity", ""));
+                    list.add(item);
+                }
+
+                taskMap.put(day, list);
+
+                LinearLayout targetLayout = getLayoutForDay(day);
+                if (targetLayout != null) selectDay(targetLayout, day);
             }
-
-            taskMap.put(day, list);
-
-            LinearLayout targetLayout = getLayoutForDay(day);
-            if (targetLayout != null) selectDay(targetLayout, day);
 
             profilePrefs.edit()
                     .putString(HOME_DISPLAY_ACTIVITIES_KEY, json)
-                    .putInt(HOME_DISPLAY_DAY_KEY, day)
                     .apply();
 
         } catch (JSONException ex) {
@@ -203,7 +237,7 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
             case 5: return llThu;
             case 6: return llFri;
             case 7: return llSat;
-            case 1: return llSun;
+            case 8: return llSun;  // Chủ Nhật = 8
             default: return llMon;
         }
     }

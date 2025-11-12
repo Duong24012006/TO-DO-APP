@@ -339,8 +339,8 @@ public class Layout6Activity extends AppCompatActivity {
                 .setPositiveButton("Hiển thị ở màn hình chính", (dialog, which) -> {
                     saveScheduleToFirebase();
                     saveScheduleToProfileHistory(selectedDay);
-                    saveScheduleToHomeDisplay(selectedDay, currentList);
-                    Toast.makeText(this, "Đã lưu và áp dụng", Toast.LENGTH_SHORT).show();
+                    saveAllWeekScheduleToHomeDisplay();
+                    Toast.makeText(this, "Đã lưu toàn bộ lịch tuần và áp dụng", Toast.LENGTH_SHORT).show();
                     finish();
                 })
                 .setNegativeButton("Chỉ lưu vào lịch sử", (dialog, which) -> {
@@ -402,6 +402,68 @@ public class Layout6Activity extends AppCompatActivity {
         } catch (JSONException ex) {
             Log.e(TAG, "saveScheduleToHomeDisplay error", ex);
         }
+    }
+
+    private void saveAllWeekScheduleToHomeDisplay() {
+        try {
+            JSONObject weekData = new JSONObject();
+
+            // Lưu lịch cho tất cả các ngày từ Thứ 2 (2) đến Chủ Nhật (8)
+            for (int day = 2; day <= 8; day++) {
+                List<ScheduleItem> dayItems = loadScheduleItemsForDay(day);
+                JSONArray dayActivities = new JSONArray();
+
+                for (ScheduleItem item : dayItems) {
+                    JSONObject actObj = new JSONObject();
+                    actObj.put("start", item.getStartTime());
+                    actObj.put("end", item.getEndTime());
+                    actObj.put("activity", item.getActivity());
+                    actObj.put("day", day);
+                    dayActivities.put(actObj);
+                }
+
+                weekData.put("day_" + day, dayActivities);
+            }
+
+            // Lưu vào SharedPreferences
+            SharedPreferences profilePrefs = getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE);
+            profilePrefs.edit()
+                    .putString(HOME_DISPLAY_ACTIVITIES_KEY, weekData.toString())
+                    .putInt(HOME_DISPLAY_DAY_KEY, selectedDay) // Lưu ngày hiện tại đang chọn
+                    .apply();
+
+            // Lưu vào Firebase
+            DatabaseReference homeRef = rootRef.child("users").child(userId).child("home_display");
+            homeRef.setValue(weekData.toString());
+
+            Log.d(TAG, "Saved all week schedule to home display");
+        } catch (JSONException ex) {
+            Log.e(TAG, "saveAllWeekScheduleToHomeDisplay error", ex);
+            Toast.makeText(this, "Lỗi lưu lịch tuần: " + ex.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private List<ScheduleItem> loadScheduleItemsForDay(int day) {
+        List<ScheduleItem> items = new ArrayList<>();
+
+        // Nếu có template, load từ template
+        if (currentTemplateDetails != null) {
+            String dayKey = getDayKeyAsString(day);
+            List<TimeSlot> timeSlots = currentTemplateDetails.getWeeklyActivities().get(dayKey);
+
+            if (timeSlots != null) {
+                for (TimeSlot slot : timeSlots) {
+                    items.add(new ScheduleItem(0, slot.getStartTime(), slot.getEndTime(), slot.getActivityName(), day));
+                }
+            }
+        } else {
+            // Nếu không có template, load từ Firebase (đồng bộ - simplified)
+            // Trong trường hợp thực tế, bạn có thể cần load async
+            items.addAll(getDefaultItemsForDay(day));
+            items.addAll(getOverridesFromPrefs(day));
+        }
+
+        return items;
     }
 
     private List<ScheduleItem> getOverridesFromPrefs(int day) {

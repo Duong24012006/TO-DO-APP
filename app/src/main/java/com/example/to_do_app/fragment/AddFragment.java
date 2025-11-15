@@ -3,6 +3,8 @@ package com.example.to_do_app.fragment;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +12,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -22,6 +25,7 @@ import com.example.to_do_app.R;
 import com.example.to_do_app.adapters.ScheduleTemplateAdapter;
 import com.example.to_do_app.data.ScheduleData;
 import com.example.to_do_app.model.ScheduleTemplate;
+import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,15 +44,16 @@ public class AddFragment extends Fragment {
     private LinearLayout filterOptionsContainer;
     private RadioGroup radioGroupFilterOptions;
     private Button btnApplyFilter, btnResetFilter;
+    private TextInputEditText searchEditText;
+    private TextView tvNoResults;
 
-    // Data for filters
-    private Map<Integer, String> filterCategoryMap; // Maps Button ID to Category Name
-    private Map<String, List<String>> filterOptionsMap; // Maps Category Name to List of Options
-    private Map<String, String> optionTagMap; // Maps "Category:Option" to a specific tag
+    // Filter Data
+    private Map<Integer, String> filterCategoryMap;
+    private Map<String, List<String>> filterOptionsMap;
+    private Map<String, String> optionTagMap;
+    private Map<String, String> appliedFilters;
 
-    // New state management
-    private Map<String, String> appliedFilters; // Stores currently applied filters, e.g., {"Giờ ngủ": "6 giờ"}
-    private String currentCategoryForEditing = ""; // Which category panel is currently open
+    private String currentCategoryForEditing = "";
 
     private SharedPreferences sharedPreferences;
     private static final String PREFS_NAME = "FilterStatePrefs";
@@ -65,10 +70,10 @@ public class AddFragment extends Fragment {
 
         initializeViews(view);
         initializeFilterData();
-        loadFiltersFromPrefs(); // Load saved filters
+        loadFiltersFromPrefs();
         setupListeners();
         setupRecyclerView();
-        applyAllFilters(); // Apply loaded filters on startup
+        applyAllFilters();
     }
 
     private void initializeViews(View view) {
@@ -77,6 +82,8 @@ public class AddFragment extends Fragment {
         radioGroupFilterOptions = view.findViewById(R.id.radio_group_filter_options);
         btnApplyFilter = view.findViewById(R.id.btn_apply_filter);
         btnResetFilter = view.findViewById(R.id.btn_reset_filter);
+        searchEditText = view.findViewById(R.id.search_edit_text);
+        tvNoResults = view.findViewById(R.id.tv_no_results);
     }
 
     private void initializeFilterData() {
@@ -115,9 +122,7 @@ public class AddFragment extends Fragment {
     private void setupListeners() {
         View.OnClickListener filterButtonClickListener = v -> {
             String category = filterCategoryMap.get(v.getId());
-            if (category != null) {
-                toggleFilterOptions(category);
-            }
+            if (category != null) toggleFilterOptions(category);
         };
 
         requireView().findViewById(R.id.btn_filter_sleep).setOnClickListener(filterButtonClickListener);
@@ -131,28 +136,32 @@ public class AddFragment extends Fragment {
                 RadioButton selectedRadioButton = requireView().findViewById(selectedId);
                 String selectedOption = selectedRadioButton.getText().toString();
 
-                // Save the selected filter
                 appliedFilters.put(currentCategoryForEditing, selectedOption);
                 saveFilterState(currentCategoryForEditing, selectedOption);
 
-                // Apply all filters and update UI
                 applyAllFilters();
                 filterOptionsContainer.setVisibility(View.GONE);
-                Toast.makeText(getContext(), "Đã áp dụng: " + selectedOption, Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(getContext(), "Vui lòng chọn một tùy chọn", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Vui lòng chọn tùy chọn", Toast.LENGTH_SHORT).show();
             }
         });
 
         btnResetFilter.setOnClickListener(v -> {
-            // Remove the filter for the current category
             appliedFilters.remove(currentCategoryForEditing);
             clearFilterState(currentCategoryForEditing);
 
-            // Apply remaining filters and update UI
             applyAllFilters();
             filterOptionsContainer.setVisibility(View.GONE);
-            Toast.makeText(getContext(), "Đã xóa bộ lọc cho " + currentCategoryForEditing, Toast.LENGTH_SHORT).show();
+        });
+
+        // 🔎 SEARCH LISTENER
+        searchEditText.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { }
+            @Override
+            public void afterTextChanged(Editable s) {
+                applyAllFilters();
+            }
         });
     }
 
@@ -163,8 +172,8 @@ public class AddFragment extends Fragment {
     }
 
     private void toggleFilterOptions(String category) {
-        // If the same filter is clicked again while visible, hide it.
-        if (filterOptionsContainer.getVisibility() == View.VISIBLE && category.equals(currentCategoryForEditing)) {
+        if (filterOptionsContainer.getVisibility() == View.VISIBLE &&
+                category.equals(currentCategoryForEditing)) {
             filterOptionsContainer.setVisibility(View.GONE);
             return;
         }
@@ -174,45 +183,54 @@ public class AddFragment extends Fragment {
         radioGroupFilterOptions.removeAllViews();
 
         List<String> options = filterOptionsMap.get(category);
-        String previouslySelectedOption = appliedFilters.get(category);
+        String selectedPreviously = appliedFilters.get(category);
 
         if (options != null) {
             for (String option : options) {
-                RadioButton radioButton = new RadioButton(getContext());
-                radioButton.setText(option);
-                radioButton.setTextSize(16f);
-                radioButton.setPadding(32, 32, 32, 32);
-                if (option.equals(previouslySelectedOption)) {
-                    radioButton.setChecked(true); // Restore checked state
-                }
-                radioGroupFilterOptions.addView(radioButton);
+                RadioButton rb = new RadioButton(getContext());
+                rb.setText(option);
+                rb.setTextSize(16f);
+                rb.setPadding(32, 32, 32, 32);
+
+                if (option.equals(selectedPreviously)) rb.setChecked(true);
+
+                radioGroupFilterOptions.addView(rb);
             }
         }
+
         filterOptionsContainer.setVisibility(View.VISIBLE);
     }
 
     private void applyAllFilters() {
         List<ScheduleTemplate> filteredList = new ArrayList<>(allTemplates);
 
-        // Sequentially apply each filter from the map
+        // Apply category filters
         for (Map.Entry<String, String> entry : appliedFilters.entrySet()) {
             String category = entry.getKey();
             String option = entry.getValue();
-            String optionKey = category + ":" + option;
-            String optionTag = optionTagMap.get(optionKey);
+            String optionTag = optionTagMap.get(category + ":" + option);
 
-            if (optionTag != null && !optionTag.isEmpty()) {
-                final String finalTag = optionTag;
+            if (optionTag != null) {
                 filteredList = filteredList.stream()
-                        .filter(template -> template.getTags().contains(finalTag))
+                        .filter(t -> t.getTags().contains(optionTag))
                         .collect(Collectors.toList());
             }
         }
 
-        adapter.updateList(filteredList);
-    }
+        // Apply search filter
+        String keyword = searchEditText.getText().toString().trim().toLowerCase();
 
-    // --- SharedPreferences Logic ---
+        if (!keyword.isEmpty()) {
+            filteredList = filteredList.stream()
+                    .filter(t -> t.getTitle().toLowerCase().contains(keyword)
+                            || t.getDescription().toLowerCase().contains(keyword))
+                    .collect(Collectors.toList());
+        }
+
+        // Update UI
+        adapter.updateList(filteredList);
+        tvNoResults.setVisibility(filteredList.isEmpty() ? View.VISIBLE : View.GONE);
+    }
 
     private void saveFilterState(String category, String option) {
         sharedPreferences.edit().putString(category, option).apply();
@@ -231,7 +249,6 @@ public class AddFragment extends Fragment {
         }
     }
 
-    // --- Data Loading ---
     private void loadSampleData() {
         allTemplates = new ArrayList<>();
         allTemplates.addAll(ScheduleData.getSampleTemplates());

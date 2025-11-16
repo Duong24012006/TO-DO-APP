@@ -1,39 +1,42 @@
 package com.example.to_do_app.activitys;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Patterns;
+import android.view.Gravity;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.to_do_app.R;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseUser;
 
 /**
- * SignInActivity — simplified
+ * SignInActivity — merged and corrected
  *
- * Changes made:
- * - Removed pre-check fetchSignInMethodsForEmail to simplify flow.
- *   Now sign-in attempts directly with email/password.
- * - If sign-in fails with "There is no user record" (account doesn't exist),
- *   user is redirected to SignUpActivity with the email prefilled.
- * - Ensures the sign-in button is re-enabled and progress dismissed in every path.
- * - Keeps previous UX: prefill email from SignUpActivity, don't finish() when opening SignUp.
+ * Key behaviors:
+ * - Uses only addOnCompleteListener to centralize handling and avoid duplicate flows.
+ * - Uses instanceof checks for FirebaseAuth exceptions.
+ * - Ensures progress dialog is dismissed and sign-in button re-enabled on every path.
+ * - Prefills email when provided and allows navigation to SignUpActivity.
  */
 public class SignInActivity extends AppCompatActivity {
 
     private EditText etUserName, etPassword;
     private Button btnSignIn, btnChangeSignUp;
     private FirebaseAuth mAuth;
-    private ProgressDialog progress;
+    private AlertDialog progressDialog;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -85,9 +88,10 @@ public class SignInActivity extends AppCompatActivity {
             btnSignIn.setEnabled(false);
             safeShowProgress();
 
-            // Directly attempt sign-in
+            // Attempt sign-in and handle all results in onComplete
             mAuth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(signInTask -> {
+                        // Always dismiss progress and re-enable button
                         safeDismissProgress();
                         btnSignIn.setEnabled(true);
 
@@ -102,41 +106,36 @@ public class SignInActivity extends AppCompatActivity {
                             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                             startActivity(intent);
                             finish();
-                        } else {
-                            // Try to detect common reason: user not found -> send to SignUp
-                            String errMsg = "";
-                            if (signInTask.getException() != null && signInTask.getException().getMessage() != null) {
-                                errMsg = signInTask.getException().getMessage();
-                            }
-
-                            // Firebase's message for non-existing user often contains "There is no user record" or "There is no user"
-                            if (errMsg.toLowerCase().contains("no user") || errMsg.toLowerCase().contains("no user record")) {
-                                Toast.makeText(SignInActivity.this, "Email chưa được đăng ký. Chuyển sang trang đăng ký.", Toast.LENGTH_LONG).show();
-                                Intent i = new Intent(SignInActivity.this, SignUpActivity.class);
-                                i.putExtra("prefillEmail", email);
-                                startActivity(i);
-                                // keep SignIn on back stack so user can return
-                            } else {
-                                String msg = "Đăng nhập thất bại";
-                                if (!errMsg.isEmpty()) msg += ": " + errMsg;
-                                showToast(msg);
-                            }
+                            return;
                         }
-                    })
-                    .addOnFailureListener(e -> {
-                        safeDismissProgress();
-                        btnSignIn.setEnabled(true);
-                        String msg = "Đăng nhập thất bại";
-                        if (e != null && e.getMessage() != null) msg += ": " + e.getMessage();
 
-                        // If failure indicates user doesn't exist, redirect to SignUp
-                        String lower = (e != null && e.getMessage() != null) ? e.getMessage().toLowerCase() : "";
-                        if (lower.contains("no user") || lower.contains("no user record") || lower.contains("user-not-found")) {
-                            Toast.makeText(SignInActivity.this, "Email chưa được đăng ký.", Toast.LENGTH_LONG).show();
+                        Exception ex = signInTask.getException();
+                        // Prefer typed exception checks
+                        if (ex instanceof FirebaseAuthInvalidUserException) {
+                            // user not found -> send to SignUp
+                            Toast.makeText(SignInActivity.this, "Email chưa được đăng ký. Chuyển sang trang đăng ký.", Toast.LENGTH_LONG).show();
                             Intent i = new Intent(SignInActivity.this, SignUpActivity.class);
                             i.putExtra("prefillEmail", email);
                             startActivity(i);
+                        } else if (ex instanceof FirebaseAuthInvalidCredentialsException) {
+                            // wrong password
+                            showToast("Mật khẩu không đúng. Vui lòng thử lại.");
+                            etPassword.requestFocus();
                         } else {
+                            // Fallback: attempt to inspect message (compatibility) or show generic
+                            String msg = "Đăng nhập thất bại";
+                            if (ex != null && ex.getMessage() != null && !ex.getMessage().isEmpty()) {
+                                String lower = ex.getMessage().toLowerCase();
+                                // Some Firebase backends return messages mentioning user-not-found; handle defensively
+                                if (lower.contains("no user") || lower.contains("user-not-found") || lower.contains("no user record")) {
+                                    Toast.makeText(SignInActivity.this, "Email chưa được đăng ký. Chuyển sang trang đăng ký.", Toast.LENGTH_LONG).show();
+                                    Intent i = new Intent(SignInActivity.this, SignUpActivity.class);
+                                    i.putExtra("prefillEmail", email);
+                                    startActivity(i);
+                                    return;
+                                }
+                                msg += ": " + ex.getMessage();
+                            }
                             showToast(msg);
                         }
                     });
@@ -178,21 +177,29 @@ public class SignInActivity extends AppCompatActivity {
 
     private void safeShowProgress() {
         try {
-            if (progress == null) {
-                progress = new ProgressDialog(this);
-                progress.setCancelable(false);
-                progress.setMessage("Đang xử lý...");
+            if (progressDialog == null) {
+                ProgressBar pb = new ProgressBar(this);
+                LinearLayout layout = new LinearLayout(this);
+                layout.setOrientation(LinearLayout.VERTICAL);
+                layout.setPadding(40, 30, 40, 30);
+                layout.setGravity(Gravity.CENTER);
+                layout.addView(pb);
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setView(layout);
+                builder.setCancelable(false);
+                progressDialog = builder.create();
             }
-            if (!isFinishing() && !isDestroyed() && !progress.isShowing()) {
-                progress.show();
+            if (!isFinishing() && !isDestroyed() && !progressDialog.isShowing()) {
+                progressDialog.show();
             }
         } catch (Exception ignored) { }
     }
 
     private void safeDismissProgress() {
         try {
-            if (progress != null && !isFinishing() && !isDestroyed() && progress.isShowing()) {
-                progress.dismiss();
+            if (progressDialog != null && !isFinishing() && !isDestroyed() && progressDialog.isShowing()) {
+                progressDialog.dismiss();
             }
         } catch (Exception ignored) { }
     }

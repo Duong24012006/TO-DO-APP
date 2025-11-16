@@ -17,11 +17,14 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 /**
- * StartAppActivity:
- * - Always show start page.
- * - If user is already authenticated, do NOT auto-enter MainActivity.
+ * StartAppActivity — merged version
+ *
+ * Behavior:
+ * - Always show start page when no authenticated user.
+ * - If user is already authenticated (on onStart), auto-enter MainActivity.
  * - When user taps "BẮT ĐẦU", always go to SignInActivity.
- * This guarantees the user must go through SignInActivity first.
+ *
+ * This provides best UX: returning users skip start page, new users see it.
  */
 public class StartAppActivity extends AppCompatActivity {
 
@@ -76,16 +79,20 @@ public class StartAppActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        // Intentionally do NOT auto-redirect based on FirebaseAuth here.
-        // This ensures StartAppActivity is always shown first and user must explicitly tap "BẮT ĐẦU".
-        // (If you previously added mAuth.signOut() to force re-login, ensure it's handled consistently.)
+        // If a user is already authenticated, skip StartApp and go to MainActivity
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        // OPTIONAL: If you want to prevent showing "BẮT ĐẦU" to already signed in users and force them to sign in again,
-        // uncomment the following to always go to SignInActivity regardless of currentUser:
-        //
-        // Intent i = new Intent(StartAppActivity.this, SignInActivity.class);
-        // i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-        // startActivity(i);
-        // finish();
+        if (currentUser != null) {
+            Intent i = new Intent(StartAppActivity.this, MainActivity.class);
+            i.putExtra("from_startapp", true);
+            String displayName = currentUser.getDisplayName();
+            if (displayName != null) {
+                i.putExtra("displayName", displayName);
+            }
+            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(i);
+            finish();
+        }
+        // Otherwise keep StartApp visible so user must tap "BẮT ĐẦU"
     }
 }
+

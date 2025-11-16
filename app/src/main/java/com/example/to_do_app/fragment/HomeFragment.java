@@ -29,6 +29,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -174,6 +176,7 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
                             item.setDayOfWeek(o.optInt("day", day));
                             list.add(item);
                         }
+                        sortListByStartTime(list);
                         taskMap.put(day, list);
                     }
                 }
@@ -200,6 +203,7 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
                     list.add(item);
                 }
 
+                sortListByStartTime(list);
                 taskMap.put(day, list);
 
                 LinearLayout targetLayout = getLayoutForDay(day);
@@ -225,6 +229,9 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
         List<ScheduleItem> tasks = taskMap.get(dayKey);
         if (tasks == null) {
             tasks = new ArrayList<>();
+        } else {
+            // ensure displayed list is sorted (defensive)
+            sortListByStartTime(tasks);
         }
         scheduleAdapter.updateList(tasks);
     }
@@ -252,5 +259,44 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
     @Override
     public void onEditClick(int position, ScheduleItem item) {
         // This will not be called in HomeFragment as the button is hidden.
+    }
+
+    // --- Helpers: sorting by start time (HH:mm). Empty or invalid times are pushed to the end. ---
+    private void sortListByStartTime(List<ScheduleItem> list) {
+        if (list == null || list.size() <= 1) return;
+        Collections.sort(list, new Comparator<ScheduleItem>() {
+            @Override
+            public int compare(ScheduleItem a, ScheduleItem b) {
+                int aStart = parseTimeToMinutes(a.getStartTime());
+                int bStart = parseTimeToMinutes(b.getStartTime());
+                if (aStart != bStart) return Integer.compare(aStart, bStart);
+
+                // tie-breaker: compare end times
+                int aEnd = parseTimeToMinutes(a.getEndTime());
+                int bEnd = parseTimeToMinutes(b.getEndTime());
+                return Integer.compare(aEnd, bEnd);
+            }
+        });
+    }
+
+    private int parseTimeToMinutes(String time) {
+        if (time == null) return Integer.MAX_VALUE;
+        String t = time.trim();
+        if (t.isEmpty()) return Integer.MAX_VALUE;
+        // Expected format "HH:mm" or "H:mm". If invalid, push to end.
+        try {
+            String[] parts = t.split(":");
+            if (parts.length < 1) return Integer.MAX_VALUE;
+            int hh = Integer.parseInt(parts[0]);
+            int mm = 0;
+            if (parts.length >= 2 && parts[1].length() > 0) {
+                mm = Integer.parseInt(parts[1]);
+            }
+            // Normalize hours; if hour >=24 treat as large
+            if (hh < 0 || hh > 23 || mm < 0 || mm > 59) return Integer.MAX_VALUE;
+            return hh * 60 + mm;
+        } catch (Exception ex) {
+            return Integer.MAX_VALUE;
+        }
     }
 }

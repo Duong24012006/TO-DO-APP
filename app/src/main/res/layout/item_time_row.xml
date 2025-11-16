@@ -15,14 +15,14 @@
         android:layout_marginEnd="12dp"
         android:orientation="horizontal"
         android:gravity="center"
-        android:background="@drawable/time_pill_bg">
+        android:background="@color/white">
         <TextView
             android:id="@+id/tv_start_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="06:00"
             android:textColor="#000000"
-            android:textStyle="normal"
+            android:textStyle="bold"
             android:textSize="14sp" />
         <View
             android:layout_width="6dp"
@@ -36,9 +36,17 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="07:00"
+            android:textStyle="bold"
             android:textColor="#000000"
             android:textSize="14sp" />
     </LinearLayout>
+
+    <!-- Thanh dọc màu đen -->
+    <View
+        android:id="@+id/vertical_divider"
+        android:layout_width="5dp"
+        android:layout_height="68dp"
+        android:background="@color/main_button" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/card_content"
@@ -52,22 +60,21 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/white"
+            android:background="@color/doing_work_button"
             android:padding="8dp"
-            app:strokeColor="@color/black"
             >
 
             <TextView
                 android:id="@+id/tv_activity_preview"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:layout_toStartOf="@id/iv_edit"
                 android:ellipsize="end"
-                android:gravity="center|left"
+                android:gravity="center_vertical|start"
                 android:maxLines="3"
-                android:paddingRight="32dp"
+                android:paddingEnd="8dp"
                 android:text="Hoạt động.jghiftyytfytff6rfhgufyugguilhihiug8iuhuilhuihuilhui;huior6ftfgytfytfytnb bvghvgvgyvyvvgyugyyubybyubuybyyy7y7gy7hy7byububub7yby7vtyvy.."
                 android:textColor="#111"
-
                 android:textSize="14sp" />
 
             <ImageView
@@ -75,6 +82,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
                 android:contentDescription="Edit"
                 android:src="@drawable/ic_edit" />
         </RelativeLayout>

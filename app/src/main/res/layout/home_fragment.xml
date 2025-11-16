@@ -19,47 +19,45 @@
         android:orientation="vertical"
         tools:ignore="NotSibling">
 
-        <!-- Header with greeting -->
         <LinearLayout
-            android:id="@+id/header_container"
+            android:id="@+id/welcome"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingTop="16dp"
-            android:paddingBottom="12dp"
-            android:gravity="center_vertical">
+            android:layout_gravity="center"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:orientation="horizontal">
 
             <ImageView
-                android:id="@+id/ivProfileSmall"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:src="@drawable/ic_profile"
-                android:contentDescription="@string/action_profile" />
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_profile" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginStart="12dp">
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/tvGreeting"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
                     android:text="Xin chào, User"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:textColor="@android:color/black" />
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/tvSubtitle"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
                     android:text="Chúc bạn một ngày tốt lành"
-                    android:textSize="14sp"
-                    android:textColor="#666666" />
+                    android:textColor="#555"
+                    android:textSize="16sp" />
             </LinearLayout>
 
         </LinearLayout>
@@ -75,7 +73,7 @@
             android:gravity="left"
             android:text="Lịch trình"
             android:textColor="#000"
-            android:textSize="36sp"
+            android:textSize="32sp"
 
             />
 
@@ -83,7 +81,9 @@
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#FFFFFF"
+            android:background="@color/bottom_nav"
+            android:paddingRight="16dp"
+            android:paddingLeft="16dp"
             android:overScrollMode="never"
             android:scrollbars="none">
 
@@ -115,7 +115,7 @@
                         android:layout_height="wrap_content"
                         android:background="@drawable/day_item_selector"
                         android:gravity="center"
-                        android:text="THỨ\n2"
+                        android:text="T2"
                         android:textColor="#000"
                         android:textSize="16sp" />
                 </LinearLayout>
@@ -138,7 +138,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="THỨ\n3"
+                        android:text="T3"
                         android:textColor="#000"
                         android:textSize="16sp" />
                 </LinearLayout>
@@ -161,7 +161,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="THỨ\n4"
+                        android:text="T4"
                         android:textColor="#000"
                         android:textSize="16sp" />
                 </LinearLayout>
@@ -184,7 +184,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="THỨ\n5"
+                        android:text="T5"
                         android:textColor="#000"
                         android:textSize="16sp" />
                 </LinearLayout>
@@ -207,7 +207,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="THỨ\n6"
+                        android:text="T6"
                         android:textColor="#000"
                         android:textSize="16sp" />
                 </LinearLayout>
@@ -230,7 +230,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="THỨ\n7"
+                        android:text="T7"
                         android:textColor="#000"
                         android:textSize="16sp" />
                 </LinearLayout>
@@ -253,7 +253,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="CHỦ\nNHẬT"
+                        android:text="CN"
                         android:textColor="#000000"
                         android:textSize="16sp" />
                 </LinearLayout>
@@ -264,6 +264,9 @@
         <!-- RecycleView chứa dữ liệu lịch trình bên RecycleView của manhinh_lichduocchon.xml -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/homerecyclerview"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:background="@color/white"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             />

@@ -3,13 +3,18 @@ package com.example.to_do_app.fragment;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -49,6 +54,11 @@ public class AddFragment extends Fragment {
     private RadioGroup radioGroupFilterOptions;
     private Button btnApplyFilter, btnResetFilter;
 
+    // Search bar components
+    private EditText searchEditText;
+    private ImageButton btnSearch;
+    private TextView tvNoResults;
+
     // Buttons that open categories (so we can update their visual state)
     private Button btnFilterSleep, btnFilterStudy, btnFilterEntertainment, btnFilterSports;
 
@@ -82,6 +92,16 @@ public class AddFragment extends Fragment {
         setupRecyclerView();
         applyAllFilters(); // Apply loaded filters on startup
         updateFilterButtonsState();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        // Hide keyboard and clear focus when user navigates away
+        if (searchEditText != null) {
+            searchEditText.clearFocus();
+            hideKeyboard();
+        }
     }
 
     @Override
@@ -124,11 +144,41 @@ public class AddFragment extends Fragment {
         btnApplyFilter = view.findViewById(R.id.btn_apply_filter);
         btnResetFilter = view.findViewById(R.id.btn_reset_filter);
 
+        // Initialize search bar components
+        searchEditText = view.findViewById(R.id.search_edit_text);
+        btnSearch = view.findViewById(R.id.btn_search);
+        tvNoResults = view.findViewById(R.id.tv_no_results);
+
         // Grab the category buttons so we can update style when filters active
         btnFilterSleep = view.findViewById(R.id.btn_filter_sleep);
         btnFilterStudy = view.findViewById(R.id.btn_filter_study);
         btnFilterEntertainment = view.findViewById(R.id.btn_filter_entertainment);
         btnFilterSports = view.findViewById(R.id.btn_filter_sports);
+
+        // Set up touch listener on root view to clear focus when tapping outside search bar
+        view.setOnTouchListener((v, event) -> {
+            if (searchEditText != null && searchEditText.hasFocus()) {
+                // Check if the touch is outside the search EditText
+                if (event.getAction() == android.view.MotionEvent.ACTION_DOWN) {
+                    int[] location = new int[2];
+                    searchEditText.getLocationOnScreen(location);
+                    int x = location[0];
+                    int y = location[1];
+                    int width = searchEditText.getWidth();
+                    int height = searchEditText.getHeight();
+
+                    float touchX = event.getRawX();
+                    float touchY = event.getRawY();
+
+                    // If touch is outside the EditText bounds, clear focus
+                    if (touchX < x || touchX > x + width || touchY < y || touchY > y + height) {
+                        searchEditText.clearFocus();
+                        hideKeyboard();
+                    }
+                }
+            }
+            return false; // Allow other touch events to be processed
+        });
     }
 
     private void initializeFilterData() {
@@ -239,12 +289,50 @@ public class AddFragment extends Fragment {
             Toast.makeText(getContext(), "Đã xóa tất cả bộ lọc", Toast.LENGTH_SHORT).show();
             return true;
         });
+
+        // Search bar listener - real-time search as user types
+        if (searchEditText != null) {
+            searchEditText.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                    // Not needed
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    // Not needed
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    // Trigger search after text changes
+                    applyAllFilters();
+                }
+            });
+        }
+
+        // Search button click listener (optional - search happens on text change already)
+        if (btnSearch != null) {
+            btnSearch.setOnClickListener(v -> {
+                // Optionally close keyboard or trigger additional search action
+                applyAllFilters();
+            });
+        }
     }
 
     private void setupRecyclerView() {
         adapter = new ScheduleTemplateAdapter(getContext(), currentlyDisplayedTemplates);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
+
+        // Clear focus and hide keyboard when user taps on RecyclerView
+        recyclerView.setOnTouchListener((v, event) -> {
+            if (searchEditText != null && searchEditText.hasFocus()) {
+                searchEditText.clearFocus();
+                hideKeyboard();
+            }
+            return false;
+        });
     }
 
     private void toggleFilterOptions(String category) {
@@ -308,9 +396,35 @@ public class AddFragment extends Fragment {
             }
         }
 
+        // Apply search filter (searches in title and description with fuzzy matching)
+        if (searchEditText != null) {
+            String keyword = searchEditText.getText().toString().trim();
+
+            if (!keyword.isEmpty()) {
+                // Normalize the search keyword (remove accents, lowercase)
+                final String normalizedKeyword = normalizeVietnameseText(keyword);
+
+                filteredList = filteredList.stream()
+                        .filter(template -> {
+                            // Normalize title and description for comparison
+                            String normalizedTitle = normalizeVietnameseText(template.getTitle());
+                            String normalizedDesc = normalizeVietnameseText(template.getDescription());
+
+                            // Check if normalized keyword appears in normalized title or description
+                            return normalizedTitle.contains(normalizedKeyword) || normalizedDesc.contains(normalizedKeyword);
+                        })
+                        .collect(Collectors.toList());
+            }
+        }
+
         currentlyDisplayedTemplates = filteredList;
         // adapter should implement updateList(...) to set new data and notify
         adapter.updateList(filteredList);
+
+        // Show/hide "No results" message
+        if (tvNoResults != null) {
+            tvNoResults.setVisibility(filteredList.isEmpty() ? View.VISIBLE : View.GONE);
+        }
     }
 
     // --- SharedPreferences Logic ---
@@ -362,5 +476,54 @@ public class AddFragment extends Fragment {
     private void loadSampleData() {
         allTemplates = new ArrayList<>();
         allTemplates.addAll(ScheduleData.getSampleTemplates());
+    }
+
+    // --- Keyboard Management ---
+    private void hideKeyboard() {
+        try {
+            View view = getActivity() != null ? getActivity().getCurrentFocus() : null;
+            if (view == null && getView() != null) {
+                view = getView();
+            }
+            if (view != null) {
+                android.view.inputmethod.InputMethodManager imm =
+                        (android.view.inputmethod.InputMethodManager) requireContext()
+                                .getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (imm != null) {
+                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                }
+            }
+        } catch (Exception e) {
+            // Ignore any errors
+        }
+    }
+
+    // --- Search Helper Methods ---
+    /**
+     * Normalize Vietnamese text by removing diacritics (accents) and converting to lowercase.
+     * This allows fuzzy matching: "sáng" matches "SaNg", "sang", "SÁNG", etc.
+     */
+    private String normalizeVietnameseText(String text) {
+        if (text == null || text.isEmpty()) {
+            return "";
+        }
+
+        // Convert to lowercase first
+        String normalized = text.toLowerCase();
+
+        // Remove Vietnamese diacritics (accents)
+        // Map Vietnamese characters with accents to their base characters
+        normalized = normalized.replaceAll("[áàảãạăắằẳẵặâấầẩẫậ]", "a");
+        normalized = normalized.replaceAll("[éèẻẽẹêếềểễệ]", "e");
+        normalized = normalized.replaceAll("[íìỉĩị]", "i");
+        normalized = normalized.replaceAll("[óòỏõọôốồổỗộơớờởỡợ]", "o");
+        normalized = normalized.replaceAll("[úùủũụưứừửữự]", "u");
+        normalized = normalized.replaceAll("[ýỳỷỹỵ]", "y");
+        normalized = normalized.replaceAll("đ", "d");
+
+        // Remove any remaining special characters except spaces and alphanumeric
+        // normalized = normalized.replaceAll("[^a-z0-9\\s]", "");
+
+        return normalized.trim();
     }
 }

@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
                         padL + systemBars.left,
                         padT + systemBars.top,
                         padR + systemBars.right,
-                        padB + systemBars.bottom
+                        padB
                 );
                 return insets;
             });

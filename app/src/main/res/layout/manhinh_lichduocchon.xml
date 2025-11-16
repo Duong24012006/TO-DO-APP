@@ -18,68 +18,70 @@
             app:cardCornerRadius="20dp"
             app:cardElevation="0dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            >
-
-            <!-- Header -->
-            <LinearLayout
-                android:id="@+id/headerLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:background="@drawable/search_bg"
-                android:paddingStart="8dp"
-                android:gravity="center_vertical">
-                <ImageView
-                    android:id="@+id/btnBack"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_back"
-                    android:layout_marginRight="8dp"
-                    android:contentDescription="Back" />
-                <TextView
-                    android:id="@+id/tvTitleHeader"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="Tên lịch"
-                    android:padding="4dp"
-                    android:textColor="#000"
-                    android:textSize="28sp" />
-
-            </LinearLayout>
-
-            <!-- Title row and Apply button -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginTop="43dp"
-                android:layout_marginBottom="12dp">
+                android:layout_height="match_parent"
+                android:layout_marginTop="24dp"
+                android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/tvSectionTitle"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
+                <!-- Header -->
+                <LinearLayout
+                    android:id="@+id/headerLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="47dp"
+                    android:background="@drawable/search_bg"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="16dp">
+
+                    <ImageView
+                        android:id="@+id/btnBack"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:layout_marginRight="8dp"
+                        android:contentDescription="Back"
+                        android:src="@drawable/ic_back" />
+
+                    <TextView
+                        android:id="@+id/tvTitleHeader"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:padding="4dp"
+                        android:text="Tên lịch"
+                        android:textColor="#000"
+                        android:textSize="18sp" />
+
+                </LinearLayout>
+
+                <!-- Title row and Apply button -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Lịch trình"
-                    android:textSize="32sp"
-                    android:textStyle="normal"
-                    android:textColor="#000" />
+                    android:layout_marginTop="43dp"
+                    android:layout_marginBottom="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvSectionTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Lịch trình"
+                        android:textColor="#000"
+                        android:textSize="32sp"
+                        android:textStyle="normal" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnApplySchedule"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:background="@drawable/sign_bg"
                         android:text="Áp dụng lịch"
                         android:textColor="#000000"
                         android:textSize="16sp"
-                        android:background="@drawable/sign_bg"
                         app:backgroundTint="@null"
                         app:cornerRadius="5dp"
                         app:icon="@drawable/ic_chevron_right"
@@ -89,157 +91,157 @@
                         app:iconTint="#000000" />
                 </LinearLayout>
 
-            <!-- Days horizontal -->
+                <!-- Days horizontal -->
 
-            <HorizontalScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="#FFFFFF"
-                android:overScrollMode="never"
-                android:scrollbars="none">
+                <HorizontalScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="#FFFFFF"
+                    android:overScrollMode="never"
+                    android:scrollbars="none">
 
-                <LinearLayout
-                    android:id="@+id/daysContainer"
-                    android:layout_width="wrap_content"
-                    android:layout_height="80dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="8dp">
-
-                    <!-- Thứ 2 -->
                     <LinearLayout
-                        android:id="@+id/day2"
-                        android:layout_width="60dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginHorizontal="4dp"
-                        android:background="@drawable/day_item_selector"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="8dp">
+                        android:id="@+id/daysContainer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="80dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="8dp">
+
+                        <!-- Thứ 2 -->
+                        <LinearLayout
+                            android:id="@+id/day2"
+                            android:layout_width="60dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginHorizontal="4dp"
+                            android:background="@drawable/day_item_selector"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="8dp">
 
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="sans-serif-medium"
                                 android:gravity="center"
-                                android:text="THỨ\n2"
+                                android:text="T2"
                                 android:textColor="@color/black"
                                 android:textSize="16sp" />
                         </LinearLayout>
 
-                    <!-- Thứ 3 -->
-                    <LinearLayout
-                        android:id="@+id/day3"
-                        android:layout_width="60dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginHorizontal="4dp"
-                        android:background="@drawable/day_item_selector"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="8dp">
+                        <!-- Thứ 3 -->
+                        <LinearLayout
+                            android:id="@+id/day3"
+                            android:layout_width="60dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginHorizontal="4dp"
+                            android:background="@drawable/day_item_selector"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="8dp">
 
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="sans-serif-medium"
                                 android:gravity="center"
-                                android:text="THỨ\n3"
+                                android:text="T3"
                                 android:textColor="@color/black"
                                 android:textSize="16sp" />
                         </LinearLayout>
 
-                    <!-- Thứ 4 -->
-                    <LinearLayout
-                        android:id="@+id/day4"
-                        android:layout_width="60dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginHorizontal="4dp"
-                        android:background="@drawable/day_item_selector"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="8dp">
+                        <!-- Thứ 4 -->
+                        <LinearLayout
+                            android:id="@+id/day4"
+                            android:layout_width="60dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginHorizontal="4dp"
+                            android:background="@drawable/day_item_selector"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="8dp">
 
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="sans-serif-medium"
                                 android:gravity="center"
-                                android:text="THỨ\n4"
+                                android:text="T4"
                                 android:textColor="@color/black"
                                 android:textSize="16sp" />
                         </LinearLayout>
 
-                    <!-- Thứ 5 -->
-                    <LinearLayout
-                        android:id="@+id/day5"
-                        android:layout_width="60dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginHorizontal="4dp"
-                        android:background="@drawable/day_item_selector"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="8dp">
+                        <!-- Thứ 5 -->
+                        <LinearLayout
+                            android:id="@+id/day5"
+                            android:layout_width="60dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginHorizontal="4dp"
+                            android:background="@drawable/day_item_selector"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="8dp">
 
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:gravity="center"
-                                android:text="THỨ\n5"
+                                android:text="T5"
                                 android:textColor="@color/black"
                                 android:textSize="16sp" />
                         </LinearLayout>
 
-                    <!-- Thứ 6 -->
-                    <LinearLayout
-                        android:id="@+id/day6"
-                        android:layout_width="60dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginHorizontal="4dp"
-                        android:background="@drawable/day_item_selector"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="8dp">
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:fontFamily="sans-serif-medium"
-                                android:gravity="center"
-                                android:text="THỨ\n6"
-                                android:textColor="@color/black"
-                                android:textSize="16sp" />
-                        </LinearLayout>
-
-                    <!-- Thứ 7 -->
-                    <LinearLayout
-                        android:id="@+id/day7"
-                        android:layout_width="60dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginHorizontal="4dp"
-                        android:background="@drawable/day_item_selector"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="8dp">
+                        <!-- Thứ 6 -->
+                        <LinearLayout
+                            android:id="@+id/day6"
+                            android:layout_width="60dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginHorizontal="4dp"
+                            android:background="@drawable/day_item_selector"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="8dp">
 
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="sans-serif-medium"
                                 android:gravity="center"
-                                android:text="THỨ\n7"
+                                android:text="T6"
+                                android:textColor="@color/black"
+                                android:textSize="16sp" />
+                        </LinearLayout>
+
+                        <!-- Thứ 7 -->
+                        <LinearLayout
+                            android:id="@+id/day7"
+                            android:layout_width="60dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginHorizontal="4dp"
+                            android:background="@drawable/day_item_selector"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="8dp">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:text="T7"
                                 android:textColor="@color/black"
                                 android:textSize="16sp" />
                         </LinearLayout>
@@ -262,7 +264,7 @@
                                 android:layout_height="wrap_content"
                                 android:fontFamily="sans-serif-medium"
                                 android:gravity="center"
-                                android:text="CHỦ\nNHẬT"
+                                android:text="CN"
                                 android:textColor="@color/black"
                                 android:textSize="16sp" />
                         </LinearLayout>
@@ -271,16 +273,16 @@
                 </HorizontalScrollView>
 
 
-            <!-- RecyclerView for time slots -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/scheduleRecyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:clipToPadding="false"
-                android:paddingBottom="8dp" />
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
+                <!-- RecyclerView for time slots -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/scheduleRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:clipToPadding="false"
+                    android:paddingBottom="8dp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
     <!-- Bottom Navigation placeholder -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton

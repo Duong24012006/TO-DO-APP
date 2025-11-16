@@ -5,8 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:paddingTop="10dp"
-    android:paddingBottom="10dp"
+    android:layout_marginTop="16dp"
     android:gravity="center_vertical">
 
     <LinearLayout
@@ -44,33 +43,38 @@
     <androidx.cardview.widget.CardView
         android:id="@+id/card_content"
         android:layout_width="0dp"
-        android:layout_height="80dp"
+        android:layout_height="68dp"
         android:layout_weight="1"
+        android:foreground="?android:attr/selectableItemBackground"
         app:cardCornerRadius="5dp"
-        app:cardElevation="2dp"
-        android:foreground="?android:attr/selectableItemBackground">
+        app:cardElevation="2dp">
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="12dp">
+            android:background="@color/time_button"
+            android:padding="8dp">
 
             <TextView
                 android:id="@+id/tv_activity_preview"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:text="Hoạt động..."
+                android:ellipsize="end"
+                android:gravity="center|left"
+                android:maxLines="3"
+                android:paddingRight="32dp"
+                android:text="Hoạt động.jghiftyytfytff6rfhgufyugguilhihiug8iuhuilhuihuilhui;huior6ftfgytfytfytnb bvghvgvgyvyvvgyugyyubybyubuybyyy7y7gy7hy7byububub7yby7vtyvy.."
                 android:textColor="#111"
-                android:textSize="16sp" />
+
+                android:textSize="14sp" />
 
             <ImageView
                 android:id="@+id/iv_edit"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_alignParentEnd="true"
-                android:layout_margin="8dp"
-                android:src="@drawable/ic_edit"
-                android:contentDescription="Edit" />
+                android:contentDescription="Edit"
+                android:src="@drawable/ic_edit" />
         </RelativeLayout>
     </androidx.cardview.widget.CardView>
 

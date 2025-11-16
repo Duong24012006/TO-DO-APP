@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF"
+    android:background="@color/bottom_nav"
     tools:context=".activitys.MainActivity"
     >
 
@@ -15,6 +15,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@id/bottom_nav"
+        android:layout_marginTop="16dp"
         android:orientation="vertical"
         tools:ignore="NotSibling">
 
@@ -28,8 +29,9 @@
             android:orientation="horizontal">
 
             <ImageView
-                android:layout_width="71dp"
-                android:layout_height="71dp"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
                 android:src="@drawable/ic_profile" />
 
             <LinearLayout
@@ -45,7 +47,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:text="Xin chào, User"
-                    android:textSize="24sp"
+                    android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -55,7 +57,7 @@
                     android:layout_marginStart="8dp"
                     android:text="Chúc bạn một ngày tốt lành"
                     android:textColor="#555"
-                    android:textSize="20sp" />
+                    android:textSize="16sp" />
             </LinearLayout>
 
         </LinearLayout>
@@ -71,7 +73,7 @@
             android:gravity="left"
             android:text="Lịch trình"
             android:textColor="#000"
-            android:textSize="36sp"
+            android:textSize="32sp"
 
             />
 
@@ -79,7 +81,9 @@
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#FFFFFF"
+            android:background="@color/bottom_nav"
+            android:paddingRight="16dp"
+            android:paddingLeft="16dp"
             android:overScrollMode="never"
             android:scrollbars="none">
 
@@ -111,7 +115,7 @@
                         android:layout_height="wrap_content"
                         android:background="@drawable/day_item_selector"
                         android:gravity="center"
-                        android:text="THỨ\n2"
+                        android:text="T2"
                         android:textColor="#000"
                         android:textSize="16sp" />
                 </LinearLayout>
@@ -134,7 +138,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="THỨ\n3"
+                        android:text="T3"
                         android:textColor="#000"
                         android:textSize="16sp" />
                 </LinearLayout>
@@ -157,7 +161,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="THỨ\n4"
+                        android:text="T4"
                         android:textColor="#000"
                         android:textSize="16sp" />
                 </LinearLayout>
@@ -180,7 +184,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="THỨ\n5"
+                        android:text="T5"
                         android:textColor="#000"
                         android:textSize="16sp" />
                 </LinearLayout>
@@ -203,7 +207,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="THỨ\n6"
+                        android:text="T6"
                         android:textColor="#000"
                         android:textSize="16sp" />
                 </LinearLayout>
@@ -226,7 +230,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="THỨ\n7"
+                        android:text="T7"
                         android:textColor="#000"
                         android:textSize="16sp" />
                 </LinearLayout>
@@ -249,7 +253,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="CHỦ\nNHẬT"
+                        android:text="CN"
                         android:textColor="#000000"
                         android:textSize="16sp" />
                 </LinearLayout>
@@ -257,9 +261,12 @@
             </LinearLayout>
         </HorizontalScrollView>
 
-        // RecycleView chứa dữ liệu lịch trình bên RecycleView của manhinh_lichduocchon.xml
+        <!-- RecycleView chứa dữ liệu lịch trình bên RecycleView của manhinh_lichduocchon.xml -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/homerecyclerview"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:background="@color/white"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             />

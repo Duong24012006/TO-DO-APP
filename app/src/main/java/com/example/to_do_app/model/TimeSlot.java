@@ -11,19 +11,36 @@ import java.util.Objects;
  * - getActivity() / setActivity() as short aliases for getActivityName()/setActivityName()
  * - getStart()/getEnd() as aliases for start/end getters
  * Also added toString(), equals(), hashCode() to make comparisons and logs easier.
+ *
+ * Mở rộng:
+ * - support firebaseKey để có thể map tới backend nếu cần
+ * - đánh dấu builtin (áp cứng) để kiểm soát hành vi xóa/ghi đè
  */
 public class TimeSlot implements Serializable {
     private String startTime;    // Ví dụ: "6:00"
     private String endTime;      // Ví dụ: "7:00"
     private String activityName; // Ví dụ: "tập thể dục buổi sáng"
 
+    // Optional metadata
+    private String firebaseKey;  // key nếu lưu trên Firebase (có thể null)
+    private boolean builtin = false; // nếu true => slot là builtin (không cho xóa trực tiếp trên backend)
+
     // Constructor rỗng bắt buộc cho Firebase
     public TimeSlot() {}
 
     public TimeSlot(String startTime, String endTime, String activityName) {
+        this(startTime, endTime, activityName, null, false);
+    }
+
+    /**
+     * Full constructor, cho phép gán firebaseKey và builtin flag
+     */
+    public TimeSlot(String startTime, String endTime, String activityName, String firebaseKey, boolean builtin) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.activityName = activityName;
+        this.firebaseKey = firebaseKey;
+        this.builtin = builtin;
     }
 
     // --- Getters and Setters ---
@@ -35,6 +52,14 @@ public class TimeSlot implements Serializable {
 
     public String getActivityName() { return activityName; }
     public void setActivityName(String activityName) { this.activityName = activityName; }
+
+    // firebaseKey
+    public String getFirebaseKey() { return firebaseKey; }
+    public void setFirebaseKey(String firebaseKey) { this.firebaseKey = firebaseKey; }
+
+    // builtin flag
+    public boolean isBuiltin() { return builtin; }
+    public void setBuiltin(boolean builtin) { this.builtin = builtin; }
 
     // --- Convenience alias methods for compatibility ---
     public String getActivity() { return getActivityName(); }
@@ -53,6 +78,8 @@ public class TimeSlot implements Serializable {
                 "startTime='" + startTime + '\'' +
                 ", endTime='" + endTime + '\'' +
                 ", activityName='" + activityName + '\'' +
+                ", firebaseKey='" + firebaseKey + '\'' +
+                ", builtin=" + builtin +
                 '}';
     }
 
@@ -61,14 +88,27 @@ public class TimeSlot implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        TimeSlot timeSlot = (TimeSlot) o;
-        return Objects.equals(normalize(startTime), normalize(timeSlot.startTime)) &&
-                Objects.equals(normalize(endTime), normalize(timeSlot.endTime)) &&
-                Objects.equals(normalize(activityName), normalize(timeSlot.activityName));
+        TimeSlot other = (TimeSlot) o;
+
+        // Nếu cả hai có firebaseKey rõ ràng, so sánh theo key (ưu tiên)
+        String k1 = normalize(firebaseKey);
+        String k2 = normalize(other.firebaseKey);
+        if (!k1.isEmpty() || !k2.isEmpty()) {
+            return k1.equals(k2);
+        }
+
+        // Ngược lại so sánh theo nội dung start/end/activity
+        return Objects.equals(normalize(startTime), normalize(other.startTime)) &&
+                Objects.equals(normalize(endTime), normalize(other.endTime)) &&
+                Objects.equals(normalize(activityName), normalize(other.activityName));
     }
 
     @Override
     public int hashCode() {
+        String k = normalize(firebaseKey);
+        if (!k.isEmpty()) {
+            return Objects.hash(k);
+        }
         return Objects.hash(normalize(startTime), normalize(endTime), normalize(activityName));
     }
 

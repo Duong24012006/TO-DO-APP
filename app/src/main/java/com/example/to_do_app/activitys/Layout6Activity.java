@@ -56,6 +56,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 public class Layout6Activity extends AppCompatActivity {
 
@@ -91,6 +92,7 @@ public class Layout6Activity extends AppCompatActivity {
     private static final String HOME_DISPLAY_ACTIVITIES_KEY = "home_display_activities";
     private static final String HOME_DISPLAY_DAY_KEY = "home_display_day";
     private static final String PREF_ACTIVE_SCHEDULE = "active_schedule_name";
+    private Context ctx;
 
     private String editingHistoryKey = null;
     private DetailedSchedule currentTemplateDetails = null;
@@ -110,7 +112,6 @@ public class Layout6Activity extends AppCompatActivity {
         // bind views first so view references are not null
         bindViews();
 
-        // now it's safe to setup recycler view
         setupRecyclerView();
 
         View root = findViewById(R.id.root_manhinh_lichduocchon);
@@ -160,11 +161,12 @@ public class Layout6Activity extends AppCompatActivity {
                 String fk = item.getFirebaseKey() == null ? "" : item.getFirebaseKey();
                 if (fk.startsWith("builtin_")) {
                     // builtin items cannot be deleted — inform user and open edit for overrides
-                    Toast.makeText(Layout6Activity.this, "Mục này là mặc định và không thể xóa.", Toast.LENGTH_SHORT).show();
                     showEditDialog(position, item);
                 } else {
                     // user-added / local / firebase items -> confirm deletion
                     confirmAndDeleteItem(position, item);
+                    Toast.makeText(Layout6Activity.this, "Mục này là mặc định và không thể xóa.", Toast.LENGTH_SHORT).show();
+
                 }
             }
 
@@ -194,7 +196,7 @@ public class Layout6Activity extends AppCompatActivity {
         day6 = findViewById(R.id.day6);
         day7 = findViewById(R.id.day7);
         dayCN = findViewById(R.id.dayCN);
-    }
+    };
 
 
 
@@ -233,6 +235,102 @@ public class Layout6Activity extends AppCompatActivity {
         btnApplySchedule.setOnClickListener(v -> showApplyDialog());
         if (fabAdd != null) fabAdd.setOnClickListener(v -> showAddDialogMode());
     }
+
+
+    private void loadScheduleForDay(int dayOfWeek) {
+        // 1) load hidden overrides saved in prefs for this day (keys saved by your app)
+        List<ScheduleItem> overrides = ScheduleData.getOverridesFromPrefs(ctx, dayOfWeek);
+        hiddenBuiltins.clear();
+        for (ScheduleItem o : overrides) {
+            if (o != null && o.getFirebaseKey() != null && !o.getFirebaseKey().isEmpty()) {
+                hiddenBuiltins.add(o.getFirebaseKey());
+            }
+        }
+
+        // 2) load local-only user items (if any)
+        List<ScheduleItem> localUserItems = ScheduleData.getLocalUserItems(ctx, dayOfWeek);
+
+        // 3) load user items from Firebase 'schedules' node (single read)
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("schedules");
+        ref.get().addOnCompleteListener(task -> {
+            List<ScheduleItem> loadedItems = new ArrayList<>();
+
+            if (task.isSuccessful() && task.getResult() != null) {
+                DataSnapshot snap = task.getResult();
+                for (DataSnapshot child : snap.getChildren()) {
+                    ScheduleItem it = child.getValue(ScheduleItem.class);
+                    if (it == null) continue;
+                    // ensure firebaseKey present on model
+                    if (it.getFirebaseKey() == null || it.getFirebaseKey().trim().isEmpty()) {
+                        it.setFirebaseKey(child.getKey());
+                    }
+                    // only include items for requested day (assuming dayOfWeek stored)
+                    if (it.getDayOfWeek() == dayOfWeek) {
+                        loadedItems.add(it);
+                    }
+                }
+            } else {
+                // Firebase read failed or empty; we continue with what we have
+            }
+
+            // 4) add local-only items
+            if (localUserItems != null && !localUserItems.isEmpty()) {
+                loadedItems.addAll(localUserItems);
+            }
+
+            // 5) add template (builtin) items for that day (converted to ScheduleItem)
+            // use ScheduleData.scheduleItemsFromTemplateForDay which marks items builtin and sets FK
+            List<ScheduleTemplate> templates = ScheduleData.getSampleTemplates();
+            if (templates != null && !templates.isEmpty()) {
+                for (ScheduleTemplate st : templates) {
+                    if (!(st instanceof DetailedSchedule)) continue;
+                    DetailedSchedule ds = (DetailedSchedule) st;
+                    List<ScheduleItem> fromTemplate = ScheduleData.scheduleItemsFromTemplateForDay(ds, dayOfWeek);
+                    if (fromTemplate != null && !fromTemplate.isEmpty()) {
+                        loadedItems.addAll(fromTemplate);
+                    }
+                }
+            }
+
+            // 6) Build display list applying hiddenBuiltins filter
+            List<ScheduleItem> shown = ScheduleData.buildDisplayListFromLoaded(loadedItems, hiddenBuiltins);
+
+            // 7) update local list and adapter on UI thread
+            runOnUiThread(() -> {
+                currentList.clear();
+                currentList.addAll(shown);
+
+                try {
+                    // Prefer adapter-specific updateList(...) if your ScheduleItemAdapter exposes it
+                    boolean updated = false;
+                    if (scheduleAdapter != null) {
+                        try {
+                            scheduleAdapter.updateList(currentList);
+                            updated = true;
+                        } catch (Exception ignored) {
+                            // adapter doesn't offer updateList or it failed; fall back below
+                        }
+                    }
+
+                    if (!updated) {
+                        RecyclerView.Adapter rvAdapter = (scheduleRecyclerView != null) ? scheduleRecyclerView.getAdapter() : null;
+                        if (rvAdapter instanceof androidx.recyclerview.widget.ListAdapter) {
+                            // safe: rvAdapter declared as RecyclerView.Adapter at runtime
+                            ((androidx.recyclerview.widget.ListAdapter) rvAdapter).submitList(new ArrayList<>(currentList));
+                        } else if (rvAdapter != null) {
+                            rvAdapter.notifyDataSetChanged();
+                        }
+                    }
+                } catch (Exception ex) {
+                    // Final fallback
+                    if (scheduleRecyclerView != null && scheduleRecyclerView.getAdapter() != null) {
+                        scheduleRecyclerView.getAdapter().notifyDataSetChanged();
+                    }
+                }
+            });
+        });
+    }
+
 
     // (Chỉ cập nhật method loadScheduleDataForDay; chèn vào class Layout6Activity của bạn)
     // Replace or add these methods inside your Layout6Activity class.
@@ -623,6 +721,7 @@ public class Layout6Activity extends AppCompatActivity {
                 .show();
     }
     // --- CẬP NHẬT showEditDialog: chỉ hiện "Xóa" nếu item không phải builtin ---
+    // Updated showEditDialog: only show "Xóa" button when item is NOT builtin (áp cứng)
     private void showEditDialog(int position, ScheduleItem item) {
         if (item == null) return;
 
@@ -636,8 +735,13 @@ public class Layout6Activity extends AppCompatActivity {
         etEnd.setText(item.getEndTime());
         etAct.setText(item.getActivity());
 
-        String fk = item.getFirebaseKey() == null ? "" : item.getFirebaseKey();
-        boolean isBuiltin = fk.startsWith("builtin_");
+        boolean isBuiltin = false;
+        try {
+            isBuiltin = item.isBuiltin(); // uses ScheduleItem flag
+        } catch (Throwable ignored) {
+            // fallback: consider ScheduleData.isBuiltin(...)
+            isBuiltin = ScheduleData.isBuiltin(item);
+        }
 
         builder.setView(view)
                 .setTitle("Chỉnh sửa lịch trình")
@@ -663,23 +767,16 @@ public class Layout6Activity extends AppCompatActivity {
                 })
                 .setNegativeButton("Hủy", null);
 
-        // Only allow delete for user-added items (firebase/override/local), not builtins
+        // Only show delete when NOT builtin
         if (!isBuiltin) {
-            builder.setNeutralButton("Xóa", (dialog, which) -> {
-                // confirm then delete using existing helper to keep consistent behaviour
-                confirmAndDeleteItem(position, item);
-            });
+            builder.setNeutralButton("Xóa", (dialog, which) -> confirmAndDeleteItem(position, item));
         }
 
         builder.show();
     }
-    // Paste this showEditDialog method into your Layout6Activity (replace existing showEditDialog).
-// Safe showEditDialog: checks activity state, runs on UI thread, catches BadTokenException,
-// tries neutral button, falls back to inline delete view if neutral missing.
-    // Replace your showEditDialog method with this
-// Paste into Layout6Activity.java (replace your existing showEditDialog)
 
-    // Paste into Layout6Activity.java
+
+
     private void showConfirmDeleteDialog(int position, ScheduleItem item) {
         if (item == null) return;
 
@@ -692,7 +789,7 @@ public class Layout6Activity extends AppCompatActivity {
 
         new AlertDialog.Builder(this)
                 .setTitle("Xác nhận xóa")
-                .setMessage("Bạn có chắc muốn xóa hoạt động này?")
+                .setMessage("Bạn chắc chưa , cho suy nghĩ lại nha ?")
                 .setPositiveButton("Xóa", (conf, which) -> {
                     // perform deletion
                     performDeleteItem(position, item);
@@ -817,25 +914,224 @@ public class Layout6Activity extends AppCompatActivity {
             Log.w(TAG, "removeItemFromCurrentList error", ex);
         }
     }
-    private void confirmAndDeleteItem(int position, ScheduleItem item) {
-        if (item == null) return;
+   // java
+// Updated confirmAndDeleteItem: use item.isBuiltin() instead of checking firebaseKey prefix
+   private void confirmAndDeleteItem(int position, ScheduleItem item) {
+       if (item == null) return;
 
-        String fk = item.getFirebaseKey() == null ? "" : item.getFirebaseKey();
+       String fk = item.getFirebaseKey() == null ? "" : item.getFirebaseKey();
+       // changed: check the model flag instead of relying on string prefix
+       boolean isBuiltin = item.isBuiltin();
 
-        // Prevent deletion of builtin (hardcoded) items
-        if (fk.startsWith("builtin_")) {
-            Toast.makeText(this, "Mục này là mặc định và không thể xóa.", Toast.LENGTH_SHORT).show();
+       if (!isBuiltin && !fk.isEmpty()) {
+           new AlertDialog.Builder(this)
+                   .setTitle("Xác nhận xóa")
+                   .setMessage("Bạn chắc chưa , cho suy nghĩ lại đó ?")
+                   .setPositiveButton("Xóa", (d, w) -> {
+                       deleteFromFirebase(fk, () -> {
+                           // update local list
+                           int removedIndex = -1;
+                           if (position >= 0 && position < currentList.size()) {
+                               currentList.remove(position);
+                               removedIndex = position;
+                           } else {
+                               int idx = currentList.indexOf(item);
+                               if (idx != -1) {
+                                   currentList.remove(idx);
+                                   removedIndex = idx;
+                               }
+                           }
+
+                           // Refresh adapter safely
+                           if (scheduleAdapter != null) {
+                               try {
+                                   scheduleAdapter.updateList(currentList);
+                               } catch (Exception ex) {
+                                   if (removedIndex != -1) scheduleAdapter.notifyItemRemoved(removedIndex);
+                                   else scheduleAdapter.notifyDataSetChanged();
+                               }
+                           } else if (scheduleRecyclerView != null && scheduleRecyclerView.getAdapter() != null) {
+                               RecyclerView.Adapter a = scheduleRecyclerView.getAdapter();
+                               if (removedIndex != -1) a.notifyItemRemoved(removedIndex);
+                               else a.notifyDataSetChanged();
+                           }
+
+                           Toast.makeText(this, "Đã xóa.", Toast.LENGTH_SHORT).show();
+                       });
+                   })
+                   .setNegativeButton("Hủy", null)
+                   .show();
+       } else if (!isBuiltin) {
+           // Local item (not builtin, but no firebase key) — just remove locally
+           new AlertDialog.Builder(this)
+                   .setTitle("Xác nhận xóa")
+                   .setMessage("Mục này chỉ tồn tại cục bộ. Bạn có muốn xóa không?")
+                   .setPositiveButton("Xóa", (d, w) -> {
+                       int removedIndex = -1;
+                       if (position >= 0 && position < currentList.size()) {
+                           currentList.remove(position);
+                           removedIndex = position;
+                       } else {
+                           int idx = currentList.indexOf(item);
+                           if (idx != -1) {
+                               currentList.remove(idx);
+                               removedIndex = idx;
+                           }
+                       }
+
+                       if (scheduleAdapter != null) {
+                           try {
+                               scheduleAdapter.updateList(currentList);
+                           } catch (Exception ex) {
+                               if (removedIndex != -1) scheduleAdapter.notifyItemRemoved(removedIndex);
+                               else scheduleAdapter.notifyDataSetChanged();
+                           }
+                       } else if (scheduleRecyclerView != null && scheduleRecyclerView.getAdapter() != null) {
+                           RecyclerView.Adapter a = scheduleRecyclerView.getAdapter();
+                           if (removedIndex != -1) a.notifyItemRemoved(removedIndex);
+                           else a.notifyDataSetChanged();
+                       }
+
+                       Toast.makeText(this, "Đã xóa (cục bộ).", Toast.LENGTH_SHORT).show();
+                   })
+                   .setNegativeButton("Hủy", null)
+                   .show();
+       } else {
+           // Builtin: không xóa trên backend mặc định — cho phép ẩn cục bộ / tạo override
+           new AlertDialog.Builder(this)
+                   .setTitle("Mục mặc định hệ thống")
+                   .setMessage("Mục này là mặc định của hệ thống và không thể xóa trên server. Bạn muốn ẩn mục này trên thiết bị (xóa cục bộ) hoặc lưu override?")
+                   .setPositiveButton("Xóa cục bộ", (d, w) -> {
+                       int removedIndex = -1;
+                       if (position >= 0 && position < currentList.size()) {
+                           currentList.remove(position);
+                           removedIndex = position;
+                       } else {
+                           int idx = currentList.indexOf(item);
+                           if (idx != -1) {
+                               currentList.remove(idx);
+                               removedIndex = idx;
+                           }
+                       }
+
+                       if (scheduleAdapter != null) {
+                           try {
+                               scheduleAdapter.updateList(currentList);
+                           } catch (Exception ex) {
+                               if (removedIndex != -1) scheduleAdapter.notifyItemRemoved(removedIndex);
+                               else scheduleAdapter.notifyDataSetChanged();
+                           }
+                       } else if (scheduleRecyclerView != null && scheduleRecyclerView.getAdapter() != null) {
+                           RecyclerView.Adapter a = scheduleRecyclerView.getAdapter();
+                           if (removedIndex != -1) a.notifyItemRemoved(removedIndex);
+                           else a.notifyDataSetChanged();
+                       }
+
+                       // TODO: nếu muốn ẩn vĩnh viễn: gọi hàm lưu override (SharedPreferences / Firebase overrides)
+                       // ví dụ: saveHiddenBuiltinToFirebase(item.getFirebaseKey(), null);
+
+                       Toast.makeText(this, "Đã ẩn mục (cục bộ).", Toast.LENGTH_SHORT).show();
+                   })
+                   .setNeutralButton("Tạo override", (d, w) -> {
+                       // TODO: implement override flow: lưu key vào node overrides hoặc local DB
+                       String builtinKey = item.getFirebaseKey();
+                       if (builtinKey == null || builtinKey.isEmpty()) {
+                           // nếu không có firebaseKey, bạn có thể tạo một id dựa trên nội dung
+                           builtinKey = "builtin_" + System.currentTimeMillis();
+                       }
+                       saveHiddenBuiltinToFirebase(builtinKey, () -> {
+                           // remove locally as well
+                           int removedIndex = -1;
+                           if (position >= 0 && position < currentList.size()) {
+                               currentList.remove(position);
+                               removedIndex = position;
+                           } else {
+                               int idx = currentList.indexOf(item);
+                               if (idx != -1) {
+                                   currentList.remove(idx);
+                                   removedIndex = idx;
+                               }
+                           }
+
+                           if (scheduleAdapter != null) {
+                               try {
+                                   scheduleAdapter.updateList(currentList);
+                               } catch (Exception ex) {
+                                   if (removedIndex != -1) scheduleAdapter.notifyItemRemoved(removedIndex);
+                                   else scheduleAdapter.notifyDataSetChanged();
+                               }
+                           } else if (scheduleRecyclerView != null && scheduleRecyclerView.getAdapter() != null) {
+                               RecyclerView.Adapter a = scheduleRecyclerView.getAdapter();
+                               if (removedIndex != -1) a.notifyItemRemoved(removedIndex);
+                               else a.notifyDataSetChanged();
+                           }
+
+                           Toast.makeText(this, "Đã lưu override và ẩn mục.", Toast.LENGTH_SHORT).show();
+                       });
+                   })
+                   .setNegativeButton("Hủy", null)
+                   .show();
+       }
+   }
+   // java
+   private void saveHiddenBuiltinToFirebase(String builtinKey, Runnable callback) {
+       if (builtinKey == null || builtinKey.trim().isEmpty()) {
+           if (callback != null) callback.run();
+           return;
+       }
+
+       // Save to local prefs set `hidden_builtins`
+       try {
+           java.util.Set<String> existing = prefs.getStringSet("hidden_builtins", null);
+           java.util.HashSet<String> newSet = new java.util.HashSet<>(
+                   existing == null ? java.util.Collections.emptySet() : existing
+           );
+           if (!newSet.contains(builtinKey)) {
+               newSet.add(builtinKey);
+               prefs.edit().putStringSet("hidden_builtins", newSet).apply();
+           }
+       } catch (Exception ex) {
+           Log.w(TAG, "saveHiddenBuiltinToFirebase: prefs save failed", ex);
+       }
+
+       // Ensure userId and rootRef exist
+       if (userId == null || userId.isEmpty()) {
+           userId = FirebaseAuth.getInstance().getUid();
+       }
+       if (rootRef == null) {
+           rootRef = FirebaseDatabase.getInstance().getReference();
+       }
+
+       // Write override marker to Firebase: user_overrides/{userId}/hidden_builtins/{builtinKey} = timestamp
+       DatabaseReference overrideRef = rootRef.child("user_overrides").child(userId).child("hidden_builtins").child(builtinKey);
+       overrideRef.setValue(ServerValue.TIMESTAMP)
+               .addOnSuccessListener(aVoid -> {
+                   Log.d(TAG, "saveHiddenBuiltinToFirebase: saved override " + builtinKey);
+                   if (callback != null) callback.run();
+               })
+               .addOnFailureListener(e -> {
+                   Log.w(TAG, "saveHiddenBuiltinToFirebase: failed saving override " + builtinKey, e);
+                   // still call callback so caller can update UI/fall back
+                   if (callback != null) callback.run();
+               });
+   }
+
+    private void deleteFromFirebase(String firebaseKey, Runnable callback) {
+        if (firebaseKey == null || firebaseKey.isEmpty()) {
+            if (callback != null) callback.run();
             return;
         }
 
-        new AlertDialog.Builder(this)
-                .setTitle("Xóa hoạt động")
-                .setMessage("Bạn có chắc muốn xóa hoạt động này không?")
-                .setPositiveButton("Xóa", (dialog, which) -> {
-                    performDeletion(position, item);
+        // TODO: thay path "schedules" bằng path thực tế của bạn
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("schedules").child(firebaseKey);
+        ref.removeValue()
+                .addOnSuccessListener(aVoid -> {
+                    if (callback != null) callback.run();
                 })
-                .setNegativeButton("Hủy", null)
-                .show();
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Xóa thất bại: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    // vẫn gọi callback nếu bạn muốn cập nhật UI bất chấp lỗi
+                });
     }
 
     /**
@@ -1725,6 +2021,116 @@ private void saveSingleItemToFirebase(ScheduleItem item) {
 
         return items;
     }
+private final java.util.Set<String> hiddenBuiltins = new java.util.HashSet<>();
+
+private void loadHiddenBuiltinsFromPrefs() {
+    try {
+        Set<String> stored = prefs.getStringSet("hidden_builtins", null);
+        hiddenBuiltins.clear();
+        if (stored != null) hiddenBuiltins.addAll(stored);
+    } catch (Exception ex) {
+        Log.w(TAG, "loadHiddenBuiltinsFromPrefs failed", ex);
+    }
+}
+
+// java
+// Updated loadScheduleItemsFromFirebase (no unsafe cast)
+private void loadScheduleItemsFromFirebase() {
+    DatabaseReference ref = FirebaseDatabase.getInstance().getReference("schedules");
+    ref.addListenerForSingleValueEvent(new ValueEventListener() {
+        @Override
+        public void onDataChange(DataSnapshot snapshot) {
+            List<ScheduleItem> loadedItems = new ArrayList<>();
+            for (DataSnapshot child : snapshot.getChildren()) {
+                ScheduleItem item = child.getValue(ScheduleItem.class);
+                if (item == null) continue;
+                if ((item.getFirebaseKey() == null || item.getFirebaseKey().isEmpty()) && child.getKey() != null) {
+                    item.setFirebaseKey(child.getKey());
+                }
+                loadedItems.add(item);
+            }
+
+            currentList.clear();
+            for (ScheduleItem s : loadedItems) {
+                String fk = s.getFirebaseKey() == null ? "" : s.getFirebaseKey();
+                if (s.isBuiltin() && hiddenBuiltins.contains(fk)) continue;
+                currentList.add(s);
+            }
+
+            runOnUiThread(() -> {
+                // Prefer adapter.updateList(...) if available
+                boolean updated = false;
+                if (scheduleAdapter != null) {
+                    try {
+                        scheduleAdapter.updateList(currentList);
+                        updated = true;
+                    } catch (Exception ignored) { }
+                }
+
+                if (updated) return;
+
+                RecyclerView.Adapter rvAdapter = (scheduleRecyclerView != null) ? scheduleRecyclerView.getAdapter() : null;
+                if (rvAdapter instanceof androidx.recyclerview.widget.ListAdapter) {
+                    // safe cast only when the attached adapter actually implements ListAdapter
+                    ((androidx.recyclerview.widget.ListAdapter) rvAdapter).submitList(new ArrayList<>(currentList));
+                } else if (rvAdapter != null) {
+                    rvAdapter.notifyDataSetChanged();
+                }
+            });
+        }
+
+        @Override
+        public void onCancelled(DatabaseError error) {
+            Log.w(TAG, "loadScheduleItemsFromFirebase cancelled", error.toException());
+        }
+    });
+}
+
+// java
+// Updated addTemplateToCurrentList (no unsafe cast)
+private void addTemplateToCurrentList(DetailedSchedule ds) {
+    if (ds == null) return;
+    Map<String, List<TimeSlot>> weekly = ds.getWeeklyActivities();
+    if (weekly == null) return;
+
+    List<ScheduleItem> loadedItems = new ArrayList<>();
+    for (Map.Entry<String, List<TimeSlot>> e : weekly.entrySet()) {
+        for (TimeSlot ts : e.getValue()) {
+            ScheduleItem item = new ScheduleItem();
+            item.setStartTime(ts.getStartTime());
+            item.setEndTime(ts.getEndTime());
+            item.setActivity(ts.getActivity());
+            item.setFirebaseKey(ts.getFirebaseKey());
+            item.setBuiltin(ts.isBuiltin());
+            loadedItems.add(item);
+        }
+    }
+
+    currentList.clear();
+    for (ScheduleItem s : loadedItems) {
+        String fk = s.getFirebaseKey() == null ? "" : s.getFirebaseKey();
+        if (s.isBuiltin() && hiddenBuiltins.contains(fk)) continue;
+        currentList.add(s);
+    }
+
+    // Update adapter safely
+    boolean updated = false;
+    if (scheduleAdapter != null) {
+        try {
+            scheduleAdapter.updateList(currentList);
+            updated = true;
+        } catch (Exception ignored) { }
+    }
+
+    if (updated) return;
+
+    RecyclerView.Adapter rvAdapter = (scheduleRecyclerView != null) ? scheduleRecyclerView.getAdapter() : null;
+    if (rvAdapter instanceof androidx.recyclerview.widget.ListAdapter) {
+        ((androidx.recyclerview.widget.ListAdapter) rvAdapter).submitList(new ArrayList<>(currentList));
+    } else if (rvAdapter != null) {
+        rvAdapter.notifyDataSetChanged();
+    }
+}
 
     private List<ScheduleItem> getOverridesFromPrefs(int day) {
         String key = "overrides_day_" + day;

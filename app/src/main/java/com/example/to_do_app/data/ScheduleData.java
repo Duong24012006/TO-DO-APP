@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Collections;
 import com.example.to_do_app.model.ScheduleItem; // add this import near other imports
+import com.example.to_do_app.util.ScheduleUtils;
 
 public class ScheduleData {
     private static final String TAG = "ScheduleData";
@@ -51,6 +52,11 @@ public class ScheduleData {
             default: return "Unknown";
         }
     }
+
+    /**
+     * Convert a DetailedSchedule's time slots for a given day into ScheduleItem objects.
+     * These items are marked builtin so UI can detect and hide delete action.
+     */
     public static List<ScheduleItem> scheduleItemsFromTemplateForDay(DetailedSchedule ds, int dayOfWeek) {
         if (ds == null) return Collections.emptyList();
         String dayKey = dayIndexToDayKey(dayOfWeek);
@@ -69,11 +75,21 @@ public class ScheduleData {
                     ts.getActivityName(),
                     dayOfWeek);
             // mark as builtin so UI can detect and hide delete action
-            si.setFirebaseKey("builtin_template_" + titlePart + "_" + dayOfWeek + "_" + i);
+            String fk = ts.getFirebaseKey();
+            if (fk == null || fk.trim().isEmpty()) {
+                fk = "builtin_template_" + titlePart + "_" + dayOfWeek + "_" + i;
+            }
+            si.setFirebaseKey(fk);
+            // ensure builtin flag stored on ScheduleItem as well
+            si.setBuiltin(true);
             out.add(si);
         }
         return out;
     }
+
+    /**
+     * Mark a list of ScheduleItem as builtin. Sets both firebaseKey (if missing) and builtin flag.
+     */
     public static void markScheduleItemsAsBuiltin(List<ScheduleItem> items, String sourceId) {
         if (items == null) return;
         String s = sourceId == null ? "builtin" : sourceId.replaceAll("\\s+", "_");
@@ -84,15 +100,24 @@ public class ScheduleData {
             if (fk == null || fk.isEmpty()) {
                 it.setFirebaseKey("builtin_" + s + "_" + i);
             }
+            // set builtin flag on the model so other code (showEditDialog/confirmAndDeleteItem) can check it
+            it.setBuiltin(true);
         }
     }
+
+    /**
+     * Determine whether an item is builtin (ap cứng).
+     * Prefer the model flag if present; fallback to firebaseKey prefix for older data.
+     */
     public static boolean isBuiltin(ScheduleItem item) {
         if (item == null) return false;
+        try {
+            // Prefer explicit model flag
+            if (item.isBuiltin()) return true;
+        } catch (Throwable ignored) { }
         String fk = item.getFirebaseKey();
         return fk != null && fk.startsWith("builtin_");
     }
-
-
 
     // ----------------- Sample templates factory methods (placeholders) -----------------
     // Replace these stubs with your real factory implementations elsewhere in project.
@@ -509,23 +534,58 @@ public class ScheduleData {
         List<ScheduleTemplate> templates = new ArrayList<>();
         try {
             DetailedSchedule t1 = createNightOwlTemplate();
-            if (t1 != null) templates.add(t1);
+            if (t1 != null) {
+                ScheduleUtils.markScheduleAsBuiltin(t1, "nightowl");
+                templates.add(t1);
+            }
+
             DetailedSchedule t2 = createMorningPersonTemplate();
-            if (t2 != null) templates.add(t2);
+            if (t2 != null) {
+                ScheduleUtils.markScheduleAsBuiltin(t2, "morningperson");
+                templates.add(t2);
+            }
+
             DetailedSchedule t3 = createDeepWorkTemplate();
-            if (t3 != null) templates.add(t3);
+            if (t3 != null) {
+                ScheduleUtils.markScheduleAsBuiltin(t3, "deepwork");
+                templates.add(t3);
+            }
+
             DetailedSchedule t4 = createWorkHardPlayHardTemplate();
-            if (t4 != null) templates.add(t4);
+            if (t4 != null) {
+                ScheduleUtils.markScheduleAsBuiltin(t4, "workhardplayhard");
+                templates.add(t4);
+            }
+
             DetailedSchedule t5 = createSprintWeekTemplate();
-            if (t5 != null) templates.add(t5);
+            if (t5 != null) {
+                ScheduleUtils.markScheduleAsBuiltin(t5, "sprintweek");
+                templates.add(t5);
+            }
+
             DetailedSchedule t6 = createIntermittentFastingTemplate();
-            if (t6 != null) templates.add(t6);
+            if (t6 != null) {
+                ScheduleUtils.markScheduleAsBuiltin(t6, "intermittent");
+                templates.add(t6);
+            }
+
             DetailedSchedule t7 = createWorkAndLearnTemplate();
-            if (t7 != null) templates.add(t7);
+            if (t7 != null) {
+                ScheduleUtils.markScheduleAsBuiltin(t7, "workandlearn");
+                templates.add(t7);
+            }
+
             DetailedSchedule t8 = createScientificProductivityTemplate();
-            if (t8 != null) templates.add(t8);
+            if (t8 != null) {
+                ScheduleUtils.markScheduleAsBuiltin(t8, "scientific");
+                templates.add(t8);
+            }
+
             DetailedSchedule t9 = createUncleHoLifestyleTemplate();
-            if (t9 != null) templates.add(t9);
+            if (t9 != null) {
+                ScheduleUtils.markScheduleAsBuiltin(t9, "uncleho");
+                templates.add(t9);
+            }
         } catch (Exception ex) {
             Log.w(TAG, "error creating sample templates", ex);
         }
@@ -768,7 +828,7 @@ public class ScheduleData {
     }
 
     /**
-     * Helper: convert a TimeSlot to a ScheduleItem (no firebaseKey set).
+     * Helper: convert a TimeSlot to a ScheduleItem (attempt to preserve builtin info if present).
      */
     public static ScheduleItem scheduleItemFromTimeSlot(TimeSlot ts, int dayOfWeek) {
         if (ts == null) return null;
@@ -777,9 +837,63 @@ public class ScheduleData {
                 ts.getEndTime(),
                 ts.getActivityName(),
                 dayOfWeek);
-        // default: no firebaseKey (treat as user-created unless caller marks builtin)
-        si.setFirebaseKey("");
+        // try to preserve firebaseKey and builtin info (templates marked with ScheduleUtils should have FK)
+        String fk = null;
+        try { fk = ts.getFirebaseKey(); } catch (Throwable ignored) {}
+        if (fk == null) fk = "";
+        si.setFirebaseKey(fk);
+        // mark builtin true when FK indicates builtin OR fallback to explicit ts flag if available
+        boolean builtinFlag = false;
+        try {
+            // if TimeSlot class was extended with isBuiltin() this will reflect it; otherwise rely on key prefix
+            Object maybeBuiltin = null;
+            try {
+                // attempt to call isBuiltin via reflection (safe)
+                java.lang.reflect.Method m = ts.getClass().getMethod("isBuiltin");
+                Object res = m.invoke(ts);
+                if (res instanceof Boolean) maybeBuiltin = res;
+            } catch (NoSuchMethodException ignore) { }
+            if (maybeBuiltin instanceof Boolean) builtinFlag = (Boolean) maybeBuiltin;
+        } catch (Throwable ignored) {}
+        if (!builtinFlag && fk.startsWith("builtin_")) builtinFlag = true;
+        si.setBuiltin(builtinFlag);
         return si;
+    }
+
+    /**
+     * Helper to filter out builtin items that the user has hidden (hiddenBuiltins contains firebaseKeys).
+     * Returns a new list (does not mutate input).
+     */
+    public static List<ScheduleItem> filterHiddenBuiltins(List<ScheduleItem> items, Set<String> hiddenBuiltins) {
+        List<ScheduleItem> out = new ArrayList<>();
+        if (items == null) return out;
+        boolean hasHidden = hiddenBuiltins != null && !hiddenBuiltins.isEmpty();
+        for (ScheduleItem s : items) {
+            if (s == null) continue;
+            if (isBuiltin(s) && hasHidden) {
+                String fk = s.getFirebaseKey();
+                if (fk != null && hiddenBuiltins.contains(fk)) {
+                    continue; // skip this builtin because user hid it
+                }
+            }
+            out.add(s);
+        }
+        return out;
+    }
+
+    /**
+     * Helper to turn a loaded list (e.g. from Firebase or merged local/storage) into the display list,
+     * applying hiddenBuiltins filtering. This is the place you should call from your Activity after
+     * loading hiddenBuiltins set.
+     *
+     * Example usage in Activity:
+     *   List<ScheduleItem> shown = ScheduleData.buildDisplayListFromLoaded(loadedItems, hiddenBuiltins);
+     *   currentList.clear(); currentList.addAll(shown);
+     *   adapter.submitList(new ArrayList<>(currentList));
+     */
+    public static List<ScheduleItem> buildDisplayListFromLoaded(List<ScheduleItem> loadedItems, Set<String> hiddenBuiltins) {
+        if (loadedItems == null) return new ArrayList<>();
+        return filterHiddenBuiltins(loadedItems, hiddenBuiltins);
     }
     public static DetailedSchedule createNightOwlTemplate() {
         String title = "CÚ ĐÊM";
@@ -1494,5 +1608,6 @@ public class ScheduleData {
 
         return new DetailedSchedule(title, description, tags, weeklyActivities);
     }
+
 
 }

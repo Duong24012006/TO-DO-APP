@@ -6,6 +6,10 @@ import java.util.Map;
 
 /**
  * Model for a schedule item, now includes firebaseKey so each item can be edited/deleted individually.
+ *
+ * Mở rộng:
+ * - thêm flag builtin để phân biệt item "áp cứng" (không xóa server) và item do user thêm
+ * - include builtin trong toMap() để có thể đồng bộ nếu cần
  */
 public class ScheduleItem implements Serializable {
     private String firebaseKey; // Firebase key for this item (null if not persisted yet)
@@ -18,21 +22,26 @@ public class ScheduleItem implements Serializable {
     private String activity;
     private int dayOfWeek;
 
+    // Metadata
+    private boolean builtin = false; // nếu true => item là builtin (không xóa server trực tiếp)
+
     // Default constructor required by Firebase
     public ScheduleItem() { }
 
     // Full constructor
     public ScheduleItem(int id, String startTime, String endTime, String activity, int dayOfWeek) {
-        this.id = id;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.activity = activity;
-        this.title = activity;
-        this.dayOfWeek = dayOfWeek;
+        this(id, null, startTime, endTime, activity, dayOfWeek, false);
     }
 
     // Constructor with firebaseKey
     public ScheduleItem(String firebaseKey, int id, String startTime, String endTime, String activity, int dayOfWeek) {
+        this(id, firebaseKey, startTime, endTime, activity, dayOfWeek, false);
+    }
+
+    /**
+     * Internal full constructor supporting builtin flag
+     */
+    public ScheduleItem(int id, String firebaseKey, String startTime, String endTime, String activity, int dayOfWeek, boolean builtin) {
         this.firebaseKey = firebaseKey;
         this.id = id;
         this.startTime = startTime;
@@ -40,6 +49,7 @@ public class ScheduleItem implements Serializable {
         this.activity = activity;
         this.title = activity;
         this.dayOfWeek = dayOfWeek;
+        this.builtin = builtin;
     }
 
     // Minimal constructors
@@ -59,6 +69,10 @@ public class ScheduleItem implements Serializable {
     // firebaseKey
     public String getFirebaseKey() { return firebaseKey; }
     public void setFirebaseKey(String firebaseKey) { this.firebaseKey = firebaseKey; }
+
+    // builtin flag
+    public boolean isBuiltin() { return builtin; }
+    public void setBuiltin(boolean builtin) { this.builtin = builtin; }
 
     // ID
     public int getId() { return id; }
@@ -125,6 +139,7 @@ public class ScheduleItem implements Serializable {
         m.put("endTime", endTime);
         m.put("activity", activity);
         m.put("dayOfWeek", dayOfWeek);
+        m.put("builtin", builtin);
         return m;
     }
 
@@ -138,6 +153,7 @@ public class ScheduleItem implements Serializable {
                 ", endTime='" + endTime + '\'' +
                 ", activity='" + getActivity() + '\'' +
                 ", dayOfWeek=" + dayOfWeek +
+                ", builtin=" + builtin +
                 '}';
     }
 }

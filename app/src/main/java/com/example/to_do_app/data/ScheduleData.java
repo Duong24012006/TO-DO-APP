@@ -1,5 +1,6 @@
 package com.example.to_do_app.data;
 
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
@@ -20,21 +21,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Collections;
+import com.example.to_do_app.model.ScheduleItem; // add this import near other imports
 
-/**
- * ScheduleData - sửa lại các phương thức để:
- * - Giữ thứ tự ngày (ưu tiên Thứ 2 -> Chủ Nhật) khi tạo/đọc templates.
- * - Sao chép defensive List khi chuyển các danh sách chung giữa nhiều ngày.
- * - Lưu/đọc custom template với khoá mã hoá tiêu đề an toàn.
- * - Khi load custom template, xây dựng weeklyActivities bằng LinkedHashMap để giữ thứ tự.
- *
- * Lưu ý: DetailedSchedule được sử dụng làm ScheduleTemplate trong getSampleTemplates() - giả định lớp
- * DetailedSchedule extends / implements ScheduleTemplate trong project của bạn (giống cấu trúc ban đầu).
- */
 public class ScheduleData {
     private static final String TAG = "ScheduleData";
     private static final String PROFILE_PREFS = "profile_prefs";
@@ -45,85 +39,71 @@ public class ScheduleData {
             "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ Nhật"
     );
 
-    /**
-     * Phương thức chính để AddFragment gọi.
-     * Nó sẽ tập hợp tất cả các template mẫu lại với nhau.
-     */
-    public static List<ScheduleTemplate> getSampleTemplates() {
-        List<ScheduleTemplate> templates = new ArrayList<>();
-
-        // Thêm từng template (giữ nguyên thứ tự muốn hiển thị)
-        List<ScheduleTemplate> created = new ArrayList<>();
-        created.add(createNightOwlTemplate());           // 1. CÚ ĐÊM
-        created.add(createMorningPersonTemplate());      // 2. Chuyên buổi sáng
-        created.add(createDeepWorkTemplate());           // 3. Học môn chuyên sâu
-        created.add(createWorkHardPlayHardTemplate());   // 4. Sáng học, tối chơi
-        created.add(createSprintWeekTemplate());         // 5. Tối ưu hóa chu kỳ ngủ
-        created.add(createIntermittentFastingTemplate());// 6. Vừa học vừa ăn gián đoạn 16-8
-        created.add(createWorkAndLearnTemplate());       // 7. Vừa học vừa làm
-        created.add(createScientificProductivityTemplate());// 8. Năng suất theo khoa học
-        created.add(createUncleHoLifestyleTemplate());   // 9. Lịch sinh hoạt của Bác Hồ
-
-        // Defensive normalize each template:
-        for (ScheduleTemplate t : created) {
-            if (t == null) continue;
-            // Nếu DetailedSchedule cung cấp getWeeklyActivities(), chuyển map về LinkedHashMap + defensive copy lists
-            if (t instanceof DetailedSchedule) {
-                DetailedSchedule ds = (DetailedSchedule) t;
-                Map<String, List<TimeSlot>> weekly = ds.getWeeklyActivities();
-                if (weekly != null && !weekly.isEmpty()) {
-                    LinkedHashMap<String, List<TimeSlot>> ordered = new LinkedHashMap<>();
-
-                    // First, add preferred day order if present
-                    for (String day : PREFERRED_DAY_ORDER) {
-                        if (weekly.containsKey(day)) {
-                            List<TimeSlot> original = weekly.get(day);
-                            ordered.put(day, original == null ? new ArrayList<>() : new ArrayList<>(original));
-                        }
-                    }
-                    // Then add any leftover keys in insertion order from original map
-                    for (Map.Entry<String, List<TimeSlot>> e : weekly.entrySet()) {
-                        String k = e.getKey();
-                        if (!ordered.containsKey(k)) {
-                            List<TimeSlot> original = e.getValue();
-                            ordered.put(k, original == null ? new ArrayList<>() : new ArrayList<>(original));
-                        }
-                    }
-
-                    // Replace weeklyActivities in DetailedSchedule if setter exists, else rely on constructor copy:
-                    try {
-                        ds.setWeeklyActivities(ordered);
-                    } catch (NoSuchMethodError | Exception ex) {
-                        // If DetailedSchedule is immutable or has no setter, try to create a new DetailedSchedule instance
-                        try {
-                            DetailedSchedule copy = new DetailedSchedule(
-                                    ds.getTitle(),
-                                    ds.getDescription(),
-                                    ds.getTags() == null ? new ArrayList<>() : new ArrayList<>(ds.getTags()),
-                                    ordered
-                            );
-                            // Replace t in templates list by copy
-                            t = copy;
-                        } catch (Exception e2) {
-                            Log.w(TAG, "Could not replace DetailedSchedule with ordered copy: " + ds.getTitle(), e2);
-                        }
-                    }
-                }
-            }
-            templates.add(t);
+    public static String dayIndexToDayKey(int dayOfWeek) {
+        switch (dayOfWeek) {
+            case 2: return "Thứ 2";
+            case 3: return "Thứ 3";
+            case 4: return "Thứ 4";
+            case 5: return "Thứ 5";
+            case 6: return "Thứ 6";
+            case 7: return "Thứ 7";
+            case 8: return "Chủ Nhật";
+            default: return "Unknown";
         }
-
-        return templates;
     }
+    public static List<ScheduleItem> scheduleItemsFromTemplateForDay(DetailedSchedule ds, int dayOfWeek) {
+        if (ds == null) return Collections.emptyList();
+        String dayKey = dayIndexToDayKey(dayOfWeek);
+        Map<String, List<TimeSlot>> weekly = ds.getWeeklyActivities();
+        if (weekly == null) return Collections.emptyList();
+        List<TimeSlot> slots = weekly.get(dayKey);
+        if (slots == null || slots.isEmpty()) return Collections.emptyList();
+
+        List<ScheduleItem> out = new ArrayList<>(slots.size());
+        String titlePart = ds.getTitle() == null ? "template" : encodeTitleForKey(ds.getTitle());
+        for (int i = 0; i < slots.size(); i++) {
+            TimeSlot ts = slots.get(i);
+            ScheduleItem si = new ScheduleItem(0,
+                    ts.getStartTime(),
+                    ts.getEndTime(),
+                    ts.getActivityName(),
+                    dayOfWeek);
+            // mark as builtin so UI can detect and hide delete action
+            si.setFirebaseKey("builtin_template_" + titlePart + "_" + dayOfWeek + "_" + i);
+            out.add(si);
+        }
+        return out;
+    }
+    public static void markScheduleItemsAsBuiltin(List<ScheduleItem> items, String sourceId) {
+        if (items == null) return;
+        String s = sourceId == null ? "builtin" : sourceId.replaceAll("\\s+", "_");
+        for (int i = 0; i < items.size(); i++) {
+            ScheduleItem it = items.get(i);
+            if (it == null) continue;
+            String fk = it.getFirebaseKey();
+            if (fk == null || fk.isEmpty()) {
+                it.setFirebaseKey("builtin_" + s + "_" + i);
+            }
+        }
+    }
+    public static boolean isBuiltin(ScheduleItem item) {
+        if (item == null) return false;
+        String fk = item.getFirebaseKey();
+        return fk != null && fk.startsWith("builtin_");
+    }
+
+
+
+    // ----------------- Sample templates factory methods (placeholders) -----------------
+    // Replace these stubs with your real factory implementations elsewhere in project.
+
 
     // ----------------- Encoding helpers -----------------
     private static String encodeTitleForKey(String title) {
         if (title == null) return "";
         try {
-            // use StandardCharsets to avoid UnsupportedEncodingException in modern Android
             return URLEncoder.encode(title, StandardCharsets.UTF_8.name());
         } catch (UnsupportedEncodingException e) {
-            // fallback: replace spaces and non-visible chars
             return title.replaceAll("\\s+", "_");
         } catch (Exception e) {
             return title.replaceAll("\\s+", "_");
@@ -141,98 +121,12 @@ public class ScheduleData {
         }
     }
 
-    // ----------------- Load / Save / List all templates -----------------
+    // ----------------- Save / Load / List all templates -----------------
 
-    public static List<ScheduleTemplate> getAllTemplates(Context ctx) {
-        final String TAG = "ScheduleData";
-        List<ScheduleTemplate> result = new ArrayList<>();
-
-        // 1) Add default templates first
-        try {
-            List<ScheduleTemplate> defaults = getSampleTemplates();
-            if (defaults != null) result.addAll(defaults);
-        } catch (Exception ex) {
-            Log.w(TAG, "getSampleTemplates() failed", ex);
-        }
-
-        // Build a set of normalized titles already present (defaults)
-        Set<String> seenTitles = new HashSet<>();
-        for (ScheduleTemplate t : result) {
-            if (t == null) continue;
-            String title = null;
-            try {
-                if (t instanceof DetailedSchedule) title = ((DetailedSchedule) t).getTitle();
-                else {
-                    // try generic getTitle() if ScheduleTemplate defines it
-                    title = ((ScheduleTemplate) t).getTitle();
-                }
-            } catch (Exception ex) {
-                // ignore
-            }
-            if (title == null) continue;
-            seenTitles.add(title.trim().toLowerCase());
-        }
-
-        // 2) Load custom templates from SharedPreferences (support encoded keys + legacy raw keys)
-        if (ctx != null) {
-            try {
-                SharedPreferences prefs = ctx.getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE);
-                Map<String, ?> all = prefs.getAll();
-                if (all != null && !all.isEmpty()) {
-                    // iterate keys in stable order by copying to list (SharedPreferences map iteration order is unspecified)
-                    List<String> keys = new ArrayList<>(all.keySet());
-                    for (String key : keys) {
-                        if (key == null) continue;
-                        if (!key.startsWith(CUSTOM_TEMPLATE_PREFIX)) continue;
-
-                        String keyPart = key.substring(CUSTOM_TEMPLATE_PREFIX.length());
-                        String title = decodeTitleFromKeyPart(keyPart);
-                        if (title == null || title.trim().isEmpty()) {
-                            // fallback: if decode produced empty, try raw keyPart
-                            title = keyPart;
-                        }
-
-                        String norm = title.trim().toLowerCase();
-                        if (seenTitles.contains(norm)) {
-                            // skip if a default (or earlier custom) already supplies this title
-                            continue;
-                        }
-
-                        try {
-                            DetailedSchedule ds = loadCustomTemplateByPrefKey(ctx, key);
-                            if (ds != null) {
-                                // ensure weeklyActivities uses LinkedHashMap + defensive copies (load method already does but double-check)
-                                Map<String, List<TimeSlot>> weekly = ds.getWeeklyActivities();
-                                if (weekly != null) {
-                                    LinkedHashMap<String, List<TimeSlot>> ordered = new LinkedHashMap<>();
-                                    for (String day : PREFERRED_DAY_ORDER) {
-                                        if (weekly.containsKey(day)) ordered.put(day, new ArrayList<>(weekly.get(day)));
-                                    }
-                                    for (Map.Entry<String, List<TimeSlot>> e : weekly.entrySet()) {
-                                        if (!ordered.containsKey(e.getKey())) ordered.put(e.getKey(), new ArrayList<>(e.getValue()));
-                                    }
-                                    try {
-                                        ds.setWeeklyActivities(ordered);
-                                    } catch (Exception ignore) { /* ignore if no setter */ }
-                                }
-                                result.add(ds);
-                                seenTitles.add(norm);
-                            } else {
-                                Log.w(TAG, "loadCustomTemplateByPrefKey returned null for prefKey=" + key);
-                            }
-                        } catch (Exception ex) {
-                            Log.w(TAG, "Failed to load custom template for prefKey=" + key, ex);
-                        }
-                    }
-                }
-            } catch (Exception ex) {
-                Log.w(TAG, "Error reading custom templates from prefs", ex);
-            }
-        }
-
-        return result;
-    }
-
+    /**
+     * Save a custom DetailedSchedule into SharedPreferences under an encoded key.
+     * Also removes legacy raw key if present.
+     */
     public static void saveCustomTemplate(Context ctx, DetailedSchedule template) {
         if (ctx == null || template == null || template.getTitle() == null) return;
         try {
@@ -247,18 +141,17 @@ public class ScheduleData {
             }
             root.put("tags", tagsArr);
 
-            // Use ordered weekly object: preferred day order first, then any extras
             JSONObject weeklyObj = new JSONObject();
             Map<String, List<TimeSlot>> weekly = template.getWeeklyActivities();
             if (weekly != null) {
-                // first add preferred days in order if present
+                // preferred day order first
                 for (String day : PREFERRED_DAY_ORDER) {
                     if (weekly.containsKey(day)) {
                         JSONArray arr = timeSlotsToJsonArray(weekly.get(day));
                         weeklyObj.put(day, arr);
                     }
                 }
-                // add leftover keys
+                // leftover keys
                 for (Map.Entry<String, List<TimeSlot>> entry : weekly.entrySet()) {
                     String dayKey = entry.getKey();
                     if (weeklyObj.has(dayKey)) continue;
@@ -270,8 +163,6 @@ public class ScheduleData {
 
             SharedPreferences prefs = ctx.getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE);
             String encodedKey = CUSTOM_TEMPLATE_PREFIX + encodeTitleForKey(template.getTitle());
-
-            // Save under encoded key (safer). Also remove any legacy raw key for the same title.
             SharedPreferences.Editor editor = prefs.edit();
             editor.putString(encodedKey, root.toString());
 
@@ -349,10 +240,8 @@ public class ScheduleData {
                         weeklyActivities.put(dayKey, jsonArrayToTimeSlots(arr));
                     }
                 } else {
-                    // Fallback: iterate keys via iterating object (older Android may not preserve order)
-                    // but still add keys not in preferred order
-                    @SuppressWarnings("unchecked")
-                    java.util.Iterator<String> it = weeklyObj.keys();
+                    // Fallback: iterate keys via iterating object
+                    Iterator<String> it = weeklyObj.keys();
                     while (it.hasNext()) {
                         String dayKey = it.next();
                         if (weeklyActivities.containsKey(dayKey)) continue;
@@ -392,14 +281,506 @@ public class ScheduleData {
         return slots;
     }
 
-    // ---------- Placeholder factory methods ----------
-    // The real project already has these methods (createNightOwlTemplate, ...)
-    // They are referenced above in getSampleTemplates(). If you want, I can also:
-    // - modify each createXTemplate() to ensure they use LinkedHashMap and defensive copies,
-    // - or I can edit them in a follow-up message if you paste their current implementations.
-    //
-    // For now we assume those factory methods exist elsewhere in the codebase.
+    // ----------------- Listing templates (defaults + saved) -----------------
 
+    // Replace existing getAllTemplates(...) with this implementation
+    public static List<ScheduleTemplate> getAllTemplates(Context ctx) {
+        final String LOGTAG = "ScheduleData.getAllTemplates";
+        // Use a LinkedHashMap to preserve insertion order (defaults order first)
+        LinkedHashMap<String, ScheduleTemplate> byTitle = new LinkedHashMap<>();
+
+        // 1) Load defaults into map (in desired order)
+        try {
+            List<ScheduleTemplate> defaults = getSampleTemplates();
+            if (defaults != null) {
+                for (ScheduleTemplate t : defaults) {
+                    if (t == null) continue;
+                    String title = t.getTitle();
+                    if (title == null) continue;
+                    // Normalize title key
+                    String key = title.trim().toLowerCase();
+                    // Put default template (can be overwritten by custom later)
+                    byTitle.put(key, t);
+                }
+            }
+        } catch (Exception ex) {
+            Log.w(LOGTAG, "Error loading sample templates", ex);
+        }
+
+        // 2) Load custom templates from prefs and OVERWRITE any default with same title
+        if (ctx != null) {
+            try {
+                SharedPreferences prefs = ctx.getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE);
+                Map<String, ?> all = prefs.getAll();
+                if (all != null && !all.isEmpty()) {
+                    // Iterate keys in stable order by copying to list
+                    List<String> keys = new ArrayList<>(all.keySet());
+                    for (String prefKey : keys) {
+                        if (prefKey == null) continue;
+                        if (!prefKey.startsWith(CUSTOM_TEMPLATE_PREFIX)) continue;
+
+                        // Load the custom template
+                        DetailedSchedule ds = loadCustomTemplateByPrefKey(ctx, prefKey);
+                        if (ds == null) {
+                            Log.w(LOGTAG, "Failed to load custom template for key=" + prefKey);
+                            continue;
+                        }
+
+                        String title = ds.getTitle();
+                        if (title == null) title = decodeTitleFromKeyPart(prefKey.substring(CUSTOM_TEMPLATE_PREFIX.length()));
+                        String norm = title == null ? null : title.trim().toLowerCase();
+                        if (norm == null) continue;
+
+                        // Put into map, overwriting any default with same normalized title
+                        byTitle.put(norm, ds);
+                    }
+                }
+            } catch (Exception ex) {
+                Log.w(LOGTAG, "Error reading custom templates from prefs", ex);
+            }
+        }
+
+        // 3) Return list in insertion order (defaults first, with custom ones overwritten in place)
+        return new ArrayList<>(byTitle.values());
+    }
+
+    // ----------------- Custom template helpers -----------------
+
+    private static String findCustomPrefKeyForTitle(Context ctx, String title) {
+        if (ctx == null || title == null) return null;
+        try {
+            SharedPreferences prefs = ctx.getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE);
+            Map<String, ?> all = prefs.getAll();
+            if (all == null || all.isEmpty()) return null;
+            String encoded = CUSTOM_TEMPLATE_PREFIX + encodeTitleForKey(title);
+            if (all.containsKey(encoded)) return encoded;
+            // check legacy raw key
+            String legacy = CUSTOM_TEMPLATE_PREFIX + title;
+            if (all.containsKey(legacy)) return legacy;
+            // try to find by decoded titles if keys are encoded differently
+            for (String k : all.keySet()) {
+                if (k == null) continue;
+                if (!k.startsWith(CUSTOM_TEMPLATE_PREFIX)) continue;
+                String keyPart = k.substring(CUSTOM_TEMPLATE_PREFIX.length());
+                String decoded = decodeTitleFromKeyPart(keyPart);
+                if (decoded != null && decoded.trim().equalsIgnoreCase(title.trim())) {
+                    return k;
+                }
+            }
+        } catch (Exception ex) {
+            Log.w(TAG, "findCustomPrefKeyForTitle error", ex);
+        }
+        return null;
+    }
+
+    public static boolean addSlotToTemplate(Context ctx, String title, String dayKey, TimeSlot slot) {
+        return addSlotToTemplateAndGet(ctx, title, dayKey, slot) != null;
+    }
+
+    public static DetailedSchedule addSlotToTemplateAndGet(Context ctx, String title, String dayKey, TimeSlot slot) {
+        if (ctx == null || title == null || slot == null) return null;
+        try {
+            // 1) Try to find existing custom template in prefs
+            String prefKey = findCustomPrefKeyForTitle(ctx, title);
+            DetailedSchedule ds = null;
+            if (prefKey != null) {
+                ds = loadCustomTemplateByPrefKey(ctx, prefKey);
+            }
+
+            // 2) If not found, try to find among defaults
+            if (ds == null) {
+                List<ScheduleTemplate> defaults = getSampleTemplates();
+                if (defaults != null) {
+                    for (ScheduleTemplate st : defaults) {
+                        if (st == null) continue;
+                        String t = st.getTitle();
+                        if (t != null && t.trim().equalsIgnoreCase(title.trim())) {
+                            if (st instanceof DetailedSchedule) {
+                                ds = (DetailedSchedule) st;
+                            } else {
+                                try {
+                                    ds = new DetailedSchedule(st.getTitle(), st.getDescription(), st.getTags(), st.getWeeklyActivities());
+                                } catch (Exception ignored) { }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // 3) If still null, create a fresh one
+            if (ds == null) {
+                ds = new DetailedSchedule(title, "", new ArrayList<>(), new LinkedHashMap<>());
+            }
+
+            // get mutable weekly map (defensive)
+            Map<String, List<TimeSlot>> weekly = ds.getWeeklyActivities();
+            Map<String, List<TimeSlot>> mutableWeekly = new LinkedHashMap<>();
+            if (weekly != null && !weekly.isEmpty()) {
+                for (Map.Entry<String, List<TimeSlot>> e : weekly.entrySet()) {
+                    mutableWeekly.put(e.getKey(), e.getValue() == null ? new ArrayList<>() : new ArrayList<>(e.getValue()));
+                }
+            }
+
+            // ensure dayKey present
+            List<TimeSlot> list = mutableWeekly.get(dayKey);
+            if (list == null) {
+                list = new ArrayList<>();
+                mutableWeekly.put(dayKey, list);
+            }
+
+            // check duplicate
+            boolean exists = false;
+            for (TimeSlot ts : list) {
+                String s = ts.getStartTime() == null ? "" : ts.getStartTime();
+                String e = ts.getEndTime() == null ? "" : ts.getEndTime();
+                String a = ts.getActivityName() == null ? "" : ts.getActivityName();
+                if (s.equals(slot.getStartTime()) && e.equals(slot.getEndTime()) && a.equals(slot.getActivityName())) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (exists) {
+                Log.d(TAG, "Slot already exists in template '" + title + "' for day " + dayKey);
+                // return the current object (prefer saved custom if exists)
+                if (prefKey != null) {
+                    return loadCustomTemplateByPrefKey(ctx, prefKey);
+                } else {
+                    return ds;
+                }
+            }
+
+            // add slot
+            list.add(slot);
+
+            // build DetailedSchedule to save
+            DetailedSchedule toSave;
+            try {
+                toSave = new DetailedSchedule(
+                        ds.getTitle(),
+                        ds.getDescription(),
+                        ds.getTags() == null ? new ArrayList<>() : new ArrayList<>(ds.getTags()),
+                        mutableWeekly
+                );
+            } catch (Exception ex) {
+                // if constructor not available, try setWeeklyActivities on ds
+                try {
+                    ds.setWeeklyActivities(mutableWeekly);
+                    toSave = ds;
+                } catch (Exception e) {
+                    Log.w(TAG, "Unable to construct DetailedSchedule for saving", e);
+                    return null;
+                }
+            }
+
+            // persist
+            saveCustomTemplate(ctx, toSave);
+
+            // Return the saved template (load from prefs to ensure canonical form)
+            String savedPrefKey = CUSTOM_TEMPLATE_PREFIX + encodeTitleForKey(title);
+            DetailedSchedule loaded = loadCustomTemplateByPrefKey(ctx, savedPrefKey);
+            if (loaded == null) {
+                // try legacy key if any
+                String legacyKey = findCustomPrefKeyForTitle(ctx, title);
+                if (legacyKey != null) loaded = loadCustomTemplateByPrefKey(ctx, legacyKey);
+            }
+            Log.d(TAG, "addSlotToTemplateAndGet: added slot to template '" + title + "' day=" + dayKey);
+            return loaded != null ? loaded : toSave;
+        } catch (Exception ex) {
+            Log.w(TAG, "addSlotToTemplateAndGet failed", ex);
+            return null;
+        }
+    }
+
+    public static DetailedSchedule getCustomTemplateByTitle(Context ctx, String title) {
+        if (ctx == null || title == null) return null;
+        String prefKey = findCustomPrefKeyForTitle(ctx, title);
+        if (prefKey == null) return null;
+        return loadCustomTemplateByPrefKey(ctx, prefKey);
+    }
+
+    public static boolean addSlotToTemplate(Context ctx, String title, String dayKey, TimeSlot slot, boolean returnBoolean) {
+        DetailedSchedule ds = addSlotToTemplateAndGet(ctx, title, dayKey, slot);
+        return ds != null;
+    }
+
+
+    public static List<ScheduleTemplate> getSampleTemplates() {
+        List<ScheduleTemplate> templates = new ArrayList<>();
+        try {
+            DetailedSchedule t1 = createNightOwlTemplate();
+            if (t1 != null) templates.add(t1);
+            DetailedSchedule t2 = createMorningPersonTemplate();
+            if (t2 != null) templates.add(t2);
+            DetailedSchedule t3 = createDeepWorkTemplate();
+            if (t3 != null) templates.add(t3);
+            DetailedSchedule t4 = createWorkHardPlayHardTemplate();
+            if (t4 != null) templates.add(t4);
+            DetailedSchedule t5 = createSprintWeekTemplate();
+            if (t5 != null) templates.add(t5);
+            DetailedSchedule t6 = createIntermittentFastingTemplate();
+            if (t6 != null) templates.add(t6);
+            DetailedSchedule t7 = createWorkAndLearnTemplate();
+            if (t7 != null) templates.add(t7);
+            DetailedSchedule t8 = createScientificProductivityTemplate();
+            if (t8 != null) templates.add(t8);
+            DetailedSchedule t9 = createUncleHoLifestyleTemplate();
+            if (t9 != null) templates.add(t9);
+        } catch (Exception ex) {
+            Log.w(TAG, "error creating sample templates", ex);
+        }
+        return templates;
+    }
+
+    public static boolean removeSlotFromTemplate(Context ctx, String title, String dayKey, TimeSlot slot) {
+        return removeSlotFromTemplateAndGet(ctx, title, dayKey, slot) != null;
+    }
+    public static DetailedSchedule removeSlotFromTemplateAndGet(Context ctx, String title, String dayKey, TimeSlot slot) {
+        if (ctx == null || title == null || slot == null) return null;
+        try {
+            String prefKey = findCustomPrefKeyForTitle(ctx, title);
+            DetailedSchedule ds = null;
+            if (prefKey != null) {
+                ds = loadCustomTemplateByPrefKey(ctx, prefKey);
+            }
+
+            // If no custom template found, try defaults and copy into a new DetailedSchedule
+            if (ds == null) {
+                List<ScheduleTemplate> defaults = getSampleTemplates();
+                if (defaults != null) {
+                    for (ScheduleTemplate st : defaults) {
+                        if (st == null) continue;
+                        String t = st.getTitle();
+                        if (t != null && t.trim().equalsIgnoreCase(title.trim())) {
+                            if (st instanceof DetailedSchedule) {
+                                ds = (DetailedSchedule) st;
+                            } else {
+                                try {
+                                    ds = new DetailedSchedule(st.getTitle(), st.getDescription(), st.getTags(), st.getWeeklyActivities());
+                                } catch (Exception ignored) {}
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (ds == null) {
+                // nothing to remove
+                return null;
+            }
+
+            // Build a mutable copy of weekly activities
+            Map<String, List<TimeSlot>> weekly = ds.getWeeklyActivities();
+            Map<String, List<TimeSlot>> mutableWeekly = new LinkedHashMap<>();
+            if (weekly != null && !weekly.isEmpty()) {
+                for (Map.Entry<String, List<TimeSlot>> e : weekly.entrySet()) {
+                    mutableWeekly.put(e.getKey(), e.getValue() == null ? new ArrayList<>() : new ArrayList<>(e.getValue()));
+                }
+            }
+
+            List<TimeSlot> list = mutableWeekly.get(dayKey);
+            if (list == null || list.isEmpty()) {
+                // nothing to remove
+                return ds;
+            }
+
+            // Remove matching slot(s) (match by start/end/activity)
+            boolean removed = false;
+            for (int i = list.size() - 1; i >= 0; i--) {
+                TimeSlot ts = list.get(i);
+                String s1 = ts.getStartTime() == null ? "" : ts.getStartTime();
+                String e1 = ts.getEndTime() == null ? "" : ts.getEndTime();
+                String a1 = ts.getActivityName() == null ? "" : ts.getActivityName();
+
+                String s2 = slot.getStartTime() == null ? "" : slot.getStartTime();
+                String e2 = slot.getEndTime() == null ? "" : slot.getEndTime();
+                String a2 = slot.getActivityName() == null ? "" : slot.getActivityName();
+
+                if (s1.equals(s2) && e1.equals(e2) && a1.equals(a2)) {
+                    list.remove(i);
+                    removed = true;
+                }
+            }
+
+            if (!removed) {
+                // nothing removed -> return current object (no save)
+                return ds;
+            }
+
+            // If list became empty, we keep empty list (so persisted template will have empty array for that day)
+            // Build DetailedSchedule to save
+            DetailedSchedule toSave;
+            try {
+                toSave = new DetailedSchedule(
+                        ds.getTitle(),
+                        ds.getDescription(),
+                        ds.getTags() == null ? new ArrayList<>() : new ArrayList<>(ds.getTags()),
+                        mutableWeekly
+                );
+            } catch (Exception ex) {
+                try {
+                    ds.setWeeklyActivities(mutableWeekly);
+                    toSave = ds;
+                } catch (Exception e) {
+                    Log.w(TAG, "Unable to construct DetailedSchedule for saving (remove)", e);
+                    return null;
+                }
+            }
+
+            // Persist and return loaded saved template
+            saveCustomTemplate(ctx, toSave);
+            String savedKey = CUSTOM_TEMPLATE_PREFIX + encodeTitleForKey(title);
+            DetailedSchedule loaded = loadCustomTemplateByPrefKey(ctx, savedKey);
+            if (loaded == null) {
+                // try legacy if not found
+                String legacy = findCustomPrefKeyForTitle(ctx, title);
+                if (legacy != null) loaded = loadCustomTemplateByPrefKey(ctx, legacy);
+            }
+            return loaded != null ? loaded : toSave;
+        } catch (Exception ex) {
+            Log.w(TAG, "removeSlotFromTemplateAndGet failed", ex);
+            return null;
+        }
+    }
+    // Add these methods inside the ScheduleData class
+
+    /**
+     * Parse a JSONArray (as string) stored under prefs key "overrides_day_<day>"
+     * and return a List<ScheduleItem>.
+     */
+    public static List<ScheduleItem> getOverridesFromPrefs(Context ctx, int day) {
+        List<ScheduleItem> out = new ArrayList<>();
+        if (ctx == null) return out;
+        String key = "overrides_day_" + day;
+        try {
+            SharedPreferences prefs = ctx.getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE);
+            String raw = prefs.getString(key, null);
+            if (raw == null || raw.trim().isEmpty()) return out;
+            JSONArray arr = new JSONArray(raw);
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject o = arr.optJSONObject(i);
+                if (o == null) continue;
+                String fk = o.optString("firebaseKey", "");
+                String s = o.optString("startTime", "");
+                String e = o.optString("endTime", "");
+                String a = o.optString("activity", "");
+                int d = o.optInt("day", day);
+                ScheduleItem it = new ScheduleItem(0, s.isEmpty() ? null : s, e.isEmpty() ? null : e, a.isEmpty() ? null : a, d);
+                it.setFirebaseKey(fk == null ? "" : fk);
+                out.add(it);
+            }
+        } catch (JSONException ex) {
+            Log.w(TAG, "getOverridesFromPrefs json parse error for day=" + day, ex);
+        } catch (Exception ex) {
+            Log.w(TAG, "getOverridesFromPrefs failed for day=" + day, ex);
+        }
+        return out;
+    }
+
+    /**
+     * Save override list for a given day into prefs under key "overrides_day_<day>".
+     */
+    public static void saveOverridesToPrefs(Context ctx, int day, List<ScheduleItem> items) {
+        if (ctx == null) return;
+        String key = "overrides_day_" + day;
+        try {
+            JSONArray arr = new JSONArray();
+            if (items != null) {
+                for (ScheduleItem it : items) {
+                    JSONObject o = new JSONObject();
+                    o.put("firebaseKey", it.getFirebaseKey() == null ? "" : it.getFirebaseKey());
+                    o.put("startTime", it.getStartTime() == null ? "" : it.getStartTime());
+                    o.put("endTime", it.getEndTime() == null ? "" : it.getEndTime());
+                    o.put("activity", it.getActivity() == null ? "" : it.getActivity());
+                    o.put("day", it.getDayOfWeek());
+                    arr.put(o);
+                }
+            }
+            SharedPreferences prefs = ctx.getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE);
+            prefs.edit().putString(key, arr.toString()).apply();
+        } catch (JSONException ex) {
+            Log.w(TAG, "saveOverridesToPrefs json error for day=" + day, ex);
+        } catch (Exception ex) {
+            Log.w(TAG, "saveOverridesToPrefs failed for day=" + day, ex);
+        }
+    }
+
+    /**
+     * Get locally saved user-created items (key "local_items_day_<day>").
+     * This mirrors how you may be storing local-only items if you used that approach.
+     */
+    public static List<ScheduleItem> getLocalUserItems(Context ctx, int day) {
+        List<ScheduleItem> out = new ArrayList<>();
+        if (ctx == null) return out;
+        String key = "local_items_day_" + day;
+        try {
+            SharedPreferences prefs = ctx.getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE);
+            String raw = prefs.getString(key, null);
+            if (raw == null || raw.trim().isEmpty()) return out;
+            JSONArray arr = new JSONArray(raw);
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject o = arr.optJSONObject(i);
+                if (o == null) continue;
+                String fk = o.optString("firebaseKey", "");
+                String s = o.optString("startTime", "");
+                String e = o.optString("endTime", "");
+                String a = o.optString("activity", "");
+                int d = o.optInt("day", day);
+                ScheduleItem it = new ScheduleItem(0, s.isEmpty() ? null : s, e.isEmpty() ? null : e, a.isEmpty() ? null : a, d);
+                it.setFirebaseKey(fk == null ? "" : fk);
+                out.add(it);
+            }
+        } catch (JSONException ex) {
+            Log.w(TAG, "getLocalUserItems json parse error for day=" + day, ex);
+        } catch (Exception ex) {
+            Log.w(TAG, "getLocalUserItems failed for day=" + day, ex);
+        }
+        return out;
+    }
+
+    /**
+     * Save local user items into prefs under "local_items_day_<day>"
+     */
+    public static void saveLocalUserItems(Context ctx, int day, List<ScheduleItem> items) {
+        if (ctx == null) return;
+        String key = "local_items_day_" + day;
+        try {
+            JSONArray arr = new JSONArray();
+            if (items != null) {
+                for (ScheduleItem it : items) {
+                    JSONObject o = new JSONObject();
+                    o.put("firebaseKey", it.getFirebaseKey() == null ? "" : it.getFirebaseKey());
+                    o.put("startTime", it.getStartTime() == null ? "" : it.getStartTime());
+                    o.put("endTime", it.getEndTime() == null ? "" : it.getEndTime());
+                    o.put("activity", it.getActivity() == null ? "" : it.getActivity());
+                    o.put("day", it.getDayOfWeek());
+                    arr.put(o);
+                }
+            }
+            SharedPreferences prefs = ctx.getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE);
+            prefs.edit().putString(key, arr.toString()).apply();
+        } catch (JSONException ex) {
+            Log.w(TAG, "saveLocalUserItems json error for day=" + day, ex);
+        } catch (Exception ex) {
+            Log.w(TAG, "saveLocalUserItems failed for day=" + day, ex);
+        }
+    }
+
+    /**
+     * Helper: convert a TimeSlot to a ScheduleItem (no firebaseKey set).
+     */
+    public static ScheduleItem scheduleItemFromTimeSlot(TimeSlot ts, int dayOfWeek) {
+        if (ts == null) return null;
+        ScheduleItem si = new ScheduleItem(0,
+                ts.getStartTime(),
+                ts.getEndTime(),
+                ts.getActivityName(),
+                dayOfWeek);
+        // default: no firebaseKey (treat as user-created unless caller marks builtin)
+        si.setFirebaseKey("");
+        return si;
+    }
     public static DetailedSchedule createNightOwlTemplate() {
         String title = "CÚ ĐÊM";
         String description = "Template này tối đa hóa thời gian thức để học, phù hợp với sinh viên muốn tăng cường học tập.";
@@ -1113,4 +1494,5 @@ public class ScheduleData {
 
         return new DetailedSchedule(title, description, tags, weeklyActivities);
     }
+
 }

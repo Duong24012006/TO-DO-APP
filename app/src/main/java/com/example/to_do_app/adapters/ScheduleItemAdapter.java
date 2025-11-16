@@ -1,6 +1,7 @@
 package com.example.to_do_app.adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,8 @@ import java.util.List;
 
 public class ScheduleItemAdapter extends RecyclerView.Adapter<ScheduleItemAdapter.VH> {
 
+
+
     public interface OnItemClickListener {
         void onItemClick(int position, ScheduleItem item);
         void onEditClick(int position, ScheduleItem item);
@@ -27,17 +30,17 @@ public class ScheduleItemAdapter extends RecyclerView.Adapter<ScheduleItemAdapte
     private final Context ctx;
     private List<ScheduleItem> items;
     private final OnItemClickListener listener;
-    private final boolean showEditButton; // Field to control edit button visibility
+    private final boolean showEditButton; // controls edit visibility
 
-    // Constructor for Layout6Activity (defaults to showing edit button)
+    // Default constructor (shows edit)
     public ScheduleItemAdapter(Context ctx, List<ScheduleItem> items, OnItemClickListener listener) {
         this(ctx, items, listener, true);
     }
 
-    // Overloaded constructor for HomeFragment (allows hiding the edit button)
+    // Overloaded constructor to control edit visibility
     public ScheduleItemAdapter(Context ctx, List<ScheduleItem> items, OnItemClickListener listener, boolean showEditButton) {
         this.ctx = ctx;
-        this.items = (items == null) ? new ArrayList<>() : items;
+        this.items = (items == null) ? new ArrayList<>() : new ArrayList<>(items);
         this.listener = listener;
         this.showEditButton = showEditButton;
     }
@@ -51,9 +54,9 @@ public class ScheduleItemAdapter extends RecyclerView.Adapter<ScheduleItemAdapte
 
     @Override
     public void onBindViewHolder(@NonNull VH holder, int position) {
+        if (position < 0 || position >= items.size()) return;
         ScheduleItem item = items.get(position);
 
-        // Bind start/end/activity to the views
         holder.tvStart.setText(item.getStartTime() != null ? item.getStartTime() : "");
         holder.tvEnd.setText(item.getEndTime() != null ? item.getEndTime() : "");
         holder.tvActivity.setText(item.getActivity() != null ? item.getActivity() : "");
@@ -62,7 +65,6 @@ public class ScheduleItemAdapter extends RecyclerView.Adapter<ScheduleItemAdapte
             if (listener != null) listener.onItemClick(holder.getBindingAdapterPosition(), item);
         });
 
-        // Conditionally set visibility and click listener for the edit icon
         if (showEditButton) {
             holder.ivEdit.setVisibility(View.VISIBLE);
             holder.ivEdit.setOnClickListener(v -> {
@@ -70,7 +72,12 @@ public class ScheduleItemAdapter extends RecyclerView.Adapter<ScheduleItemAdapte
             });
         } else {
             holder.ivEdit.setVisibility(View.GONE);
+            holder.ivEdit.setOnClickListener(null);
         }
+
+        // optional debug
+        String fk = item.getFirebaseKey() == null ? "" : item.getFirebaseKey();
+        Log.d("ScheduleItemAdapter", "pos=" + position + " fk=" + fk);
     }
 
     @Override

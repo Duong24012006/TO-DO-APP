@@ -3,17 +3,25 @@ package com.example.to_do_app.activitys;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Looper;
 import android.text.InputType;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -28,7 +36,10 @@ import com.example.to_do_app.model.DetailedSchedule;
 import com.example.to_do_app.model.ScheduleItem;
 import com.example.to_do_app.model.ScheduleTemplate;
 import com.example.to_do_app.model.TimeSlot;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -44,6 +55,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class Layout6Activity extends AppCompatActivity {
 
@@ -71,6 +83,8 @@ public class Layout6Activity extends AppCompatActivity {
     private String userId;
 
     private SharedPreferences prefs;
+
+
     private static final String PREFS_NAME = "profile_overrides";
     private static final String PROFILE_PREFS = "profile_prefs";
     private static final String PROFILE_HISTORY_KEY = "profile_history";
@@ -81,6 +95,7 @@ public class Layout6Activity extends AppCompatActivity {
     private String editingHistoryKey = null;
     private DetailedSchedule currentTemplateDetails = null;
 
+   // java
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,6 +105,13 @@ public class Layout6Activity extends AppCompatActivity {
         schedulesRef = FirebaseDatabase.getInstance().getReference("schedules");
         rootRef = FirebaseDatabase.getInstance().getReference();
         prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        userId = FirebaseAuth.getInstance().getUid();
+
+        // bind views first so view references are not null
+        bindViews();
+
+        // now it's safe to setup recycler view
+        setupRecyclerView();
 
         View root = findViewById(R.id.root_manhinh_lichduocchon);
         if (root != null) {
@@ -111,21 +133,14 @@ public class Layout6Activity extends AppCompatActivity {
             profilePrefs.edit().putString("profile_user_id", userId).apply();
         }
 
-        bindViews();
-
         selectedDay = getIntent().getIntExtra("selected_day", selectedDay);
         editingHistoryKey = getIntent().getStringExtra(EXTRA_HISTORY_KEY);
 
-        setupRecyclerView();
-
         ScheduleTemplate template = (ScheduleTemplate) getIntent().getSerializableExtra(EXTRA_SCHEDULE_TEMPLATE);
-
         if (template != null) {
             String passedTitle = template.getTitle();
-            if (passedTitle != null && !passedTitle.isEmpty()) {
-                if (tvTitleHeader != null) {
-                    tvTitleHeader.setText(passedTitle);
-                }
+            if (passedTitle != null && !passedTitle.isEmpty() && tvTitleHeader != null) {
+                tvTitleHeader.setText(passedTitle);
                 currentTemplateDetails = getTemplateDetailsByTitle(passedTitle);
             }
         }
@@ -134,6 +149,37 @@ public class Layout6Activity extends AppCompatActivity {
         setupListeners();
         loadScheduleDataForDay(selectedDay);
     }
+
+
+    private void setupRecyclerView() {
+        if (currentList == null) currentList = new ArrayList<>();
+        scheduleAdapter = new ScheduleItemAdapter(this, currentList, new ScheduleItemAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(int position, ScheduleItem item) {
+                if (item == null) return;
+                String fk = item.getFirebaseKey() == null ? "" : item.getFirebaseKey();
+                if (fk.startsWith("builtin_")) {
+                    // builtin items cannot be deleted — inform user and open edit for overrides
+                    Toast.makeText(Layout6Activity.this, "Mục này là mặc định và không thể xóa.", Toast.LENGTH_SHORT).show();
+                    showEditDialog(position, item);
+                } else {
+                    // user-added / local / firebase items -> confirm deletion
+                    confirmAndDeleteItem(position, item);
+                }
+            }
+
+            @Override
+            public void onEditClick(int position, ScheduleItem item) {
+                showEditDialog(position, item);
+            }
+        });
+        scheduleRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        scheduleRecyclerView.setAdapter(scheduleAdapter);
+    }
+
+
+
+
 
     private void bindViews() {
         btnBack = findViewById(R.id.btnBack);
@@ -150,22 +196,7 @@ public class Layout6Activity extends AppCompatActivity {
         dayCN = findViewById(R.id.dayCN);
     }
 
-    private void setupRecyclerView() {
-        if (currentList == null) currentList = new ArrayList<>();
-        scheduleAdapter = new ScheduleItemAdapter(this, currentList, new ScheduleItemAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(int position, ScheduleItem item) {
-                showEditDialog(position, item);
-            }
 
-            @Override
-            public void onEditClick(int position, ScheduleItem item) {
-                showEditDialog(position, item);
-            }
-        });
-        scheduleRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        scheduleRecyclerView.setAdapter(scheduleAdapter);
-    }
 
     private void setupDays() {
         View.OnClickListener dayClick = v -> {
@@ -203,6 +234,10 @@ public class Layout6Activity extends AppCompatActivity {
         if (fabAdd != null) fabAdd.setOnClickListener(v -> showAddDialogMode());
     }
 
+    // (Chỉ cập nhật method loadScheduleDataForDay; chèn vào class Layout6Activity của bạn)
+    // Replace or add these methods inside your Layout6Activity class.
+
+    // --- loadScheduleDataForDay (with added logging of firebaseKeys) ---
     private void loadScheduleDataForDay(int day) {
         if (currentTemplateDetails != null) {
             String dayKey = getDayKeyAsString(day);
@@ -210,14 +245,29 @@ public class Layout6Activity extends AppCompatActivity {
 
             if (timeSlots != null) {
                 List<ScheduleItem> items = new ArrayList<>();
-                for (TimeSlot slot : timeSlots) {
-                    items.add(new ScheduleItem(0, slot.getStartTime(), slot.getEndTime(), slot.getActivityName(), day));
+                String titlePart = (currentTemplateDetails.getTitle() == null)
+                        ? "template"
+                        : currentTemplateDetails.getTitle().replaceAll("\\s+", "_");
+                for (int i = 0; i < timeSlots.size(); i++) {
+                    TimeSlot slot = timeSlots.get(i);
+                    ScheduleItem si = new ScheduleItem(0, slot.getStartTime(), slot.getEndTime(), slot.getActivityName(), day);
+                    // đánh dấu là builtin (không thể xóa)
+                    si.setFirebaseKey("builtin_template_" + titlePart + "_" + day + "_" + i);
+                    items.add(si);
                 }
                 currentList.clear();
                 currentList.addAll(items);
                 if (scheduleAdapter != null) {
                     scheduleAdapter.updateList(currentList);
                 }
+
+                // Log keys for debugging
+                StringBuilder sb = new StringBuilder();
+                for (ScheduleItem it : currentList) {
+                    String fk = it.getFirebaseKey() == null ? "<null>" : it.getFirebaseKey();
+                    sb.append(fk).append(" | ");
+                }
+                Log.d(TAG, "loadScheduleDataForDay (template) keys: " + sb.toString());
             } else {
                 currentList.clear();
                 if (scheduleAdapter != null) {
@@ -248,8 +298,20 @@ public class Layout6Activity extends AppCompatActivity {
                 }
 
                 List<ScheduleItem> itemsToShow = new ArrayList<>();
-                itemsToShow.addAll(getDefaultItemsForDay(day));
+
+                // Get default items and mark them builtin if they don't already have a key
+                List<ScheduleItem> defaultItems = getDefaultItemsForDay(day);
+                for (int i = 0; i < defaultItems.size(); i++) {
+                    ScheduleItem d = defaultItems.get(i);
+                    if (d.getFirebaseKey() == null || d.getFirebaseKey().isEmpty()) {
+                        d.setFirebaseKey("builtin_default_" + day + "_" + i);
+                    }
+                }
+                itemsToShow.addAll(defaultItems);
+
                 itemsToShow.addAll(firebaseItems);
+
+                // overrides from prefs (may include override_... keys) - keep as-is
                 itemsToShow.addAll(getOverridesFromPrefs(day));
 
                 itemsToShow.sort((a, b) -> Integer.compare(
@@ -272,6 +334,14 @@ public class Layout6Activity extends AppCompatActivity {
                 currentList.addAll(deduped);
                 if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
 
+                // Debug log: list firebase keys loaded
+                StringBuilder sb = new StringBuilder();
+                for (ScheduleItem it : currentList) {
+                    String fk = it.getFirebaseKey() == null ? "<null>" : it.getFirebaseKey();
+                    sb.append(fk).append(" | ");
+                }
+                Log.d(TAG, "loadScheduleDataForDay keys: " + sb.toString());
+
                 if (currentList.isEmpty()) {
                     Toast.makeText(Layout6Activity.this, "Danh sách lịch trống", Toast.LENGTH_SHORT).show();
                 }
@@ -286,42 +356,10 @@ public class Layout6Activity extends AppCompatActivity {
         });
     }
 
-    private void showEditDialog(int position, ScheduleItem item) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        View view = LayoutInflater.from(this).inflate(R.layout.edit_schedule1, null);
-        EditText etStart = view.findViewById(R.id.etStartTime);
-        EditText etEnd = view.findViewById(R.id.etEndTime);
-        EditText etAct = view.findViewById(R.id.etActivity);
 
-        etStart.setText(item.getStartTime());
-        etEnd.setText(item.getEndTime());
-        etAct.setText(item.getActivity());
 
-        builder.setView(view)
-                .setTitle("Chỉnh sửa lịch trình")
-                .setPositiveButton("Lưu", (dialog, which) -> {
-                    String newStart = etStart.getText().toString().trim();
-                    String newEnd = etEnd.getText().toString().trim();
-                    String newAct = etAct.getText().toString().trim();
 
-                    if (newStart.isEmpty() || newEnd.isEmpty()) {
-                        Toast.makeText(this, "Vui lòng nhập đầy đủ thời gian", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    if (isOverlapping(newStart, newEnd, currentList, item)) {
-                        Toast.makeText(this, "Thời gian mới trùng với mục khác.", Toast.LENGTH_LONG).show();
-                        return;
-                    }
 
-                    item.setStartTime(newStart);
-                    item.setEndTime(newEnd);
-                    item.setActivity(newAct);
-
-                    saveItem(item, position);
-                })
-                .setNegativeButton("Hủy", null)
-                .show();
-    }
 
     private void saveItem(ScheduleItem item, int position) {
         String key = item.getFirebaseKey();
@@ -339,34 +377,8 @@ public class Layout6Activity extends AppCompatActivity {
         if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
     }
 
-    private void showApplyDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle("Áp dụng lịch này")
-                .setMessage("Bạn muốn:")
-                .setPositiveButton("Hiển thị ở màn hình chính", (dialog, which) -> {
-                    saveScheduleToFirebase();
-                    saveScheduleToProfileHistory(selectedDay);
-                    // Ensure template changes (if any) are persisted so saveAllWeekScheduleToHomeDisplay picks them up
-                    if (currentTemplateDetails != null) {
-                        ScheduleData.saveCustomTemplate(this, currentTemplateDetails);
-                    }
-                    saveAllWeekScheduleToHomeDisplay();
-                    Toast.makeText(this, "Đã lưu toàn bộ lịch tuần và áp dụng", Toast.LENGTH_SHORT).show();
-                    finish();
-                })
-                .setNegativeButton("Chỉ lưu vào lịch sử", (dialog, which) -> {
-                    saveScheduleToFirebase();
-                    saveScheduleToProfileHistory(selectedDay);
-                    Toast.makeText(this, "Đã lưu vào lịch sử", Toast.LENGTH_SHORT).show();
-                })
-                .setNeutralButton("Hủy", null)
-                .show();
-    }
-
-
     private void showAddDialogMode() {
         ensureScheduleNamedThen(() -> {
-            // original add-flow (runs only after we have a currentScheduleName)
             AlertDialog.Builder modeBuilder = new AlertDialog.Builder(this);
             modeBuilder.setTitle("Chọn cách thêm")
                     .setItems(new String[]{"Thêm vào khung giờ cố định", "Thêm hoạt động tùy ý (cho phép trùng)"}, (modeDialog, whichMode) -> {
@@ -444,6 +456,9 @@ public class Layout6Activity extends AppCompatActivity {
                                                         return;
                                                     }
                                                     ScheduleItem newItem = new ScheduleItem(0, newStart, newEnd, newAct, selectedDay);
+                                                    // mark as user/local so delete UI & logic allow removal until firebase assigns real key
+                                                    newItem.setFirebaseKey("local_" + System.currentTimeMillis());
+
                                                     if (currentList == null) currentList = new ArrayList<>();
                                                     currentList.add(newItem);
                                                     currentList.sort((a, b) -> Integer.compare(
@@ -451,10 +466,9 @@ public class Layout6Activity extends AppCompatActivity {
                                                             timeToMinutesOrMax(b.getStartTime())
                                                     ));
                                                     if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
-                                                    // Important: save under per-user schedule path because ensureScheduleNamedThen guaranteed currentScheduleName != null
+                                                    // save & persist
                                                     saveSingleItemToFirebase(newItem);
                                                     pushSingleActivityHistory(newItem, null);
-                                                    // persist into the active template (so ScheduleData receives & saves)
                                                     addToCurrentTemplateAndSave(newItem);
                                                     Toast.makeText(this, "Đã thêm vào khung giờ cố định (lưu vào lịch '" + currentScheduleName + "')", Toast.LENGTH_SHORT).show();
                                                 })
@@ -486,6 +500,9 @@ public class Layout6Activity extends AppCompatActivity {
                                             return;
                                         }
                                         ScheduleItem newItem = new ScheduleItem(0, newStart, newEnd, newAct, selectedDay);
+                                        // assign temporary local key so delete option appears and delete logic can handle it
+                                        newItem.setFirebaseKey("local_" + System.currentTimeMillis());
+
                                         if (currentList == null) currentList = new ArrayList<>();
                                         currentList.add(newItem);
                                         currentList.sort((a, b) -> {
@@ -497,7 +514,6 @@ public class Layout6Activity extends AppCompatActivity {
                                         // save under per-user schedule path (isolation guaranteed)
                                         saveSingleItemToFirebase(newItem);
                                         pushSingleActivityHistory(newItem, null);
-                                        // persist into the active template (so ScheduleData receives & saves)
                                         addToCurrentTemplateAndSave(newItem);
                                         Toast.makeText(this, "Đã thêm hoạt động (cho phép trùng) — lưu vào lịch '" + currentScheduleName + "'", Toast.LENGTH_SHORT).show();
                                     })
@@ -510,52 +526,579 @@ public class Layout6Activity extends AppCompatActivity {
         });
     }
 
-    private void addToCurrentTemplateAndSave(ScheduleItem newItem) {
-        if (newItem == null || currentTemplateDetails == null) return;
-        Map<String, List<TimeSlot>> weekly = currentTemplateDetails.getWeeklyActivities();
-        if (weekly == null) {
-            weekly = new HashMap<>();
-            // try to set it back if setter exists
-            try {
-                currentTemplateDetails.setWeeklyActivities(weekly);
-            } catch (Exception ignored) {
-                // If no setter, we still continue with local map (unlikely since createXTemplate uses new HashMap())
-            }
-        }
-        String dayKey = getDayKeyAsString(newItem.getDayOfWeek());
-        List<TimeSlot> list = weekly.get(dayKey);
-        if (list == null) {
-            list = new ArrayList<>();
-            weekly.put(dayKey, list);
+
+
+
+    private void showApplyDialog() {
+        String[] options = new String[]{
+                "Hiển thị ở màn hình chính",
+                "Chỉ lưu vào lịch sử",
+                "Xóa",
+                "Hủy"
+        };
+
+        new AlertDialog.Builder(this)
+                .setTitle("Áp dụng lịch này")
+                .setItems(options, (dialog, which) -> {
+                    switch (which) {
+                        case 0: // Apply to home display
+                            if (currentList != null) {
+                                for (ScheduleItem it : currentList) {
+                                    String fk = it.getFirebaseKey() == null ? "" : it.getFirebaseKey();
+                                    if (fk.isEmpty() || fk.startsWith("local_")) {
+                                        saveSingleItemToFirebase(it, -1);
+                                    }
+                                }
+                            }
+                            saveScheduleToFirebase();
+                            saveScheduleToProfileHistory(selectedDay);
+                            if (currentTemplateDetails != null) {
+                                ScheduleData.saveCustomTemplate(this, currentTemplateDetails);
+                            }
+                            saveAllWeekScheduleToHomeDisplay();
+                            Toast.makeText(this, "Đã lưu toàn bộ lịch tuần và áp dụng", Toast.LENGTH_SHORT).show();
+                            finish();
+                            break;
+
+                        case 1: // Save to history only
+                            if (currentList != null) {
+                                for (ScheduleItem it : currentList) {
+                                    String fk = it.getFirebaseKey() == null ? "" : it.getFirebaseKey();
+                                    if (fk.isEmpty() || fk.startsWith("local_")) {
+                                        saveSingleItemToFirebase(it, -1);
+                                    }
+                                }
+                            }
+                            saveScheduleToFirebase();
+                            saveScheduleToProfileHistory(selectedDay);
+                            Toast.makeText(this, "Đã lưu vào lịch sử", Toast.LENGTH_SHORT).show();
+                            break;
+
+                        case 2: // Delete day schedule
+                            new AlertDialog.Builder(this)
+                                    .setTitle("Xóa lịch")
+                                    .setMessage("Bạn chắc chưa ?")
+                                    .setPositiveButton("Xóa", (confirm, w) -> {
+                                        String dayNode = "day_" + selectedDay;
+                                        DatabaseReference targetRef;
+                                        if (currentScheduleName != null && !currentScheduleName.trim().isEmpty()) {
+                                            targetRef = rootRef.child("users").child(userId).child("schedules").child(currentScheduleName).child(dayNode);
+                                        } else {
+                                            targetRef = schedulesRef.child(dayNode);
+                                        }
+
+                                        targetRef.removeValue()
+                                                .addOnSuccessListener(aVoid -> {
+                                                    // remove overrides and local items for this day from prefs
+                                                    try {
+                                                        prefs.edit()
+                                                                .remove("overrides_day_" + selectedDay)
+                                                                .remove(localKeyForDay(selectedDay))
+                                                                .apply();
+                                                    } catch (Exception ex) {
+                                                        Log.w(TAG, "Failed clearing local prefs for day", ex);
+                                                    }
+
+                                                    if (currentList != null) {
+                                                        currentList.clear();
+                                                        if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
+                                                    }
+                                                    Toast.makeText(Layout6Activity.this, "Đã xóa toàn bộ lịch ngày này.", Toast.LENGTH_SHORT).show();
+                                                })
+                                                .addOnFailureListener(e -> {
+                                                    Log.w(TAG, "Failed to remove day node: " + e.getMessage(), e);
+                                                    Toast.makeText(Layout6Activity.this, "Không thể xóa: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                                });
+                                    })
+                                    .setNegativeButton("Hủy", null)
+                                    .show();
+                            break;
+
+                        case 3: // Cancel
+                        default:
+                            // nothing
+                            break;
+                    }
+                })
+                .show();
+    }
+    // --- CẬP NHẬT showEditDialog: chỉ hiện "Xóa" nếu item không phải builtin ---
+    private void showEditDialog(int position, ScheduleItem item) {
+        if (item == null) return;
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this).inflate(R.layout.edit_schedule1, null);
+        EditText etStart = view.findViewById(R.id.etStartTime);
+        EditText etEnd = view.findViewById(R.id.etEndTime);
+        EditText etAct = view.findViewById(R.id.etActivity);
+
+        etStart.setText(item.getStartTime());
+        etEnd.setText(item.getEndTime());
+        etAct.setText(item.getActivity());
+
+        String fk = item.getFirebaseKey() == null ? "" : item.getFirebaseKey();
+        boolean isBuiltin = fk.startsWith("builtin_");
+
+        builder.setView(view)
+                .setTitle("Chỉnh sửa lịch trình")
+                .setPositiveButton("Lưu", (dialog, which) -> {
+                    String newStart = etStart.getText().toString().trim();
+                    String newEnd = etEnd.getText().toString().trim();
+                    String newAct = etAct.getText().toString().trim();
+
+                    if (newStart.isEmpty() || newEnd.isEmpty()) {
+                        Toast.makeText(this, "Vui lòng nhập đầy đủ thời gian", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (isOverlapping(newStart, newEnd, currentList, item)) {
+                        Toast.makeText(this, "Thời gian mới trùng với mục khác.", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    item.setStartTime(newStart);
+                    item.setEndTime(newEnd);
+                    item.setActivity(newAct);
+
+                    saveItem(item, position);
+                })
+                .setNegativeButton("Hủy", null);
+
+        // Only allow delete for user-added items (firebase/override/local), not builtins
+        if (!isBuiltin) {
+            builder.setNeutralButton("Xóa", (dialog, which) -> {
+                // confirm then delete using existing helper to keep consistent behaviour
+                confirmAndDeleteItem(position, item);
+            });
         }
 
-        // check for exact duplicate (start, end, activity)
-        boolean exists = false;
-        for (TimeSlot ts : list) {
-            String s = ts.getStartTime() == null ? "" : ts.getStartTime();
-            String e = ts.getEndTime() == null ? "" : ts.getEndTime();
-            String a = ts.getActivityName() == null ? "" : ts.getActivityName();
-            if (s.equals(newItem.getStartTime()) && e.equals(newItem.getEndTime()) && a.equals(newItem.getActivity())) {
-                exists = true;
-                break;
-            }
+        builder.show();
+    }
+    // Paste this showEditDialog method into your Layout6Activity (replace existing showEditDialog).
+// Safe showEditDialog: checks activity state, runs on UI thread, catches BadTokenException,
+// tries neutral button, falls back to inline delete view if neutral missing.
+    // Replace your showEditDialog method with this
+// Paste into Layout6Activity.java (replace your existing showEditDialog)
+
+    // Paste into Layout6Activity.java
+    private void showConfirmDeleteDialog(int position, ScheduleItem item) {
+        if (item == null) return;
+
+        // If builtin, block early
+        String fk = item.getFirebaseKey() == null ? "" : item.getFirebaseKey();
+        if (fk.startsWith("builtin_")) {
+            Toast.makeText(this, "Mục này là mặc định và không thể xóa.", Toast.LENGTH_SHORT).show();
+            return;
         }
-        if (!exists) {
-            list.add(new TimeSlot(newItem.getStartTime(), newItem.getEndTime(), newItem.getActivity()));
-            // persist the updated template so ScheduleData "receives" and stores this custom template
-            ScheduleData.saveCustomTemplate(this, currentTemplateDetails);
-            Log.d(TAG, "Added new slot to template and saved: " + newItem.getStartTime() + "-" + newItem.getEndTime() + " " + newItem.getActivity());
+
+        new AlertDialog.Builder(this)
+                .setTitle("Xác nhận xóa")
+                .setMessage("Bạn có chắc muốn xóa hoạt động này?")
+                .setPositiveButton("Xóa", (conf, which) -> {
+                    // perform deletion
+                    performDeleteItem(position, item);
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    /**
+     * Thực hiện xóa thật sự: xử lý các trường hợp override_*, firebase key, local (rỗng/local_).
+     * Cập nhật currentList và adapter tương ứng.
+     */
+    private void performDeleteItem(int position, ScheduleItem item) {
+        if (item == null) return;
+        String fk = item.getFirebaseKey() == null ? "" : item.getFirebaseKey();
+        int day = item.getDayOfWeek();
+
+        // 1) builtin protection (extra safety)
+        if (fk.startsWith("builtin_")) {
+            Toast.makeText(this, "Không thể xóa mục mặc định.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 2) override stored in prefs (key like override_...) -> remove from overrides in prefs
+        if (fk.startsWith("override_")) {
+            try {
+                List<ScheduleItem> overrides = ScheduleData.getOverridesFromPrefs(this, day);
+                boolean removed = false;
+                for (int i = overrides.size() - 1; i >= 0; i--) {
+                    ScheduleItem s = overrides.get(i);
+                    String k = s.getFirebaseKey() == null ? "" : s.getFirebaseKey();
+                    // match by firebaseKey if present, else by time+activity
+                    if ((!k.isEmpty() && k.equals(fk)) ||
+                            (equalsByTimeAndActivity(s, item))) {
+                        overrides.remove(i);
+                        removed = true;
+                    }
+                }
+                ScheduleData.saveOverridesToPrefs(this, day, overrides);
+                if (removed) {
+                    // remove from currentList
+                    removeItemFromCurrentList(position, item);
+                    Toast.makeText(this, "Đã xóa override.", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "Không tìm thấy override để xóa.", Toast.LENGTH_SHORT).show();
+                }
+            } catch (Exception ex) {
+                Log.w(TAG, "Failed removing override from prefs", ex);
+                Toast.makeText(this, "Xóa thất bại.", Toast.LENGTH_SHORT).show();
+            }
+            return;
+        }
+
+        // 3) local-only item (no firebase key or local_...) -> remove locally
+        if (fk.isEmpty() || fk.startsWith("local_")) {
+            // remove from any local storage if you keep local_items_day_<day>
+            try {
+                // remove from currentList
+                removeItemFromCurrentList(position, item);
+
+                // update local saved items if you use ScheduleData.saveLocalUserItems
+                List<ScheduleItem> local = ScheduleData.getLocalUserItems(this, day);
+                boolean removed = false;
+                for (int i = local.size() - 1; i >= 0; i--) {
+                    if (equalsByTimeAndActivity(local.get(i), item)) {
+                        local.remove(i);
+                        removed = true;
+                    }
+                }
+                if (removed) ScheduleData.saveLocalUserItems(this, day, local);
+
+                Toast.makeText(this, "Đã xóa.", Toast.LENGTH_SHORT).show();
+            } catch (Exception ex) {
+                Log.w(TAG, "Failed removing local item", ex);
+                Toast.makeText(this, "Xóa thất bại.", Toast.LENGTH_SHORT).show();
+            }
+            return;
+        }
+
+        // 4) firebase-backed item with a real key -> remove from Firebase
+        DatabaseReference targetDayRef;
+        if (currentScheduleName != null && !currentScheduleName.trim().isEmpty()) {
+            targetDayRef = rootRef.child("users").child(userId).child("schedules").child(currentScheduleName).child("day_" + day);
         } else {
-            Log.d(TAG, "Slot already exists in template, skip add.");
+            targetDayRef = schedulesRef.child("day_" + day);
+        }
+
+        targetDayRef.child(fk).removeValue()
+                .addOnSuccessListener(aVoid -> {
+                    removeItemFromCurrentList(position, item);
+                    Toast.makeText(this, "Đã xóa hoạt động.", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Failed to remove item from firebase: " + e.getMessage(), e);
+                    Toast.makeText(this, "Không thể xóa: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
+    }
+
+    // helper to remove item from currentList safely and update adapter
+    private void removeItemFromCurrentList(int position, ScheduleItem item) {
+        try {
+            if (currentList == null) return;
+            // prefer remove by position if valid and matches item
+            if (position >= 0 && position < currentList.size()) {
+                ScheduleItem atPos = currentList.get(position);
+                if (equalsByTimeAndActivity(atPos, item) || Objects.equals(atPos.getFirebaseKey(), item.getFirebaseKey())) {
+                    currentList.remove(position);
+                    if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
+                    return;
+                }
+            }
+            // fallback: find by matching key or time+activity
+            for (int i = currentList.size() - 1; i >= 0; i--) {
+                ScheduleItem s = currentList.get(i);
+                String k = s.getFirebaseKey() == null ? "" : s.getFirebaseKey();
+                if ((!k.isEmpty() && k.equals(item.getFirebaseKey())) || equalsByTimeAndActivity(s, item)) {
+                    currentList.remove(i);
+                }
+            }
+            if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
+        } catch (Exception ex) {
+            Log.w(TAG, "removeItemFromCurrentList error", ex);
+        }
+    }
+    private void confirmAndDeleteItem(int position, ScheduleItem item) {
+        if (item == null) return;
+
+        String fk = item.getFirebaseKey() == null ? "" : item.getFirebaseKey();
+
+        // Prevent deletion of builtin (hardcoded) items
+        if (fk.startsWith("builtin_")) {
+            Toast.makeText(this, "Mục này là mặc định và không thể xóa.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("Xóa hoạt động")
+                .setMessage("Bạn có chắc muốn xóa hoạt động này không?")
+                .setPositiveButton("Xóa", (dialog, which) -> {
+                    performDeletion(position, item);
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    /**
+     * Thực hiện xóa (thực tế): cập nhật UI, xóa khỏi template nếu cần, xóa overrides/prefs/local/firebase,
+     * load lại ngày nếu template đã thay đổi, và hiển thị thông báo cho người dùng.
+     */
+    private void performDeletion(int position, ScheduleItem item) {
+        if (item == null) return;
+
+        // Optimistic UI removal for snappy UX
+        boolean removedFromList = false;
+        if (currentList != null) {
+            if (position >= 0 && position < currentList.size()) {
+                currentList.remove(position);
+                removedFromList = true;
+            } else {
+                for (int i = currentList.size() - 1; i >= 0; i--) {
+                    ScheduleItem it = currentList.get(i);
+                    if (equalsByTimeAndActivity(it, item)) {
+                        currentList.remove(i);
+                        removedFromList = true;
+                    }
+                }
+            }
+            if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
+        }
+
+        // 1) Remove from persisted template (if applicable)
+        boolean removedFromTemplate = false;
+        try {
+            if (currentTemplateDetails != null && currentTemplateDetails.getTitle() != null) {
+                String title = currentTemplateDetails.getTitle();
+                String dayKey = getDayKeyAsString(item.getDayOfWeek());
+                TimeSlot slot = new TimeSlot(item.getStartTime(), item.getEndTime(), item.getActivity());
+                DetailedSchedule updated = ScheduleData.removeSlotFromTemplateAndGet(this, title, dayKey, slot);
+                if (updated != null) {
+                    currentTemplateDetails = updated;
+                    removedFromTemplate = true;
+                    Log.d(TAG, "Removed slot from custom template: " + title + " / " + dayKey);
+                }
+            }
+        } catch (Exception ex) {
+            Log.w(TAG, "Error removing slot from template", ex);
+        }
+
+        // 2) Remove from overrides prefs / local storage / Firebase
+        try {
+            String fk2 = item.getFirebaseKey() == null ? "" : item.getFirebaseKey();
+            if (fk2.isEmpty() || fk2.startsWith("override_")) {
+                // override or local-only -> remove from prefs/local
+                saveOverrideRemove(item);
+                removeLocalUserItem(item);
+            } else {
+                // remove from Firebase (use per-user schedule if currentScheduleName set)
+                String dayNode = "day_" + item.getDayOfWeek();
+                DatabaseReference targetRef;
+                if (currentScheduleName != null && !currentScheduleName.trim().isEmpty()) {
+                    targetRef = rootRef.child("users").child(userId).child("schedules").child(currentScheduleName).child(dayNode).child(fk2);
+                } else {
+                    targetRef = schedulesRef.child(dayNode).child(fk2);
+                }
+
+                targetRef.removeValue()
+                        .addOnSuccessListener(aVoid -> Log.d(TAG, "Removed item from Firebase key=" + fk2))
+                        .addOnFailureListener(e -> {
+                            Log.w(TAG, "Failed to remove item from Firebase: " + e.getMessage(), e);
+                            runOnUiThread(() -> Toast.makeText(Layout6Activity.this, "Không thể xóa trên server: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                        });
+
+                // also remove any local cached copy
+                removeLocalUserItem(item);
+            }
+        } catch (Exception ex) {
+            Log.w(TAG, "Error removing from Firebase/prefs", ex);
+        }
+
+        // 3) If removed from template, reload canonical template day to ensure UI consistent
+        if (removedFromTemplate) {
+            loadScheduleDataForDay(selectedDay);
+        }
+
+        // Final user feedback
+        if (removedFromList) {
+            Toast.makeText(this, "Đã xóa hoạt động.", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Đã cố gắng xóa hoạt động.", Toast.LENGTH_SHORT).show();
         }
     }
 
 
 
-    // java
-    // Add these members/methods inside Layout6Activity (e.g. near other fields / methods)
+
+    private void addOrUpdateLocalUserItem(ScheduleItem item) {
+        if (item == null) return;
+        int day = item.getDayOfWeek();
+        List<ScheduleItem> existing = getLocalUserItems(day);
+        boolean updated = false;
+        String fk = item.getFirebaseKey() == null ? "" : item.getFirebaseKey();
+        for (int i = 0; i < existing.size(); i++) {
+            ScheduleItem ex = existing.get(i);
+            String exFk = ex.getFirebaseKey() == null ? "" : ex.getFirebaseKey();
+            if (!exFk.isEmpty() && exFk.equals(fk)) {
+                existing.set(i, item);
+                updated = true;
+                break;
+            }
+        }
+        if (!updated) existing.add(item);
+        saveLocalUserItems(day, existing);
+    }
+    private List<ScheduleItem> getLocalUserItems(int day) {
+        String key = localKeyForDay(day);
+        String json = prefs.getString(key, null);
+        List<ScheduleItem> list = new ArrayList<>();
+        if (json == null) return list;
+        try {
+            JSONArray arr = new JSONArray(json);
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject o = arr.getJSONObject(i);
+                String fk = o.optString("firebaseKey", null);
+                String s = o.optString("startTime", "");
+                String e = o.optString("endTime", "");
+                String a = o.optString("activity", "");
+                int d = o.optInt("day", day);
+                ScheduleItem it = new ScheduleItem(0, s, e, a, d);
+                if (fk != null && !fk.isEmpty()) it.setFirebaseKey(fk);
+                list.add(it);
+            }
+        } catch (JSONException ex) {
+            Log.e(TAG, "parse local items error", ex);
+        }
+        return list;
+    }
+    private void saveLocalUserItems(int day, List<ScheduleItem> items) {
+        try {
+            String key = localKeyForDay(day);
+            JSONArray arr = new JSONArray();
+            if (items != null) {
+                for (ScheduleItem it : items) {
+                    JSONObject o = new JSONObject();
+                    o.put("firebaseKey", it.getFirebaseKey() == null ? "" : it.getFirebaseKey());
+                    o.put("startTime", it.getStartTime() == null ? "" : it.getStartTime());
+                    o.put("endTime", it.getEndTime() == null ? "" : it.getEndTime());
+                    o.put("activity", it.getActivity() == null ? "" : it.getActivity());
+                    o.put("day", it.getDayOfWeek());
+                    arr.put(o);
+                }
+            }
+            prefs.edit().putString(key, arr.toString()).apply();
+            Log.d(TAG, "Saved " + (items == null ? 0 : items.size()) + " local items to key=" + key);
+        } catch (JSONException ex) {
+            Log.e(TAG, "saveLocalUserItems json error", ex);
+        } catch (Exception ex) {
+            Log.w(TAG, "saveLocalUserItems failed", ex);
+        }
+    }
+
+
+
+
+
+
+    private void addToCurrentTemplateAndSave(ScheduleItem newItem) {
+        if (newItem == null) return;
+
+        // If there is no template selected, we still save the single item into Firebase (already done elsewhere)
+        if (currentTemplateDetails == null) {
+            Log.w(TAG, "No current template selected - skipping template persistence");
+            return;
+        }
+
+        String title = currentTemplateDetails.getTitle();
+        if (title == null || title.trim().isEmpty()) {
+            Log.w(TAG, "Current template has no title - cannot persist");
+            return;
+        }
+
+        String dayKey = getDayKeyAsString(newItem.getDayOfWeek());
+        TimeSlot slot = new TimeSlot(
+                newItem.getStartTime() == null ? "" : newItem.getStartTime(),
+                newItem.getEndTime() == null ? "" : newItem.getEndTime(),
+                newItem.getActivity() == null ? "" : newItem.getActivity()
+        );
+
+        // Optimistic local persistence (for offline/quick UI)
+        try {
+            addOrUpdateLocalUserItem(newItem);
+        } catch (Exception ex) {
+            Log.w(TAG, "addOrUpdateLocalUserItem failed", ex);
+        }
+
+        // Use ScheduleData's API to add and get the saved template back
+        DetailedSchedule updated = ScheduleData.addSlotToTemplateAndGet(this, title, dayKey, slot);
+        if (updated != null) {
+            currentTemplateDetails = updated;
+            Log.d(TAG, "addToCurrentTemplateAndSave: persisted slot and reloaded template for title=" + title);
+            // refresh UI for current day immediately
+            loadScheduleDataForDay(selectedDay);
+            Toast.makeText(this, "Đã lưu vào mẫu: " + slot.getActivity(), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Fallback behavior: try to merge and save directly on currentTemplateDetails
+        Log.w(TAG, "addToCurrentTemplateAndSave: addSlotToTemplateAndGet returned null - attempting fallback save");
+        Map<String, List<TimeSlot>> weekly;
+        try {
+            weekly = currentTemplateDetails.getWeeklyActivities();
+        } catch (Exception ex) {
+            weekly = null;
+        }
+        if (weekly == null) weekly = new HashMap<>();
+        Map<String, List<TimeSlot>> copy = new HashMap<>();
+        for (Map.Entry<String, List<TimeSlot>> e : weekly.entrySet()) {
+            copy.put(e.getKey(), e.getValue() == null ? new ArrayList<>() : new ArrayList<>(e.getValue()));
+        }
+        List<TimeSlot> list = copy.get(dayKey);
+        if (list == null) {
+            list = new ArrayList<>();
+            copy.put(dayKey, list);
+        }
+        boolean exists = false;
+        for (TimeSlot ts : list) {
+            String s = ts.getStartTime() == null ? "" : ts.getStartTime();
+            String e = ts.getEndTime() == null ? "" : ts.getEndTime();
+            String a = ts.getActivityName() == null ? "" : ts.getActivityName();
+            if (s.equals(slot.getStartTime()) && e.equals(slot.getEndTime()) && a.equals(slot.getActivityName())) {
+                exists = true;
+                break;
+            }
+        }
+        if (!exists) {
+            list.add(slot);
+            try {
+                DetailedSchedule ds = new DetailedSchedule(
+                        currentTemplateDetails.getTitle(),
+                        currentTemplateDetails.getDescription(),
+                        currentTemplateDetails.getTags() == null ? new ArrayList<>() : new ArrayList<>(currentTemplateDetails.getTags()),
+                        copy
+                );
+                ScheduleData.saveCustomTemplate(this, ds);
+                currentTemplateDetails = ds;
+                loadScheduleDataForDay(selectedDay);
+                Toast.makeText(this, "Đã lưu vào mẫu (fallback): " + slot.getActivity(), Toast.LENGTH_SHORT).show();
+            } catch (Exception ex) {
+                try {
+                    currentTemplateDetails.setWeeklyActivities(copy);
+                    ScheduleData.saveCustomTemplate(this, currentTemplateDetails);
+                    loadScheduleDataForDay(selectedDay);
+                    Toast.makeText(this, "Đã lưu vào mẫu (fallback setter): " + slot.getActivity(), Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    Log.w(TAG, "Fallback save failed", e);
+                    Toast.makeText(this, "Không thể lưu mục vào mẫu", Toast.LENGTH_SHORT).show();
+                }
+            }
+        } else {
+            Log.d(TAG, "Slot already exists in template - skip adding");
+        }
+    }
+
+
 
     private String currentScheduleName = null;
+
 
     /**
      * Ensures we have a current schedule name, prompting the user if needed.
@@ -612,10 +1155,211 @@ public class Layout6Activity extends AppCompatActivity {
     /**
      * Convenience overload used by UI code that didn't pass a position.
      */
-    private void saveSingleItemToFirebase(ScheduleItem item) {
-        saveSingleItemToFirebase(item, -1);
+    // language: java
+    private String localKeyForDay(int day) {
+        // Consistent local key for storing per-day local items in prefs
+        return "local_items_day_" + day;
     }
+//    private void saveSingleItemToFirebase(ScheduleItem item) {
+//        saveSingleItemToFirebase(item, -1);
+//    }
+//    private void saveSingleItemToFirebase(ScheduleItem item, int position) {
+//        if (item == null) return;
+//
+//        String dayNode = "day_" + item.getDayOfWeek();
+//        DatabaseReference targetDayRef;
+//        if (currentScheduleName != null && !currentScheduleName.trim().isEmpty()) {
+//            targetDayRef = rootRef.child("users").child(userId).child("schedules").child(currentScheduleName).child(dayNode);
+//        } else {
+//            targetDayRef = schedulesRef.child(dayNode);
+//        }
+//
+//        String fk = item.getFirebaseKey() == null ? "" : item.getFirebaseKey();
+//
+//        // If empty or marked local_ (temporary), push a new node
+//        if (fk.isEmpty() || fk.startsWith("local_")) {
+//            DatabaseReference pushRef = targetDayRef.push();
+//            // Optionally set a temporary key to reflect presence in UI (already maybe "")
+//            String tempKey = pushRef.getKey();
+//            // Set the value on Firebase
+//            pushRef.setValue(item)
+//                    .addOnSuccessListener(aVoid -> {
+//                        // Update item with real key and update UI list
+//                        try {
+//                            item.setFirebaseKey(pushRef.getKey());
+//                            Log.d(TAG, "saveSingleItemToFirebase: pushed item key=" + pushRef.getKey());
+//
+//                            // Update currentList: prefer position if given
+//                            if (position >= 0 && position < currentList.size()) {
+//                                currentList.set(position, item);
+//                            } else {
+//                                // find by matching time+activity and update firebaseKey if match
+//                                boolean updated = false;
+//                                for (int i = 0; i < currentList.size(); i++) {
+//                                    ScheduleItem it = currentList.get(i);
+//                                    if (equalsByTimeAndActivity(it, item)) {
+//                                        currentList.set(i, item);
+//                                        updated = true;
+//                                        break;
+//                                    }
+//                                }
+//                                if (!updated) {
+//                                    // if not found, append
+//                                    currentList.add(item);
+//                                }
+//                            }
+//
+//                            if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
+//                        } catch (Exception ex) {
+//                            Log.w(TAG, "saveSingleItemToFirebase callback error", ex);
+//                        }
+//                    })
+//                    .addOnFailureListener(e -> {
+//                        Log.w(TAG, "Failed to push item to Firebase: " + e.getMessage(), e);
+//                        runOnUiThread(() -> Toast.makeText(Layout6Activity.this, "Lưu thất bại: " + e.getMessage(), Toast.LENGTH_LONG).show());
+//                    });
+//        } else {
+//            // Existing key: update the node
+//            DatabaseReference targetRef = targetDayRef.child(fk);
+//            targetRef.setValue(item)
+//                    .addOnSuccessListener(aVoid -> {
+//                        Log.d(TAG, "saveSingleItemToFirebase: updated item key=" + fk);
+//                        try {
+//                            // update the UI list
+//                            if (position >= 0 && position < currentList.size()) {
+//                                currentList.set(position, item);
+//                            } else {
+//                                // replace by matching key, or by time+activity as fallback
+//                                boolean replaced = false;
+//                                for (int i = 0; i < currentList.size(); i++) {
+//                                    ScheduleItem it = currentList.get(i);
+//                                    String itFk = it.getFirebaseKey() == null ? "" : it.getFirebaseKey();
+//                                    if (!itFk.isEmpty() && itFk.equals(fk)) {
+//                                        currentList.set(i, item);
+//                                        replaced = true;
+//                                        break;
+//                                    }
+//                                }
+//                                if (!replaced) {
+//                                    for (int i = 0; i < currentList.size(); i++) {
+//                                        if (equalsByTimeAndActivity(currentList.get(i), item)) {
+//                                            currentList.set(i, item);
+//                                            replaced = true;
+//                                            break;
+//                                        }
+//                                    }
+//                                }
+//                                if (!replaced) {
+//                                    currentList.add(item);
+//                                }
+//                            }
+//                            if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
+//                        } catch (Exception ex) {
+//                            Log.w(TAG, "saveSingleItemToFirebase update callback error", ex);
+//                        }
+//                    })
+//                    .addOnFailureListener(e -> {
+//                        Log.w(TAG, "Failed to update item on Firebase: " + e.getMessage(), e);
+//                        runOnUiThread(() -> Toast.makeText(Layout6Activity.this, "Cập nhật thất bại: " + e.getMessage(), Toast.LENGTH_LONG).show());
+//                    });
+//        }
+//    }
+private void saveSingleItemToFirebase(ScheduleItem item) {
+    saveSingleItemToFirebase(item, -1);
+}
 
+    private void saveSingleItemToFirebase(ScheduleItem item, int position) {
+        if (item == null) return;
+
+        String dayNode = "day_" + item.getDayOfWeek();
+        DatabaseReference targetDayRef;
+        if (currentScheduleName != null && !currentScheduleName.trim().isEmpty()) {
+            targetDayRef = rootRef.child("users").child(userId).child("schedules").child(currentScheduleName).child(dayNode);
+        } else {
+            targetDayRef = schedulesRef.child(dayNode);
+        }
+
+        String fk = item.getFirebaseKey() == null ? "" : item.getFirebaseKey();
+
+        // If empty or local_ use push()
+        if (fk.isEmpty() || fk.startsWith("local_")) {
+            DatabaseReference pushRef = targetDayRef.push();
+            pushRef.setValue(item)
+                    .addOnSuccessListener(aVoid -> {
+                        try {
+                            String realKey = pushRef.getKey();
+                            item.setFirebaseKey(realKey);
+                            Log.d(TAG, "saveSingleItemToFirebase: pushed item key=" + realKey);
+
+                            // Update currentList
+                            if (position >= 0 && position < currentList.size()) {
+                                currentList.set(position, item);
+                            } else {
+                                // try to find matching by time+activity and update
+                                boolean found = false;
+                                for (int i = 0; i < currentList.size(); i++) {
+                                    ScheduleItem it = currentList.get(i);
+                                    if (equalsByTimeAndActivity(it, item)) {
+                                        currentList.set(i, item);
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                                if (!found) {
+                                    currentList.add(item);
+                                }
+                            }
+                            if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
+                        } catch (Exception ex) {
+                            Log.w(TAG, "saveSingleItemToFirebase push callback error", ex);
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.w(TAG, "Failed to push item to Firebase: " + e.getMessage(), e);
+                        runOnUiThread(() -> Toast.makeText(Layout6Activity.this, "Lưu thất bại: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                    });
+        } else {
+            // update existing key
+            DatabaseReference nodeRef = targetDayRef.child(fk);
+            nodeRef.setValue(item)
+                    .addOnSuccessListener(aVoid -> {
+                        try {
+                            Log.d(TAG, "saveSingleItemToFirebase: updated item key=" + fk);
+                            if (position >= 0 && position < currentList.size()) {
+                                currentList.set(position, item);
+                            } else {
+                                boolean replaced = false;
+                                for (int i = 0; i < currentList.size(); i++) {
+                                    ScheduleItem it = currentList.get(i);
+                                    String itk = it.getFirebaseKey() == null ? "" : it.getFirebaseKey();
+                                    if (!itk.isEmpty() && itk.equals(fk)) {
+                                        currentList.set(i, item);
+                                        replaced = true;
+                                        break;
+                                    }
+                                }
+                                if (!replaced) {
+                                    for (int i = 0; i < currentList.size(); i++) {
+                                        if (equalsByTimeAndActivity(currentList.get(i), item)) {
+                                            currentList.set(i, item);
+                                            replaced = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (!replaced) currentList.add(item);
+                            }
+                            if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
+                        } catch (Exception ex) {
+                            Log.w(TAG, "saveSingleItemToFirebase update callback error", ex);
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.w(TAG, "Failed to update item on Firebase: " + e.getMessage(), e);
+                        runOnUiThread(() -> Toast.makeText(Layout6Activity.this, "Cập nhật thất bại: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                    });
+        }
+    }
     private void pushSingleActivityHistory(ScheduleItem item, String titleOptional) {
         if (item == null) return;
 
@@ -678,20 +1422,219 @@ public class Layout6Activity extends AppCompatActivity {
             Log.w(TAG, "pushSingleActivityHistory failed", ex);
         }
     }
+    private void deleteScheduleItem(int position, ScheduleItem item) {
+        if (item == null) return;
+        String fk = item.getFirebaseKey() == null ? "" : item.getFirebaseKey();
+        if (fk.startsWith("builtin_")) {
+            Toast.makeText(this, "Không thể xóa lịch mặc định", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (fk.startsWith("override_")) {
+            // remove from prefs overrides and sync to Firebase overrides node
+            removeOverrideAndSync(item.getDayOfWeek(), fk);
+            // remove locally
+            if (currentList != null && position >= 0 && position < currentList.size()) {
+                currentList.remove(position);
+                if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
+            }
+            // also remove from local cached per-day list if present
+            removeLocalUserItem(item.getDayOfWeek(), fk);
+
+            Toast.makeText(this, "Đã xóa mục (override)", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // else it's a regular firebase item: remove from schedules/day_N/<fk> or per-user schedule
+        DatabaseReference dayRef;
+        if (currentScheduleName != null) {
+            dayRef = rootRef.child("users").child(userId).child("schedules").child(currentScheduleName).child("day_" + item.getDayOfWeek());
+        } else {
+            dayRef = schedulesRef.child("day_" + item.getDayOfWeek());
+        }
+
+        if (fk == null || fk.isEmpty()) {
+            // no key -> just remove locally (shouldn't normally happen)
+            if (currentList != null && position >= 0 && position < currentList.size()) {
+                currentList.remove(position);
+                if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
+            }
+            Toast.makeText(this, "Đã xóa mục cục bộ", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        dayRef.child(fk).removeValue()
+                .addOnSuccessListener(aVoid -> {
+                    // remove locally from currentList
+                    boolean removed = false;
+                    if (currentList != null) {
+                        for (int i = 0; i < currentList.size(); i++) {
+                            ScheduleItem si = currentList.get(i);
+                            if (si.getFirebaseKey() != null && si.getFirebaseKey().equals(fk)) {
+                                currentList.remove(i);
+                                removed = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!removed && currentList != null && position >= 0 && position < currentList.size()) {
+                        currentList.remove(position);
+                    }
+                    if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
+
+                    // remove from local cache as well
+                    removeLocalUserItem(item.getDayOfWeek(), fk);
+
+                    Toast.makeText(Layout6Activity.this, "Đã xóa mục", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> Toast.makeText(Layout6Activity.this, "Xóa thất bại: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
 
 
-
-
-    private void saveSingleItemToFirebase(ScheduleItem item, int position) {
-        String dayNode = "day_" + item.getDayOfWeek();
-        DatabaseReference dayRef = schedulesRef.child(dayNode);
-        String key = dayRef.push().getKey();
-        item.setFirebaseKey(key);
-        dayRef.child(key).setValue(item);
-        if (position != -1) {
-            currentList.get(position).setFirebaseKey(key);
+    private void removeLocalUserItem(int day, String firebaseKey) {
+        if (firebaseKey == null || firebaseKey.isEmpty()) return;
+        List<ScheduleItem> existing = getLocalUserItems(day);
+        boolean changed = false;
+        for (int i = existing.size() - 1; i >= 0; i--) {
+            ScheduleItem it = existing.get(i);
+            String fk = it.getFirebaseKey() == null ? "" : it.getFirebaseKey();
+            if (fk.equals(firebaseKey)) {
+                existing.remove(i);
+                changed = true;
+            }
+        }
+        if (changed) {
+            saveLocalUserItems(day, existing);
         }
     }
+
+
+
+    private void removeOverrideAndSync(int day, String overrideKey) {
+        String key = "overrides_day_" + day;
+        List<ScheduleItem> existing = getOverridesFromPrefs(day);
+        boolean changed = false;
+        for (int i = existing.size() - 1; i >= 0; i--) {
+            ScheduleItem it = existing.get(i);
+            String fk = it.getFirebaseKey() == null ? "" : it.getFirebaseKey();
+            if (fk.equals(overrideKey)) {
+                existing.remove(i);
+                changed = true;
+            }
+        }
+        // save back to prefs
+        JSONArray arr = new JSONArray();
+        try {
+            for (ScheduleItem it : existing) {
+                JSONObject o = new JSONObject();
+                o.put("firebaseKey", it.getFirebaseKey());
+                o.put("startTime", it.getStartTime());
+                o.put("endTime", it.getEndTime());
+                o.put("activity", it.getActivity());
+                o.put("day", it.getDayOfWeek());
+                arr.put(o);
+            }
+            prefs.edit().putString(key, arr.toString()).apply();
+        } catch (JSONException ex) {
+            Log.e(TAG, "removeOverrideAndSync - json error", ex);
+        }
+
+        // sync to Firebase overrides node: remove then re-push all
+        DatabaseReference overridesRef = rootRef.child("users").child(userId).child("overrides_day_" + day);
+        overridesRef.removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override public void onComplete(@NonNull Task<Void> t) {
+                for (ScheduleItem it : existing) {
+                    DatabaseReference p = overridesRef.push();
+                    p.child("firebaseKey").setValue(it.getFirebaseKey());
+                    p.child("startTime").setValue(it.getStartTime());
+                    p.child("endTime").setValue(it.getEndTime());
+                    p.child("activity").setValue(it.getActivity());
+                    p.child("day").setValue(it.getDayOfWeek());
+                }
+            }
+        });
+    }
+
+
+
+    // 1) Helper: remove an item from local storage (local_items_day_{day})
+    private void removeLocalUserItem(ScheduleItem item) {
+        if (item == null) return;
+        int day = item.getDayOfWeek();
+        List<ScheduleItem> existing = getLocalUserItems(day);
+        boolean changed = false;
+        String fk = item.getFirebaseKey() == null ? "" : item.getFirebaseKey();
+        for (int i = existing.size() - 1; i >= 0; i--) {
+            ScheduleItem ex = existing.get(i);
+            String exFk = ex.getFirebaseKey() == null ? "" : ex.getFirebaseKey();
+            if (!fk.isEmpty() && fk.equals(exFk)) {
+                existing.remove(i);
+                changed = true;
+            } else {
+                // also match by time+activity as fallback if no firebaseKey
+                if ((ex.getStartTime() == null ? "" : ex.getStartTime()).equals(item.getStartTime() == null ? "" : item.getStartTime())
+                        && (ex.getEndTime() == null ? "" : ex.getEndTime()).equals(item.getEndTime() == null ? "" : item.getEndTime())
+                        && (ex.getActivity() == null ? "" : ex.getActivity()).equals(item.getActivity() == null ? "" : item.getActivity())) {
+                    existing.remove(i);
+                    changed = true;
+                }
+            }
+        }
+        if (changed) {
+            saveLocalUserItems(day, existing);
+        }
+    }
+
+    // 2) Main delete handler (call this from adapter's delete callback)
+
+
+    // Helper: remove an override stored in prefs matching this ScheduleItem
+    private void saveOverrideRemove(ScheduleItem item) {
+        if (item == null) return;
+        int day = item.getDayOfWeek();
+        String key = "overrides_day_" + day;
+        List<ScheduleItem> existing = getOverridesFromPrefs(day);
+        boolean changed = false;
+        String fk = item.getFirebaseKey() == null ? "" : item.getFirebaseKey();
+        for (int i = existing.size() - 1; i >= 0; i--) {
+            ScheduleItem ex = existing.get(i);
+            String exFk = ex.getFirebaseKey() == null ? "" : ex.getFirebaseKey();
+            if (!fk.isEmpty() && fk.equals(exFk)) {
+                existing.remove(i);
+                changed = true;
+            } else {
+                if ((ex.getStartTime() == null ? "" : ex.getStartTime()).equals(item.getStartTime() == null ? "" : item.getStartTime())
+                        && (ex.getEndTime() == null ? "" : ex.getEndTime()).equals(item.getEndTime() == null ? "" : item.getEndTime())
+                        && (ex.getActivity() == null ? "" : ex.getActivity()).equals(item.getActivity() == null ? "" : item.getActivity())) {
+                    existing.remove(i);
+                    changed = true;
+                }
+            }
+        }
+        if (changed) {
+            try {
+                JSONArray arr = new JSONArray();
+                for (ScheduleItem it : existing) {
+                    JSONObject o = new JSONObject();
+                    o.put("firebaseKey", it.getFirebaseKey() == null ? "" : it.getFirebaseKey());
+                    o.put("startTime", it.getStartTime() == null ? "" : it.getStartTime());
+                    o.put("endTime", it.getEndTime() == null ? "" : it.getEndTime());
+                    o.put("activity", it.getActivity() == null ? "" : it.getActivity());
+                    o.put("day", it.getDayOfWeek());
+                    arr.put(o);
+                }
+                prefs.edit().putString(key, arr.toString()).apply();
+            } catch (JSONException ex) {
+                Log.e(TAG, "saveOverrideRemove json error", ex);
+            }
+        }
+    }
+
+
+
+
+
+
 
     private void saveScheduleToHomeDisplay(int day, List<ScheduleItem> items) {
         if (items == null) items = new ArrayList<>();
@@ -859,27 +1802,32 @@ public class Layout6Activity extends AppCompatActivity {
     }
 
     private void saveScheduleToFirebase() {
-        if (currentList == null || currentList.isEmpty()) {
-            Toast.makeText(this, "Danh sách lịch trống", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        if (currentList == null) currentList = new ArrayList<>();
 
         String dayNode = "day_" + selectedDay;
-        DatabaseReference dayRef = schedulesRef.child(dayNode);
-
         List<ScheduleItem> toUpload = new ArrayList<>();
         for (ScheduleItem it : currentList) {
-            String fk = it.getFirebaseKey() == null ? "" : it.getFirebaseKey();
-            if (!fk.startsWith("builtin_")) {
-                it.setDayOfWeek(selectedDay);
-                toUpload.add(it);
-            }
+            // create a copy or clear transient fields if needed; keep firebaseKey as-is
+            ScheduleItem copy = new ScheduleItem(it.getId(), it.getStartTime(), it.getEndTime(), it.getActivity(), it.getDayOfWeek());
+            copy.setFirebaseKey(it.getFirebaseKey());
+            toUpload.add(copy);
+        }
+
+        DatabaseReference dayRef;
+        if (currentScheduleName != null && !currentScheduleName.trim().isEmpty()) {
+            dayRef = rootRef.child("users").child(userId).child("schedules").child(currentScheduleName).child(dayNode);
+        } else {
+            dayRef = schedulesRef.child(dayNode);
         }
 
         dayRef.setValue(toUpload)
-                .addOnSuccessListener(aVoid -> Log.d(TAG, "Saved full schedule to Firebase for " + dayNode))
-                .addOnFailureListener(e -> Toast.makeText(this, "Lỗi lưu lịch: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Saved schedule for " + dayNode + " to " + (currentScheduleName != null ? "user schedule" : "global schedules")))
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Failed saving schedule for " + dayNode, e);
+                    Toast.makeText(this, "Lỗi khi lưu lịch: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
+
 
     private void saveScheduleToProfileHistory(int day) {
         if (currentList == null) currentList = new ArrayList<>();
@@ -1061,8 +2009,45 @@ public class Layout6Activity extends AppCompatActivity {
 
     // --- RESTORED METHODS END ---
 
+    /**
+     * Resolve template details by title.
+     * First try to find a saved (custom) template with the same title via ScheduleData.getAllTemplates(context).
+     * If none found, fallback to creating a default template by title (original behavior).
+     */
     private DetailedSchedule getTemplateDetailsByTitle(String title) {
         if (title == null) return null;
+
+        // 1) Try to find among saved templates (defaults + custom saved ones)
+        try {
+            List<ScheduleTemplate> all = ScheduleData.getAllTemplates(this);
+            if (all != null) {
+                for (ScheduleTemplate st : all) {
+                    if (st == null) continue;
+                    String t = st.getTitle();
+                    if (t == null) continue;
+                    if (t.trim().equalsIgnoreCase(title.trim())) {
+                        if (st instanceof DetailedSchedule) {
+                            return (DetailedSchedule) st;
+                        } else {
+                            // If it's a ScheduleTemplate but not DetailedSchedule, attempt to convert if possible
+                            // (assuming ScheduleTemplate has getWeeklyActivities etc.)
+                            try {
+                                return new DetailedSchedule(
+                                        st.getTitle(),
+                                        st.getDescription(),
+                                        st.getTags(),
+                                        st.getWeeklyActivities()
+                                );
+                            } catch (Exception ignored) { }
+                        }
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            Log.w(TAG, "Error while searching saved templates for title=" + title, ex);
+        }
+
+        // 2) Fallback to original factory methods
         switch (title) {
             case "CÚ ĐÊM":
                 return ScheduleData.createNightOwlTemplate();
@@ -1091,6 +2076,25 @@ public class Layout6Activity extends AppCompatActivity {
         return m < 0 ? Integer.MAX_VALUE : m;
     }
 
+    // Add this helper method inside Layout6Activity (near other persistence methods).
+// Use it wherever you currently call saveSingleItemToFirebase(...) + addToCurrentTemplateAndSave(...).
+    private void addAndPersistNewItem(ScheduleItem newItem) {
+        if (newItem == null) return;
+        if (newItem.getDayOfWeek() <= 0) newItem.setDayOfWeek(selectedDay);
+        if (currentList == null) currentList = new ArrayList<>();
+        currentList.add(newItem);
+
+        currentList.sort((a, b) -> Integer.compare(
+                timeToMinutesOrMax(a.getStartTime()),
+                timeToMinutesOrMax(b.getStartTime())
+        ));
+        if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
+        saveSingleItemToFirebase(newItem); // this method in this class already handles generating key and pushing
+        addOrUpdateLocalUserItem(newItem);
+        addToCurrentTemplateAndSave(newItem);
+        pushSingleActivityHistory(newItem, null);
+        Toast.makeText(this, "Đã thêm và lưu hoạt động: " + (newItem.getActivity() == null ? "" : newItem.getActivity()), Toast.LENGTH_SHORT).show();
+    }
     private String getDayKeyAsString(int day) {
         switch (day) {
             case 2: return "Thứ 2";

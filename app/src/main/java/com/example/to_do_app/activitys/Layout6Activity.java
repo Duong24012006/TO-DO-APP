@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,7 +41,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Layout6Activity extends AppCompatActivity {
 
@@ -48,6 +51,7 @@ public class Layout6Activity extends AppCompatActivity {
 
     public static final String EXTRA_SCHEDULE_TEMPLATE = "EXTRA_SCHEDULE_TEMPLATE";
     public static final String EXTRA_HISTORY_KEY = "EXTRA_HISTORY_KEY";
+
 
     private ImageView btnBack;
     private android.widget.TextView tvTitleHeader;
@@ -72,6 +76,7 @@ public class Layout6Activity extends AppCompatActivity {
     private static final String PROFILE_HISTORY_KEY = "profile_history";
     private static final String HOME_DISPLAY_ACTIVITIES_KEY = "home_display_activities";
     private static final String HOME_DISPLAY_DAY_KEY = "home_display_day";
+    private static final String PREF_ACTIVE_SCHEDULE = "active_schedule_name";
 
     private String editingHistoryKey = null;
     private DetailedSchedule currentTemplateDetails = null;
@@ -247,8 +252,10 @@ public class Layout6Activity extends AppCompatActivity {
                 itemsToShow.addAll(firebaseItems);
                 itemsToShow.addAll(getOverridesFromPrefs(day));
 
-                itemsToShow.sort((a, b) -> a.getStartTime().compareTo(b.getStartTime()));
-
+                itemsToShow.sort((a, b) -> Integer.compare(
+                        timeToMinutesOrMax(a.getStartTime()),
+                        timeToMinutesOrMax(b.getStartTime())
+                ));
                 List<ScheduleItem> deduped = new ArrayList<>();
                 for (ScheduleItem it : itemsToShow) {
                     boolean exists = false;
@@ -339,6 +346,10 @@ public class Layout6Activity extends AppCompatActivity {
                 .setPositiveButton("Hiển thị ở màn hình chính", (dialog, which) -> {
                     saveScheduleToFirebase();
                     saveScheduleToProfileHistory(selectedDay);
+                    // Ensure template changes (if any) are persisted so saveAllWeekScheduleToHomeDisplay picks them up
+                    if (currentTemplateDetails != null) {
+                        ScheduleData.saveCustomTemplate(this, currentTemplateDetails);
+                    }
                     saveAllWeekScheduleToHomeDisplay();
                     Toast.makeText(this, "Đã lưu toàn bộ lịch tuần và áp dụng", Toast.LENGTH_SHORT).show();
                     finish();
@@ -352,18 +363,324 @@ public class Layout6Activity extends AppCompatActivity {
                 .show();
     }
 
+
     private void showAddDialogMode() {
+        ensureScheduleNamedThen(() -> {
+            // original add-flow (runs only after we have a currentScheduleName)
+            AlertDialog.Builder modeBuilder = new AlertDialog.Builder(this);
+            modeBuilder.setTitle("Chọn cách thêm")
+                    .setItems(new String[]{"Thêm vào khung giờ cố định", "Thêm hoạt động tùy ý (cho phép trùng)"}, (modeDialog, whichMode) -> {
+                        View dialogView = LayoutInflater.from(this).inflate(R.layout.edit_schedule1, null);
+                        EditText etStart = dialogView.findViewById(R.id.etStartTime);
+                        EditText etEnd = dialogView.findViewById(R.id.etEndTime);
+                        EditText etAct = dialogView.findViewById(R.id.etActivity);
+                        etStart.setHint("06:00");
+                        etEnd.setHint("07:00");
+
+                        if (whichMode == 0) {
+                            List<ScheduleItem> predefined = getDefaultItemsForDay(selectedDay);
+                            List<String> slotLabels = new ArrayList<>();
+                            for (ScheduleItem s : predefined) {
+                                String label = s.getStartTime() + " - " + s.getEndTime() + " : " + s.getActivity();
+                                slotLabels.add(label);
+                            }
+                            CharSequence[] choices = slotLabels.toArray(new CharSequence[0]);
+
+                            new AlertDialog.Builder(this)
+                                    .setTitle("Chọn khung giờ")
+                                    .setItems(choices, (slotDialog, slotIndex) -> {
+                                        ScheduleItem chosenSlot = predefined.get(slotIndex);
+                                        boolean occupied = false;
+                                        if (currentList != null) {
+                                            for (ScheduleItem existing : currentList) {
+                                                String es = existing.getStartTime() == null ? "" : existing.getStartTime();
+                                                String ee = existing.getEndTime() == null ? "" : existing.getEndTime();
+                                                if (es.equals(chosenSlot.getStartTime()) && ee.equals(chosenSlot.getEndTime())) {
+                                                    occupied = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        if (occupied) {
+                                            Toast.makeText(this, "Khung giờ này đã có hoạt động, không thể thêm.", Toast.LENGTH_LONG).show();
+                                            return;
+                                        }
+                                        etStart.setText(chosenSlot.getStartTime());
+                                        etEnd.setText(chosenSlot.getEndTime());
+                                        etAct.setText(chosenSlot.getActivity());
+
+                                        new AlertDialog.Builder(this)
+                                                .setTitle("Xác nhận khung giờ")
+                                                .setView(dialogView)
+                                                .setPositiveButton("Thêm", (confirmDialog, confirmWhich) -> {
+                                                    String newStart = etStart.getText().toString().trim();
+                                                    String newEnd = etEnd.getText().toString().trim();
+                                                    String newAct = etAct.getText().toString().trim();
+                                                    if (newStart.isEmpty() || newEnd.isEmpty()) {
+                                                        Toast.makeText(this, "Vui lòng nhập đầy đủ thời gian", Toast.LENGTH_SHORT).show();
+                                                        return;
+                                                    }
+                                                    if (timeToMinutes(newStart) < 0 || timeToMinutes(newEnd) < 0) {
+                                                        Toast.makeText(this, "Định dạng thời gian không hợp lệ (HH:mm)", Toast.LENGTH_SHORT).show();
+                                                        return;
+                                                    }
+                                                    if (timeToMinutes(newEnd) <= timeToMinutes(newStart)) {
+                                                        Toast.makeText(this, "Thời gian kết thúc phải sau thời gian bắt đầu", Toast.LENGTH_SHORT).show();
+                                                        return;
+                                                    }
+                                                    boolean occupiedNow = false;
+                                                    if (currentList != null) {
+                                                        for (ScheduleItem existing : currentList) {
+                                                            String es = existing.getStartTime() == null ? "" : existing.getStartTime();
+                                                            String ee = existing.getEndTime() == null ? "" : existing.getEndTime();
+                                                            if (es.equals(newStart) && ee.equals(newEnd)) {
+                                                                occupiedNow = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                    }
+                                                    if (occupiedNow) {
+                                                        Toast.makeText(this, "Khung giờ này đã có hoạt động, không thể thêm.", Toast.LENGTH_LONG).show();
+                                                        return;
+                                                    }
+                                                    ScheduleItem newItem = new ScheduleItem(0, newStart, newEnd, newAct, selectedDay);
+                                                    if (currentList == null) currentList = new ArrayList<>();
+                                                    currentList.add(newItem);
+                                                    currentList.sort((a, b) -> Integer.compare(
+                                                            timeToMinutesOrMax(a.getStartTime()),
+                                                            timeToMinutesOrMax(b.getStartTime())
+                                                    ));
+                                                    if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
+                                                    // Important: save under per-user schedule path because ensureScheduleNamedThen guaranteed currentScheduleName != null
+                                                    saveSingleItemToFirebase(newItem);
+                                                    pushSingleActivityHistory(newItem, null);
+                                                    // persist into the active template (so ScheduleData receives & saves)
+                                                    addToCurrentTemplateAndSave(newItem);
+                                                    Toast.makeText(this, "Đã thêm vào khung giờ cố định (lưu vào lịch '" + currentScheduleName + "')", Toast.LENGTH_SHORT).show();
+                                                })
+                                                .setNegativeButton("Hủy", null)
+                                                .show();
+                                    })
+                                    .show();
+                        } else {
+                            etStart.setText("");
+                            etEnd.setText("");
+                            etAct.setText("");
+                            new AlertDialog.Builder(this)
+                                    .setTitle("Thêm hoạt động tùy ý (cho phép trùng)")
+                                    .setView(dialogView)
+                                    .setPositiveButton("Thêm", (freeDialog, freeWhich) -> {
+                                        String newStart = etStart.getText().toString().trim();
+                                        String newEnd = etEnd.getText().toString().trim();
+                                        String newAct = etAct.getText().toString().trim();
+                                        if (newStart.isEmpty() || newEnd.isEmpty()) {
+                                            Toast.makeText(this, "Vui lòng nhập đầy đủ thời gian", Toast.LENGTH_SHORT).show();
+                                            return;
+                                        }
+                                        if (timeToMinutes(newStart) < 0 || timeToMinutes(newEnd) < 0) {
+                                            Toast.makeText(this, "Định dạng thời gian không hợp lệ (HH:mm)", Toast.LENGTH_SHORT).show();
+                                            return;
+                                        }
+                                        if (timeToMinutes(newEnd) <= timeToMinutes(newStart)) {
+                                            Toast.makeText(this, "Thời gian kết thúc phải sau thời gian bắt đầu", Toast.LENGTH_SHORT).show();
+                                            return;
+                                        }
+                                        ScheduleItem newItem = new ScheduleItem(0, newStart, newEnd, newAct, selectedDay);
+                                        if (currentList == null) currentList = new ArrayList<>();
+                                        currentList.add(newItem);
+                                        currentList.sort((a, b) -> {
+                                            String as = a.getStartTime() == null ? "" : a.getStartTime();
+                                            String bs = b.getStartTime() == null ? "" : b.getStartTime();
+                                            return as.compareTo(bs);
+                                        });
+                                        if (scheduleAdapter != null) scheduleAdapter.updateList(currentList);
+                                        // save under per-user schedule path (isolation guaranteed)
+                                        saveSingleItemToFirebase(newItem);
+                                        pushSingleActivityHistory(newItem, null);
+                                        // persist into the active template (so ScheduleData receives & saves)
+                                        addToCurrentTemplateAndSave(newItem);
+                                        Toast.makeText(this, "Đã thêm hoạt động (cho phép trùng) — lưu vào lịch '" + currentScheduleName + "'", Toast.LENGTH_SHORT).show();
+                                    })
+                                    .setNegativeButton("Hủy", null)
+                                    .show();
+                        }
+                    })
+                    .setNegativeButton("Hủy", null)
+                    .show();
+        });
+    }
+
+    private void addToCurrentTemplateAndSave(ScheduleItem newItem) {
+        if (newItem == null || currentTemplateDetails == null) return;
+        Map<String, List<TimeSlot>> weekly = currentTemplateDetails.getWeeklyActivities();
+        if (weekly == null) {
+            weekly = new HashMap<>();
+            // try to set it back if setter exists
+            try {
+                currentTemplateDetails.setWeeklyActivities(weekly);
+            } catch (Exception ignored) {
+                // If no setter, we still continue with local map (unlikely since createXTemplate uses new HashMap())
+            }
+        }
+        String dayKey = getDayKeyAsString(newItem.getDayOfWeek());
+        List<TimeSlot> list = weekly.get(dayKey);
+        if (list == null) {
+            list = new ArrayList<>();
+            weekly.put(dayKey, list);
+        }
+
+        // check for exact duplicate (start, end, activity)
+        boolean exists = false;
+        for (TimeSlot ts : list) {
+            String s = ts.getStartTime() == null ? "" : ts.getStartTime();
+            String e = ts.getEndTime() == null ? "" : ts.getEndTime();
+            String a = ts.getActivityName() == null ? "" : ts.getActivityName();
+            if (s.equals(newItem.getStartTime()) && e.equals(newItem.getEndTime()) && a.equals(newItem.getActivity())) {
+                exists = true;
+                break;
+            }
+        }
+        if (!exists) {
+            list.add(new TimeSlot(newItem.getStartTime(), newItem.getEndTime(), newItem.getActivity()));
+            // persist the updated template so ScheduleData "receives" and stores this custom template
+            ScheduleData.saveCustomTemplate(this, currentTemplateDetails);
+            Log.d(TAG, "Added new slot to template and saved: " + newItem.getStartTime() + "-" + newItem.getEndTime() + " " + newItem.getActivity());
+        } else {
+            Log.d(TAG, "Slot already exists in template, skip add.");
+        }
+    }
+
+
+
+    // java
+    // Add these members/methods inside Layout6Activity (e.g. near other fields / methods)
+
+    private String currentScheduleName = null;
+
+    /**
+     * Ensures we have a current schedule name, prompting the user if needed.
+     * Calls onReady.run() once a non-empty name is available.
+     */
+    private void ensureScheduleNamedThen(Runnable onNamed) {
+        currentScheduleName = (tvTitleHeader != null && tvTitleHeader.getText() != null)
+                ? tvTitleHeader.getText().toString().trim()
+                : null;
+        if (currentScheduleName != null && !currentScheduleName.isEmpty()) {
+            if (onNamed != null) onNamed.run();
+            return;
+        }
+
+        final EditText et = new EditText(this);
+        et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
+        et.setHint("Nhập tên lịch (ví dụ: Lịch cho sinh viên)");
+
         new AlertDialog.Builder(this)
-                .setTitle("Chọn cách thêm")
-                .setItems(new String[]{"Thêm vào khung giờ cố định", "Thêm hoạt động tùy ý"}, (modeDialog, whichMode) -> {
-                    if (whichMode == 0) {
-                        //showAddPredefinedSlotDialog();
-                    } else {
-                        //showAddFreeActivityDialog();
+                .setTitle("Chưa có tên lịch")
+                .setMessage("Bạn cần đặt tên cho lịch để các thay đổi chỉ lưu vào lịch đó. Nhập tên lịch hoặc hủy.")
+                .setView(et)
+                .setPositiveButton("Đặt tên & tiếp tục", (d, w) -> {
+                    String name = et.getText() == null ? null : et.getText().toString().trim();
+                    if (name == null || name.isEmpty()) {
+                        Toast.makeText(this, "Bạn phải nhập tên lịch để tiếp tục", Toast.LENGTH_SHORT).show();
+                        return;
                     }
+                    if (tvTitleHeader != null) tvTitleHeader.setText(name);
+                    currentScheduleName = name;
+                    // persist active schedule preference
+                    SharedPreferences profilePrefs = getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE);
+                    profilePrefs.edit().putString(PREF_ACTIVE_SCHEDULE, currentScheduleName).apply();
+
+                    // enable FAB now that schedule name exists
+                    updateFabState();
+
+                    if (onNamed != null) onNamed.run();
                 })
+                .setNegativeButton("Hủy", null)
                 .show();
     }
+    private void updateFabState() {
+        currentScheduleName = (tvTitleHeader != null && tvTitleHeader.getText() != null)
+                ? tvTitleHeader.getText().toString().trim()
+                : null;
+        if (fabAdd == null) return;
+        fabAdd.setEnabled(currentScheduleName != null && !currentScheduleName.isEmpty());
+    }
+
+
+
+
+    /**
+     * Convenience overload used by UI code that didn't pass a position.
+     */
+    private void saveSingleItemToFirebase(ScheduleItem item) {
+        saveSingleItemToFirebase(item, -1);
+    }
+
+    private void pushSingleActivityHistory(ScheduleItem item, String titleOptional) {
+        if (item == null) return;
+
+        String title = titleOptional;
+        if (title == null || title.trim().isEmpty()) {
+            if (tvTitleHeader != null && tvTitleHeader.getText() != null && !tvTitleHeader.getText().toString().trim().isEmpty()) {
+                title = tvTitleHeader.getText().toString().trim();
+            } else {
+                title = "Lịch ngày " + (item.getDayOfWeek() == 8 ? "CN" : ("Thứ " + item.getDayOfWeek()));
+            }
+        }
+
+        String time = (item.getStartTime() == null ? "" : item.getStartTime()) + "-" + (item.getEndTime() == null ? "" : item.getEndTime());
+        String activity = item.getActivity() == null ? "" : item.getActivity();
+
+        try {
+            SharedPreferences profilePrefs = getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE);
+            String json = profilePrefs.getString(PROFILE_HISTORY_KEY, null);
+            JSONArray arr = (json == null) ? new JSONArray() : new JSONArray(json);
+
+            JSONObject obj = new JSONObject();
+            obj.put("title", title);
+            obj.put("subtitle", time + ": " + activity);
+            obj.put("day", item.getDayOfWeek());
+            obj.put("isUserAdded", true);
+
+            JSONArray acts = new JSONArray();
+            JSONObject aobj = new JSONObject();
+            aobj.put("time", time);
+            aobj.put("activity", activity);
+            aobj.put("day", item.getDayOfWeek());
+            acts.put(aobj);
+            obj.put("activities", acts);
+
+            if (item.getFirebaseKey() != null) obj.put("linkedScheduleKey", item.getFirebaseKey());
+
+            // insert at front
+            JSONArray newArr = new JSONArray();
+            newArr.put(obj);
+            for (int i = 0; i < arr.length(); i++) newArr.put(arr.get(i));
+            profilePrefs.edit().putString(PROFILE_HISTORY_KEY, newArr.toString()).apply();
+
+            // push to Firebase history
+            DatabaseReference historyRef = rootRef.child("users").child(userId).child("history");
+            DatabaseReference p = historyRef.push();
+            p.child("title").setValue(title);
+            p.child("subtitle").setValue(time + ": " + activity);
+            p.child("day").setValue(item.getDayOfWeek());
+            p.child("isUserAdded").setValue(true);
+            DatabaseReference actsRef = p.child("activities");
+            DatabaseReference ap = actsRef.push();
+            ap.child("time").setValue(time);
+            ap.child("activity").setValue(activity);
+            ap.child("day").setValue(item.getDayOfWeek());
+            p.child("timestamp").setValue(ServerValue.TIMESTAMP);
+
+        } catch (JSONException ex) {
+            Log.e(TAG, "pushSingleActivityHistory error", ex);
+        } catch (Exception ex) {
+            Log.w(TAG, "pushSingleActivityHistory failed", ex);
+        }
+    }
+
+
+
 
     private void saveSingleItemToFirebase(ScheduleItem item, int position) {
         String dayNode = "day_" + item.getDayOfWeek();
@@ -695,7 +1012,7 @@ public class Layout6Activity extends AppCompatActivity {
     private boolean isOverlapping(String newStart, String newEnd, List<ScheduleItem> existing, ScheduleItem exclude) {
         int ns = timeToMinutes(newStart);
         int ne = timeToMinutes(newEnd);
-        if (ns < 0 || ne < 0 || ne <= ns) return true; 
+        if (ns < 0 || ne < 0 || ne <= ns) return true;
 
         if (existing == null) return false;
         for (ScheduleItem it : existing) {
@@ -769,6 +1086,10 @@ public class Layout6Activity extends AppCompatActivity {
                 return null;
         }
     }
+    private int timeToMinutesOrMax(String hhmm) {
+        int m = timeToMinutes(hhmm);
+        return m < 0 ? Integer.MAX_VALUE : m;
+    }
 
     private String getDayKeyAsString(int day) {
         switch (day) {
@@ -782,4 +1103,5 @@ public class Layout6Activity extends AppCompatActivity {
             default: return "";
         }
     }
+
 }

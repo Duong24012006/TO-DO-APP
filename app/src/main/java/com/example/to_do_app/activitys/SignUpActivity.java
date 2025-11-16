@@ -25,9 +25,8 @@ import com.google.firebase.auth.UserProfileChangeRequest;
  * SignUpActivity (updated)
  *
  * Behavior changes:
- * - After successful registration, the app now navigates to SignInActivity (so user must sign in).
- * - The email field on SignInActivity will be prefilled with the registered email.
- * - Progress and button state handling preserved.
+ * - After successful registration, user is kept signed-in and navigated directly to MainActivity.
+ * - The email field on SignInActivity remains prefilled when navigating there manually.
  */
 public class SignUpActivity extends AppCompatActivity {
 
@@ -75,7 +74,7 @@ public class SignUpActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        // Intentionally empty to avoid auto-skip behavior.
+        // Intentionally empty to avoid auto-skip behavior here; StartApp will auto-redirect on app open if needed
     }
 
     private void attemptSignUp() {
@@ -124,7 +123,6 @@ public class SignUpActivity extends AppCompatActivity {
 
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
-                    // Ensure progress dismissed and button re-enabled in all outcomes
                     safeDismissProgress();
                     btnSignUp.setEnabled(true);
 
@@ -137,19 +135,17 @@ public class SignUpActivity extends AppCompatActivity {
 
                             user.updateProfile(profileUpdates)
                                     .addOnCompleteListener(updateTask -> {
-                                        // On success, notify user then navigate to SignInActivity with prefilled email
-                                        Toast.makeText(SignUpActivity.this, "Đăng ký thành công. Vui lòng đăng nhập.", Toast.LENGTH_SHORT).show();
-                                        Intent intent = new Intent(SignUpActivity.this, SignInActivity.class);
-                                        intent.putExtra("prefillEmail", email);
-                                        // Clear task so user can't go back to signed-up state accidentally
+                                        // After profile update, user is already signed in -> go to MainActivity
+                                        Toast.makeText(SignUpActivity.this, "Đăng ký thành công. Bạn đã được đăng nhập.", Toast.LENGTH_SHORT).show();
+                                        Intent intent = new Intent(SignUpActivity.this, MainActivity.class);
                                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                                         startActivity(intent);
                                         finish();
                                     });
                         } else {
-                            Toast.makeText(SignUpActivity.this, "Đăng ký thành công. Vui lòng đăng nhập.", Toast.LENGTH_SHORT).show();
-                            Intent intent = new Intent(SignUpActivity.this, SignInActivity.class);
-                            intent.putExtra("prefillEmail", email);
+                            // Very rare: no current user even though creation succeeded; still go to MainActivity to continue UX
+                            Toast.makeText(SignUpActivity.this, "Đăng ký thành công. Bạn đã được đăng nhập.", Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(SignUpActivity.this, MainActivity.class);
                             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                             startActivity(intent);
                             finish();
@@ -163,15 +159,6 @@ public class SignUpActivity extends AppCompatActivity {
                         } else {
                             Toast.makeText(SignUpActivity.this, "Đăng ký thất bại: Lỗi không xác định", Toast.LENGTH_LONG).show();
                         }
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    safeDismissProgress();
-                    btnSignUp.setEnabled(true);
-                    if (e instanceof FirebaseAuthUserCollisionException) {
-                        Toast.makeText(SignUpActivity.this, "Email đã được sử dụng", Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(SignUpActivity.this, "Đăng ký thất bại: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }

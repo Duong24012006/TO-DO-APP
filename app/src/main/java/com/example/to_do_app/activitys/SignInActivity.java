@@ -15,18 +15,17 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.to_do_app.R;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseUser;
 
 /**
- * SignInActivity — simplified
+ * SignInActivity — simplified and corrected
  *
- * Changes made:
- * - Removed pre-check fetchSignInMethodsForEmail to simplify flow.
- *   Now sign-in attempts directly with email/password.
- * - If sign-in fails with "There is no user record" (account doesn't exist),
- *   user is redirected to SignUpActivity with the email prefilled.
- * - Ensures the sign-in button is re-enabled and progress dismissed in every path.
- * - Keeps previous UX: prefill email from SignUpActivity, don't finish() when opening SignUp.
+ * Key changes:
+ * - Only uses addOnCompleteListener (no addOnFailureListener) to avoid duplicate handling.
+ * - Uses instanceof checks for FirebaseAuth exceptions instead of parsing error strings.
+ * - On successful sign-in navigates to MainActivity and clears back stack.
  */
 public class SignInActivity extends AppCompatActivity {
 
@@ -85,7 +84,7 @@ public class SignInActivity extends AppCompatActivity {
             btnSignIn.setEnabled(false);
             safeShowProgress();
 
-            // Directly attempt sign-in
+            // Directly attempt sign-in and handle in onComplete only
             mAuth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(signInTask -> {
                         safeDismissProgress();
@@ -103,41 +102,22 @@ public class SignInActivity extends AppCompatActivity {
                             startActivity(intent);
                             finish();
                         } else {
-                            // Try to detect common reason: user not found -> send to SignUp
-                            String errMsg = "";
-                            if (signInTask.getException() != null && signInTask.getException().getMessage() != null) {
-                                errMsg = signInTask.getException().getMessage();
-                            }
-
-                            // Firebase's message for non-existing user often contains "There is no user record" or "There is no user"
-                            if (errMsg.toLowerCase().contains("no user") || errMsg.toLowerCase().contains("no user record")) {
+                            Exception ex = signInTask.getException();
+                            if (ex instanceof FirebaseAuthInvalidUserException) {
+                                // user not found -> send to SignUp
                                 Toast.makeText(SignInActivity.this, "Email chưa được đăng ký. Chuyển sang trang đăng ký.", Toast.LENGTH_LONG).show();
                                 Intent i = new Intent(SignInActivity.this, SignUpActivity.class);
                                 i.putExtra("prefillEmail", email);
                                 startActivity(i);
-                                // keep SignIn on back stack so user can return
+                            } else if (ex instanceof FirebaseAuthInvalidCredentialsException) {
+                                // wrong password
+                                showToast("Mật khẩu không đúng. Vui lòng thử lại.");
+                                etPassword.requestFocus();
                             } else {
                                 String msg = "Đăng nhập thất bại";
-                                if (!errMsg.isEmpty()) msg += ": " + errMsg;
+                                if (ex != null && ex.getMessage() != null) msg += ": " + ex.getMessage();
                                 showToast(msg);
                             }
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        safeDismissProgress();
-                        btnSignIn.setEnabled(true);
-                        String msg = "Đăng nhập thất bại";
-                        if (e != null && e.getMessage() != null) msg += ": " + e.getMessage();
-
-                        // If failure indicates user doesn't exist, redirect to SignUp
-                        String lower = (e != null && e.getMessage() != null) ? e.getMessage().toLowerCase() : "";
-                        if (lower.contains("no user") || lower.contains("no user record") || lower.contains("user-not-found")) {
-                            Toast.makeText(SignInActivity.this, "Email chưa được đăng ký.", Toast.LENGTH_LONG).show();
-                            Intent i = new Intent(SignInActivity.this, SignUpActivity.class);
-                            i.putExtra("prefillEmail", email);
-                            startActivity(i);
-                        } else {
-                            showToast(msg);
                         }
                     });
         });
@@ -157,7 +137,7 @@ public class SignInActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        // intentionally do not auto-skip to MainActivity here.
+        // intentionally do not auto-skip to MainActivity here — StartApp handles auto-redirect on app open
     }
 
     private void hideKeyboard() {

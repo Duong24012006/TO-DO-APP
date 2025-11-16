@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,6 +19,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.to_do_app.R;
 import com.example.to_do_app.adapters.ScheduleItemAdapter;
 import com.example.to_do_app.model.ScheduleItem;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -48,10 +51,15 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
     private static final String PROFILE_PREFS = "profile_prefs";
     private static final String HOME_DISPLAY_ACTIVITIES_KEY = "home_display_activities";
     private static final String HOME_DISPLAY_DAY_KEY = "home_display_day";
+    private static final String KEY_DISPLAY_NAME = "display_name";
+    private static final String PREFS = "todo_prefs";
 
     private SharedPreferences profilePrefs;
+    private SharedPreferences prefs;
     private DatabaseReference homeDisplayRef;
     private ValueEventListener homeDisplayListener;
+    private FirebaseAuth mAuth;
+    private TextView tvGreeting;
 
     private String userId;
 
@@ -65,7 +73,10 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
 
         View view = inflater.inflate(R.layout.home_fragment, container, false);
 
+        // Initialize Firebase and SharedPreferences
+        mAuth = FirebaseAuth.getInstance();
         profilePrefs = requireContext().getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE);
+        prefs = requireContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
 
         userId = profilePrefs.getString("profile_user_id", null);
@@ -75,6 +86,10 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
         }
 
         homeDisplayRef = rootRef.child("users").child(userId).child("home_display");
+
+        // Initialize greeting TextView
+        tvGreeting = view.findViewById(R.id.tvGreeting);
+        updateGreeting();
 
         llMon = view.findViewById(R.id.llMon);
         llTue = view.findViewById(R.id.llTue);
@@ -109,6 +124,7 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
     @Override
     public void onResume() {
         super.onResume();
+        updateGreeting();
         loadHomeDisplayFromPrefsIfAny();
     }
 
@@ -298,5 +314,51 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
         } catch (Exception ex) {
             return Integer.MAX_VALUE;
         }
+    }
+
+    /**
+     * Update the greeting TextView using Firebase displayName with fallbacks.
+     * Preference order:
+     * 1) FirebaseUser.getDisplayName()
+     * 2) cached name in SharedPreferences
+     * 3) email local-part (before @)
+     * 4) "User"
+     *
+     * The chosen name is saved into SharedPreferences for future fallback.
+     */
+    private void updateGreeting() {
+        if (tvGreeting == null) return;
+
+        FirebaseUser user = mAuth.getCurrentUser();
+        String nameToShow = null;
+
+        if (user != null) {
+            String displayName = user.getDisplayName();
+            if (displayName != null && !displayName.trim().isEmpty()) {
+                nameToShow = displayName.trim();
+            } else {
+                String saved = prefs.getString(KEY_DISPLAY_NAME, null);
+                if (saved != null && !saved.trim().isEmpty()) {
+                    nameToShow = saved;
+                } else {
+                    String email = user.getEmail();
+                    if (email != null && email.contains("@")) {
+                        nameToShow = email.substring(0, email.indexOf("@"));
+                    } else if (email != null) {
+                        nameToShow = email;
+                    }
+                }
+            }
+        } else {
+            nameToShow = "User";
+        }
+
+        if (nameToShow == null || nameToShow.trim().isEmpty()) {
+            nameToShow = "User";
+        }
+
+        prefs.edit().putString(KEY_DISPLAY_NAME, nameToShow).apply();
+
+        tvGreeting.setText("Xin chào, " + nameToShow);
     }
 }

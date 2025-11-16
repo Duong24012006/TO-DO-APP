@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,14 +25,10 @@ import com.google.firebase.auth.FirebaseUser;
 public class MainActivity extends AppCompatActivity {
 
     private static final String KEY_SELECTED_PAGE = "selected_page";
-    private static final String PREFS = "todo_prefs";
-    private static final String KEY_DISPLAY_NAME = "display_name";
 
     private BottomNavigationView bottomNav;
     private ViewPager myViewPager;
     private FirebaseAuth mAuth;
-    private SharedPreferences prefs;
-    private TextView tvGreeting;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -68,12 +63,7 @@ public class MainActivity extends AppCompatActivity {
         // Proceed to set content
         setContentView(R.layout.activity_main);
 
-        prefs = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-
-        // find greeting TextView (ensure layout has this id)
-        tvGreeting = findViewById(R.id.tvGreeting);
-        updateGreeting();
-
+        // Apply window insets to root view while preserving original padding
         // Apply window insets to root view while preserving original padding
         View root = findViewById(R.id.main2);
         if (root != null) {
@@ -126,10 +116,22 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+        // Check if we should navigate to HomeFragment (from Layout6Activity)
+        boolean openHomeFragment = getIntent().getBooleanExtra("open_home_fragment", false);
+
         // restore selected page if available
         if (savedInstanceState != null) {
             int page = savedInstanceState.getInt(KEY_SELECTED_PAGE, 0);
             if (myViewPager != null) myViewPager.setCurrentItem(page, false);
+        } else if (openHomeFragment) {
+            // Navigate to Home tab (index 0)
+            if (myViewPager != null) {
+                myViewPager.setCurrentItem(0, false);
+            }
+            if (bottomNav != null) {
+                MenuItem homeItem = bottomNav.getMenu().findItem(R.id.action_home);
+                if (homeItem != null) homeItem.setChecked(true);
+            }
         } else {
             if (bottomNav != null && myViewPager != null) {
                 int initial = myViewPager.getCurrentItem();
@@ -145,8 +147,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        // Refresh greeting in case profile changed
-        updateGreeting();
     }
 
     private boolean onBottomNavItemSelected(@NonNull MenuItem item) {
@@ -176,51 +176,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Update the greeting TextView using Firebase displayName with fallbacks.
-     * Preference order:
-     * 1) FirebaseUser.getDisplayName()
-     * 2) cached name in SharedPreferences
-     * 3) email local-part (before @)
-     * 4) "User"
-     *
-     * The chosen name is saved into SharedPreferences for future fallback.
-     */
-    private void updateGreeting() {
-        if (tvGreeting == null) return;
 
-        FirebaseUser user = mAuth.getCurrentUser();
-        String nameToShow = null;
-
-        if (user != null) {
-            String displayName = user.getDisplayName();
-            if (displayName != null && !displayName.trim().isEmpty()) {
-                nameToShow = displayName.trim();
-            } else {
-                String saved = prefs.getString(KEY_DISPLAY_NAME, null);
-                if (saved != null && !saved.trim().isEmpty()) {
-                    nameToShow = saved;
-                } else {
-                    String email = user.getEmail();
-                    if (email != null && email.contains("@")) {
-                        nameToShow = email.substring(0, email.indexOf("@"));
-                    } else if (email != null) {
-                        nameToShow = email;
-                    }
-                }
-            }
-        } else {
-            nameToShow = "User";
-        }
-
-        if (nameToShow == null || nameToShow.trim().isEmpty()) {
-            nameToShow = "User";
-        }
-
-        prefs.edit().putString(KEY_DISPLAY_NAME, nameToShow).apply();
-
-        tvGreeting.setText("Xin chào, " + nameToShow);
-    }
 
     /**
      * Sign out current user and open SignInActivity (clearing back stack).

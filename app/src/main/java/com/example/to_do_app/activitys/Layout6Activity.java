@@ -2,6 +2,7 @@ package com.example.to_do_app.activitys;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.InputType;
@@ -347,8 +348,18 @@ public class Layout6Activity extends AppCompatActivity {
                 .setPositiveButton("Hiển thị ở màn hình chính", (dialog, which) -> {
                     saveScheduleToFirebase();
                     saveScheduleToProfileHistory(selectedDay);
+                    // Ensure template changes (if any) are persisted so saveAllWeekScheduleToHomeDisplay picks them up
+                    if (currentTemplateDetails != null) {
+                        ScheduleData.saveCustomTemplate(this, currentTemplateDetails);
+                    }
                     saveAllWeekScheduleToHomeDisplay();
                     Toast.makeText(this, "Đã lưu toàn bộ lịch tuần và áp dụng", Toast.LENGTH_SHORT).show();
+
+                    // Navigate to MainActivity and open HomeFragment
+                    Intent intent = new Intent(Layout6Activity.this, MainActivity.class);
+                    intent.putExtra("open_home_fragment", true);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    startActivity(intent);
                     finish();
                 })
                 .setNegativeButton("Chỉ lưu vào lịch sử", (dialog, which) -> {

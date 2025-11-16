@@ -52,8 +52,10 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/time_button"
-            android:padding="8dp">
+            android:background="@color/white"
+            android:padding="8dp"
+            app:strokeColor="@color/black"
+            >
 
             <TextView
                 android:id="@+id/tv_activity_preview"

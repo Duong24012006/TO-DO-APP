@@ -7,7 +7,7 @@
     android:layout_marginVertical="8dp"
     app:cardCornerRadius="24dp"
     app:cardElevation="0dp"
-    app:strokeColor="@color/add_schedule_tag"
+    app:strokeColor="@color/main_button"
     app:cardBackgroundColor="@android:color/transparent">
 
     <androidx.constraintlayout.widget.ConstraintLayout

@@ -87,7 +87,7 @@
                 style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:backgroundTint="@color/add_schedule_button"
+                android:backgroundTint="@color/main_button"
                 android:layout_marginEnd="8dp"
                 android:text="Giờ ngủ"
                 android:textSize="16sp"
@@ -100,7 +100,7 @@
                 style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:backgroundTint="@color/add_schedule_button"
+                android:backgroundTint="@color/main_button"
                 android:layout_marginEnd="8dp"
                 android:text="Học tập"
                 android:textSize="16sp"
@@ -113,7 +113,7 @@
                 style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:backgroundTint="@color/add_schedule_button"
+                android:backgroundTint="@color/main_button"
                 android:layout_marginEnd="8dp"
                 android:text="Giải trí"
                 android:textSize="16sp"
@@ -126,7 +126,7 @@
                 style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:backgroundTint="@color/add_schedule_button"
+                android:backgroundTint="@color/main_button"
                 android:text="Thể thao"
                 android:textSize="16sp"
                 android:textColor="@color/black"
@@ -167,7 +167,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:text="Thiết lập lại" />
+                android:text="Thiết lập lại"
+                android:textColor="@color/black"
+                />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_apply_filter"

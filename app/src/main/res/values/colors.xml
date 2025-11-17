@@ -11,7 +11,7 @@
     <color name="add_schedule_tag">#AEECEF</color> <!-- Màu của tag trong addfragment -->
 
     <color name="doing_work_button">#E5FDFF</color> <!-- Nền bao quanh của các hoạt động trong ngày -->
-    <color name="time_button">#DDF1FA</color> <!-- Nền cua gio của các hoạt động trong ngày -->
+    <color name="time_button">#E5FDFF</color> <!-- Nền cua gio của các hoạt động trong ngày -->
 
     <color name="color_select_bottom_nav">#000000</color> <!-- Màu icon/text khi chưa chọn -->
 

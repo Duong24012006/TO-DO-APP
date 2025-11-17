@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -15,6 +16,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -82,9 +85,20 @@ public class Layout6Activity extends AppCompatActivity {
     private DetailedSchedule currentTemplateDetails = null;
     private String currentScheduleName = null;
 
+    // --- FAB drag support fields ---
+    private float dX, dY;
+    private static final float CLICK_DRAG_TOLERANCE = 10;
+    private float downRawX, downRawY;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // enable edge-to-edge before setting content view (keeps layout behavior same as merged class)
+        try {
+            EdgeToEdge.enable(this);
+        } catch (Throwable ignored) {
+            // Fallback: if EdgeToEdge is not available on some builds, ignore
+        }
         setContentView(R.layout.manhinh_lichduocchon);
 
         currentList = new ArrayList<>();
@@ -201,7 +215,61 @@ public class Layout6Activity extends AppCompatActivity {
     private void setupListeners() {
         btnBack.setOnClickListener(v -> finish());
         btnApplySchedule.setOnClickListener(v -> showApplyDialog());
-        if (fabAdd != null) fabAdd.setOnClickListener(v -> showAddDialogMode());
+
+        if (fabAdd != null) {
+            // Replace simple click with a touch listener that supports drag + click
+            fabAdd.setOnTouchListener((view, motionEvent) -> {
+                int action = motionEvent.getAction();
+                if (action == MotionEvent.ACTION_DOWN) {
+                    downRawX = motionEvent.getRawX();
+                    downRawY = motionEvent.getRawY();
+                    dX = view.getX() - downRawX;
+                    dY = view.getY() - downRawY;
+                    return true; // Consumed
+                } else if (action == MotionEvent.ACTION_MOVE) {
+                    int viewWidth = view.getWidth();
+                    int viewHeight = view.getHeight();
+
+                    View viewParent = (View) view.getParent();
+                    int parentWidth = viewParent.getWidth();
+                    int parentHeight = viewParent.getHeight();
+
+                    float newX = motionEvent.getRawX() + dX;
+                    newX = Math.max(0, newX); // Don't go off the left edge
+                    newX = Math.min(parentWidth - viewWidth, newX); // Don't go off the right edge
+
+                    float newY = motionEvent.getRawY() + dY;
+                    newY = Math.max(0, newY); // Don't go off the top edge
+                    newY = Math.min(parentHeight - viewHeight, newY); // Don't go off the bottom edge
+
+                    view.animate()
+                            .x(newX)
+                            .y(newY)
+                            .setDuration(0)
+                            .start();
+
+                    return true; // Consumed
+                } else if (action == MotionEvent.ACTION_UP) {
+                    float upRawX = motionEvent.getRawX();
+                    float upRawY = motionEvent.getRawY();
+
+                    float upDX = upRawX - downRawX;
+                    float upDY = upRawY - downRawY;
+
+                    if (Math.abs(upDX) < CLICK_DRAG_TOLERANCE && Math.abs(upDY) < CLICK_DRAG_TOLERANCE) {
+                        // A click
+                        // call performClick for accessibility and then handle click action
+                        view.performClick();
+                        showAddDialogMode();
+                        return true;
+                    } else {
+                        // A drag
+                        return true; // Consumed
+                    }
+                }
+                return false; // Not consumed
+            });
+        }
     }
 
     private void loadScheduleDataForDay(int day) {
@@ -236,7 +304,7 @@ public class Layout6Activity extends AppCompatActivity {
         String dayNode = "day_" + day;
         schedulesRef.child(dayNode).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot snapshot) {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<ScheduleItem> firebaseItems = new ArrayList<>();
                 for (DataSnapshot ds : snapshot.getChildren()) {
                     ScheduleItem item = ds.getValue(ScheduleItem.class);
@@ -281,7 +349,7 @@ public class Layout6Activity extends AppCompatActivity {
             }
 
             @Override
-            public void onCancelled(DatabaseError error) {
+            public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(Layout6Activity.this, "Lỗi tải lịch: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                 if (fabAdd != null) fabAdd.setEnabled(true);
             }
@@ -680,10 +748,26 @@ public class Layout6Activity extends AppCompatActivity {
         String dayNode = "day_" + item.getDayOfWeek();
         DatabaseReference dayRef = schedulesRef.child(dayNode);
         String key = dayRef.push().getKey();
-        item.setFirebaseKey(key);
-        dayRef.child(key).setValue(item);
+        if (key == null) {
+            // rare fallback: obtain a pushed ref and use its key
+            DatabaseReference pushed = dayRef.push();
+            key = pushed.getKey();
+            if (key == null) {
+                // if still null, generate a local fallback key (won't be globally unique but prevents crash)
+                key = "local_" + System.currentTimeMillis();
+                dayRef.child(key).setValue(item);
+            } else {
+                item.setFirebaseKey(key);
+                pushed.setValue(item);
+            }
+        } else {
+            item.setFirebaseKey(key);
+            dayRef.child(key).setValue(item);
+        }
         if (position != -1) {
-            currentList.get(position).setFirebaseKey(key);
+            if (position >= 0 && position < currentList.size()) {
+                currentList.get(position).setFirebaseKey(key);
+            }
         }
     }
 
@@ -1077,6 +1161,28 @@ public class Layout6Activity extends AppCompatActivity {
                 return ScheduleData.createScientificProductivityTemplate();
             case "Lịch sinh hoạt của Bác Hồ":
                 return ScheduleData.createUncleHoLifestyleTemplate();
+            case "Lịch tự học tiếng Anh":
+                return ScheduleData.createEnglishSelfStudyTemplate();
+            case "1 tuần theo phương pháp 5-1-1":
+                return ScheduleData.createFiveOneOneMethodTemplate();
+            case "Người đi làm":
+                return ScheduleData.createWorkingProfessionalTemplate();
+            case "Học Sinh Cấp 2":
+                return ScheduleData.createJuniorHighStudentTemplate();
+            case "Luyện Thi THPT cho học sinh cấp 3":
+                return ScheduleData.createExamPrepTemplate();
+            case "\"Sáng Tạo\"":
+                return ScheduleData.createCreativeFlowTemplate();
+            case "Hồi sức chữa lành":
+                return ScheduleData.createHealingRetreatTemplate();
+            case "Ngủ Đa Pha (Uberman)":
+                return ScheduleData.createUbermanSleepTemplate();
+            case "Giấc Ngủ Siesta":
+                return ScheduleData.createSiestaSleepTemplate();
+            case "Ngủ Lõi Đôi":
+                return ScheduleData.createDualCoreSleepTemplate();
+            case "Vận động viên ham học":
+                return ScheduleData.createStudentAthleteTemplate();
             default:
                 return null;
         }
@@ -1095,4 +1201,3 @@ public class Layout6Activity extends AppCompatActivity {
         }
     }
 }
-

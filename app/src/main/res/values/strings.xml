@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">coder</string>
+    <string name="app_name" translatable="false">PLANIT</string>
     <string name="action_home" translatable="false">Home</string>
     <string name="action_profile" translatable="false">Profile</string>
     <string name="action_add" translatable="false">Add</string>

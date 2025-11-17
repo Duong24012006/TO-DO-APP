@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -35,6 +36,7 @@ import java.util.Map;
 
 public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItemClickListener {
 
+
     private LinearLayout llMon, llTue, llWed, llThu, llFri, llSat, llSun;
     private View selectedDay = null;
 
@@ -60,7 +62,6 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-
         View view = inflater.inflate(R.layout.home_fragment, container, false);
 
         profilePrefs = requireContext().getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE);

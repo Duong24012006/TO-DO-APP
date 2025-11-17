@@ -99,6 +99,8 @@ public class ScheduleTemplateAdapter extends RecyclerView.Adapter<ScheduleTempla
             for (String tag : tags) {
                 Chip chip = new Chip(chipContext);
                 chip.setText(tag);
+                chip.setChipBackgroundColorResource(R.color.add_schedule_tag);
+                chip.setChipStrokeWidth(0);
                 chip.setClickable(false);
                 chip.setCheckable(false);
                 chipGroupTags.addView(chip);

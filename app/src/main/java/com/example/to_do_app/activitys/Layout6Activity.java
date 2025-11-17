@@ -1,16 +1,19 @@
 package com.example.to_do_app.activitys;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -75,6 +78,11 @@ public class Layout6Activity extends AppCompatActivity {
 
     private String editingHistoryKey = null;
     private DetailedSchedule currentTemplateDetails = null;
+
+    // For dragging FAB
+    private float dX, dY;
+    private static final float CLICK_DRAG_TOLERANCE = 10;
+    private float downRawX, downRawY;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -192,10 +200,64 @@ public class Layout6Activity extends AppCompatActivity {
         selectedDayView = day2;
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void setupListeners() {
         btnBack.setOnClickListener(v -> finish());
         btnApplySchedule.setOnClickListener(v -> showApplyDialog());
-        if (fabAdd != null) fabAdd.setOnClickListener(v -> showAddDialogMode());
+
+        if (fabAdd != null) {
+            fabAdd.setOnTouchListener((view, motionEvent) -> {
+
+                int action = motionEvent.getAction();
+                if (action == MotionEvent.ACTION_DOWN) {
+                    downRawX = motionEvent.getRawX();
+                    downRawY = motionEvent.getRawY();
+                    dX = view.getX() - downRawX;
+                    dY = view.getY() - downRawY;
+
+                    return true; // Consumed
+                } else if (action == MotionEvent.ACTION_MOVE) {
+                    int viewWidth = view.getWidth();
+                    int viewHeight = view.getHeight();
+
+                    View viewParent = (View) view.getParent();
+                    int parentWidth = viewParent.getWidth();
+                    int parentHeight = viewParent.getHeight();
+
+                    float newX = motionEvent.getRawX() + dX;
+                    newX = Math.max(0, newX); // Don't go off the left edge
+                    newX = Math.min(parentWidth - viewWidth, newX); // Don't go off the right edge
+
+                    float newY = motionEvent.getRawY() + dY;
+                    newY = Math.max(0, newY); // Don't go off the top edge
+                    newY = Math.min(parentHeight - viewHeight, newY); // Don't go off the bottom edge
+
+                    view.animate()
+                            .x(newX)
+                            .y(newY)
+                            .setDuration(0)
+                            .start();
+
+                    return true; // Consumed
+                } else if (action == MotionEvent.ACTION_UP) {
+                    float upRawX = motionEvent.getRawX();
+                    float upRawY = motionEvent.getRawY();
+
+                    float upDX = upRawX - downRawX;
+                    float upDY = upRawY - downRawY;
+
+                    if (Math.abs(upDX) < CLICK_DRAG_TOLERANCE && Math.abs(upDY) < CLICK_DRAG_TOLERANCE) {
+                        // A click
+                        showAddDialogMode();
+                        return true;
+                    } else {
+                        // A drag
+                        return true; // Consumed
+                    }
+                }
+                return false; // Not consumed
+            });
+        }
     }
 
     private void loadScheduleDataForDay(int day) {

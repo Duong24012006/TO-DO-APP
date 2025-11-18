@@ -109,9 +109,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="12dp" />
-            <androidx.recyclerview.widget.RecyclerView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/historyRecycleView"
                     android:layout_width="match_parent"
@@ -120,7 +118,6 @@
                     android:clipToPadding="false"
                     android:paddingBottom="8dp" />
 
-            </androidx.recyclerview.widget.RecyclerView>
 
             <!-- Bạn có thể nhân bản ll_history_item hoặc chuyển thành RecyclerView nếu cần danh sách động -->
         </LinearLayout>

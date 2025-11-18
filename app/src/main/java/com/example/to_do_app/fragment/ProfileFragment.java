@@ -98,7 +98,7 @@ public class ProfileFragment extends Fragment {
         tvUserName = root.findViewById(R.id.tv_user_name);
 
         // Prepare RecyclerView area: replace static sample with RecyclerView if needed
-        View sampleItem = root.findViewById(R.id.ll_history_item);
+        View sampleItem = root.findViewById(R.id.historyRecycleView);
         ViewGroup cardInner = null;
         if (sampleItem != null && sampleItem.getParent() instanceof ViewGroup) {
             cardInner = (ViewGroup) sampleItem.getParent();

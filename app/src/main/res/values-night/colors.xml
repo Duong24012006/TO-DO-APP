@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#000000</color>
-    <color name="white">#FFFFFF</color>
+    <color name="black">#FFFFFF</color>
+    <color name="white">#000000</color>
 
     <color name="main_button">#22D0D4</color> <!-- Màu chính của button -->
     <color name="day_select_button">#BFF0F5</color> <!-- Màu nền cua button ngay khi được chọn -->
@@ -9,17 +9,16 @@
 
     <color name="add_schedule_button">#22D0D4</color> <!-- Nền cua lich trong addfragment -->
     <color name="add_schedule_tag">#AEECEF</color> <!-- Màu của tag trong addfragment -->
-    <color name="hello">#FFFFFF</color>
+    <color name="hello">#7C7878</color>
 
-
-    <color name="doing_work_button">#E5FDFF</color> <!-- Nền bao quanh của các hoạt động trong ngày -->
+    <color name="doing_work_button">#7C7878</color> <!-- Nền bao quanh của các hoạt động trong ngày -->
     <color name="time_button">#D5F6F9</color> <!-- Nền cua gio của các hoạt động trong ngày -->
     <color name="template">#E5FDFF</color><!-- Màu nền của các template -->
 
     <color name="color_select_bottom_nav">#000000</color> <!-- Màu icon/text khi chưa chọn -->
 
-    <color name="bottom_nav">#EAF8F9</color> <!-- Nền của thanh bottom nav -->
-    <color name="search_background">#EBF5F6</color> <!-- Nền của thanh search/ten lich ben man hinh lich duoc chon -->
+    <color name="bottom_nav">#57B3BC</color> <!-- Nền của thanh bottom nav -->
+    <color name="search_background">#000000</color> <!-- Nền của thanh search/ten lich ben man hinh lich duoc chon -->
 
     <color name="search_bar_background">#000000</color>
 
@@ -30,6 +29,8 @@
     <color name="schedule_card_background">#BFF0F5</color>
 
     <color name="schedule_tag_background">#BFF0F5</color>
+
+
 
 
 </resources>

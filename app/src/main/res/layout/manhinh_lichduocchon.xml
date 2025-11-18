@@ -50,7 +50,7 @@
                         android:layout_gravity="center"
                         android:padding="4dp"
                         android:text="Tên lịch"
-                        android:textColor="#000"
+                        android:textColor="@color/black"
                         android:textSize="18sp" />
 
                 </LinearLayout>
@@ -70,7 +70,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Lịch trình"
-                        android:textColor="#000"
+                        android:textColor="@color/black"
                         android:textSize="32sp"
                         android:textStyle="normal" />
 
@@ -125,7 +125,6 @@
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:fontFamily="sans-serif-medium"
                                 android:gravity="center"
                                 android:text="T2"
                                 android:textColor="@color/black"
@@ -148,7 +147,6 @@
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:fontFamily="sans-serif-medium"
                                 android:gravity="center"
                                 android:text="T3"
                                 android:textColor="@color/black"
@@ -171,7 +169,6 @@
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:fontFamily="sans-serif-medium"
                                 android:gravity="center"
                                 android:text="T4"
                                 android:textColor="@color/black"
@@ -216,7 +213,6 @@
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:fontFamily="sans-serif-medium"
                                 android:gravity="center"
                                 android:text="T6"
                                 android:textColor="@color/black"

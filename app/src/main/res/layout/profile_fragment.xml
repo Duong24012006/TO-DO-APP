@@ -92,6 +92,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
+            android:background="#DC0F0F"
             android:padding="14dp">
 
             <!-- Section title -->
@@ -109,14 +110,15 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="12dp" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/historyRecycleView"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:clipToPadding="false"
-                    android:paddingBottom="8dp" />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/historyRecycleView"
+                android:layout_width="match_parent"
+                android:background="@color/black"
+                android:padding="16dp"
+                android:layout_height="100dp"
+                android:layout_weight="1"
+                android:clipToPadding="false"
+                android:paddingBottom="8dp" />
 
 
             <!-- Bạn có thể nhân bản ll_history_item hoặc chuyển thành RecyclerView nếu cần danh sách động -->

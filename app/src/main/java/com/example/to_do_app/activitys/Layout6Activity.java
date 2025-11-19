@@ -154,7 +154,7 @@ public class Layout6Activity extends AppCompatActivity {
         btnBack = findViewById(R.id.btnBack);
         btnApplySchedule = findViewById(R.id.btnApplySchedule);
         scheduleRecyclerView = findViewById(R.id.scheduleRecyclerView);
-        fabAdd = findViewById(R.id.fabAddSlot);
+
         tvTitleHeader = findViewById(R.id.tvTitleHeader);
         day2 = findViewById(R.id.day2);
         day3 = findViewById(R.id.day3);
@@ -170,14 +170,14 @@ public class Layout6Activity extends AppCompatActivity {
         scheduleAdapter = new ScheduleItemAdapter(this, currentList, new ScheduleItemAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(int position, ScheduleItem item) {
-                showEditDialog(position, item);
+//                showEditDialog(position, item);
             }
 
             @Override
             public void onEditClick(int position, ScheduleItem item) {
-                showEditDialog(position, item);
+//                showEditDialog(position, item);
             }
-        });
+        },false);
         scheduleRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         scheduleRecyclerView.setAdapter(scheduleAdapter);
     }
@@ -256,16 +256,16 @@ public class Layout6Activity extends AppCompatActivity {
                     float upDX = upRawX - downRawX;
                     float upDY = upRawY - downRawY;
 
-                    if (Math.abs(upDX) < CLICK_DRAG_TOLERANCE && Math.abs(upDY) < CLICK_DRAG_TOLERANCE) {
-                        // A click
-                        // call performClick for accessibility and then handle click action
-                        view.performClick();
-                        showAddDialogMode();
-                        return true;
-                    } else {
-                        // A drag
-                        return true; // Consumed
-                    }
+//                    if (Math.abs(upDX) < CLICK_DRAG_TOLERANCE && Math.abs(upDY) < CLICK_DRAG_TOLERANCE) {
+//                        // A click
+//                        // call performClick for accessibility and then handle click action
+//                        view.performClick();
+//                        showAddDialogMode();
+//                        return true;
+//                    } else {
+//                        // A drag
+//                        return true; // Consumed
+//                    }
                 }
                 return false; // Not consumed
             });
@@ -410,33 +410,23 @@ public class Layout6Activity extends AppCompatActivity {
     }
 
     private void showApplyDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle("Áp dụng lịch này")
-                .setMessage("Bạn muốn:")
-                .setPositiveButton("Hiển thị ở màn hình chính", (dialog, which) -> {
-                    saveScheduleToFirebase();
-                    saveScheduleToProfileHistory(selectedDay);
-                    // Ensure template changes (if any) are persisted so saveAllWeekScheduleToHomeDisplay picks them up
-                    if (currentTemplateDetails != null) {
-                        ScheduleData.saveCustomTemplate(this, currentTemplateDetails);
-                    }
-                    saveAllWeekScheduleToHomeDisplay();
-                    Toast.makeText(this, "Đã lưu toàn bộ lịch tuần và áp dụng", Toast.LENGTH_SHORT).show();
 
-                    // Navigate to MainActivity and open HomeFragment
-                    Intent intent = new Intent(Layout6Activity.this, MainActivity.class);
-                    intent.putExtra("open_home_fragment", true);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                    startActivity(intent);
-                    finish();
-                })
-                .setNegativeButton("Chỉ lưu vào lịch sử", (dialog, which) -> {
-                    saveScheduleToFirebase();
-                    saveScheduleToProfileHistory(selectedDay);
-                    Toast.makeText(this, "Đã lưu vào lịch sử", Toast.LENGTH_SHORT).show();
-                })
-                .setNeutralButton("Hủy", null)
-                .show();
+        saveScheduleToFirebase();
+        saveScheduleToProfileHistory(selectedDay);
+        // Ensure template changes (if any) are persisted so saveAllWeekScheduleToHomeDisplay picks them up
+        if (currentTemplateDetails != null) {
+            ScheduleData.saveCustomTemplate(this, currentTemplateDetails);
+        }
+        saveAllWeekScheduleToHomeDisplay();
+        Toast.makeText(this, "Đã lưu toàn bộ lịch tuần và áp dụng", Toast.LENGTH_SHORT).show();
+
+        // Navigate to MainActivity and open HomeFragment
+        Intent intent = new Intent(Layout6Activity.this, MainActivity.class);
+        intent.putExtra("open_home_fragment", true);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
+        finish();
+
     }
 
     private void showAddDialogMode() {
@@ -444,7 +434,7 @@ public class Layout6Activity extends AppCompatActivity {
             // original add-flow (runs only after we have a currentScheduleName)
             AlertDialog.Builder modeBuilder = new AlertDialog.Builder(this);
             modeBuilder.setTitle("Chọn cách thêm")
-                    .setItems(new String[]{"Thêm vào khung giờ cố định", "Thêm hoạt động tùy ý (cho phép trùng)"}, (modeDialog, whichMode) -> {
+                    .setItems(new String[]{"Thêm hoạt động tùy ý (cho phép trùng)"}, (modeDialog, whichMode) -> {
                         View dialogView = LayoutInflater.from(this).inflate(R.layout.edit_schedule1, null);
                         EditText etStart = dialogView.findViewById(R.id.etStartTime);
                         EditText etEnd = dialogView.findViewById(R.id.etEndTime);

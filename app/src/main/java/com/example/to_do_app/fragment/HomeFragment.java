@@ -1,11 +1,14 @@
 package com.example.to_do_app.fragment;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,30 +41,38 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItemClickListener {
+public class HomeFragment extends Fragment {
 
-    private LinearLayout llMon, llTue, llWed, llThu, llFri, llSat, llSun;
-    private View selectedDay = null;
+    private static final String TAG = "HomeFragment";
 
-    private RecyclerView recyclerView;
-    private ScheduleItemAdapter scheduleAdapter;
-
-    private Map<Integer, List<ScheduleItem>> taskMap = new HashMap<>();
-
+    // Constants
     private static final String PROFILE_PREFS = "profile_prefs";
     private static final String HOME_DISPLAY_ACTIVITIES_KEY = "home_display_activities";
     private static final String HOME_DISPLAY_DAY_KEY = "home_display_day";
     private static final String KEY_DISPLAY_NAME = "display_name";
     private static final String PREFS = "todo_prefs";
+    private static final String PREF_ACTIVE_SCHEDULE_NAME = "active_schedule_name";
 
-    private SharedPreferences profilePrefs;
-    private SharedPreferences prefs;
+    // Firebase
+    private FirebaseAuth mAuth;
     private DatabaseReference homeDisplayRef;
     private ValueEventListener homeDisplayListener;
-    private FirebaseAuth mAuth;
-    private TextView tvGreeting;
-
     private String userId;
+
+    // UI Components
+    private LinearLayout llMon, llTue, llWed, llThu, llFri, llSat, llSun;
+    private View selectedDayView = null;
+    private RecyclerView recyclerView;
+    private ScheduleItemAdapter scheduleAdapter;
+    private TextView tvGreeting, tvScheduleName;
+
+
+    // State
+    private Map<Integer, List<ScheduleItem>> taskMap = new HashMap<>();
+    private int selectedDay = 2;
+    private List<ScheduleItem> currentList = new ArrayList<>();
+    private SharedPreferences profilePrefs;
+    private SharedPreferences prefs;
 
     public HomeFragment() { }
 
@@ -73,24 +84,44 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
 
         View view = inflater.inflate(R.layout.home_fragment, container, false);
 
-        // Initialize Firebase and SharedPreferences
+        // Initialization
+        initializeFirebase();
+        initializePrefs();
+        initializeViews(view);
+        setupListeners();
+
+        // Load initial data
+        selectDay(llMon, 2); // Default to Monday
+        attachHomeDisplayListener();
+
+        return view;
+    }
+
+    private void initializeFirebase() {
         mAuth = FirebaseAuth.getInstance();
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        if (currentUser != null) {
+            userId = currentUser.getUid();
+        } else {
+            // Fallback for guest users
+            userId = requireContext().getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE).getString("profile_user_id", null);
+            if (userId == null) {
+                userId = "guest_" + System.currentTimeMillis();
+                requireContext().getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE).edit().putString("profile_user_id", userId).apply();
+            }
+        }
+        homeDisplayRef = database.getReference("users").child(userId).child("home_display");
+    }
+
+    private void initializePrefs() {
         profilePrefs = requireContext().getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE);
         prefs = requireContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+    }
 
-        userId = profilePrefs.getString("profile_user_id", null);
-        if (userId == null) {
-            userId = "user_" + System.currentTimeMillis();
-            profilePrefs.edit().putString("profile_user_id", userId).apply();
-        }
-
-        homeDisplayRef = rootRef.child("users").child(userId).child("home_display");
-
-        // Initialize greeting TextView
+    private void initializeViews(View view) {
         tvGreeting = view.findViewById(R.id.tvGreeting);
-        updateGreeting();
-
         llMon = view.findViewById(R.id.llMon);
         llTue = view.findViewById(R.id.llTue);
         llWed = view.findViewById(R.id.llWed);
@@ -98,39 +129,50 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
         llFri = view.findViewById(R.id.llFri);
         llSat = view.findViewById(R.id.llSat);
         llSun = view.findViewById(R.id.llSun);
-
-        List<LinearLayout> dayLayouts = new ArrayList<>();
-        dayLayouts.add(llMon); dayLayouts.add(llTue); dayLayouts.add(llWed);
-        dayLayouts.add(llThu); dayLayouts.add(llFri); dayLayouts.add(llSat); dayLayouts.add(llSun);
-
         recyclerView = view.findViewById(R.id.homerecyclerview);
+        tvScheduleName = view.findViewById(R.id.tenLich);
+
+        // Setup RecyclerView
+        scheduleAdapter = new ScheduleItemAdapter(getContext(), currentList, new ScheduleItemAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(int position, ScheduleItem item) {
+                // Simple click shows a toast
+                Toast.makeText(getContext(), "Công việc: " + item.getActivity(), Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onEditClick(int position, ScheduleItem item) {
+                // Edit button click opens the dialog
+                showEditDialog(position, item);
+            }
+        }, true); // Pass true to show the edit button
+
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        // MODIFIED: Use the new constructor to hide the edit button
-        scheduleAdapter = new ScheduleItemAdapter(getContext(), new ArrayList<>(), this, false);
         recyclerView.setAdapter(scheduleAdapter);
+    }
 
-        for (int i = 0; i < dayLayouts.size(); i++) {
-            int dayKey = (i + 2) <= 7 ? i + 2 : 8;  // Chủ Nhật = 8
-            final LinearLayout dayLayout = dayLayouts.get(i);
-            dayLayout.setOnClickListener(v -> selectDay(dayLayout, dayKey));
-        }
-
-        selectDay(llMon, 2);
-        attachHomeDisplayListener();
-
-        return view;
+    private void setupListeners() {
+        llMon.setOnClickListener(v -> selectDay(llMon, 2));
+        llTue.setOnClickListener(v -> selectDay(llTue, 3));
+        llWed.setOnClickListener(v -> selectDay(llWed, 4));
+        llThu.setOnClickListener(v -> selectDay(llThu, 5));
+        llFri.setOnClickListener(v -> selectDay(llFri, 6));
+        llSat.setOnClickListener(v -> selectDay(llSat, 7));
+        llSun.setOnClickListener(v -> selectDay(llSun, 8)); // Sunday = 8
     }
 
     @Override
     public void onResume() {
         super.onResume();
         updateGreeting();
-        loadHomeDisplayFromPrefsIfAny();
+        updateScheduleName();
+        loadHomeDisplayFromPrefsIfAny(); // Reload data on resume
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        // Clean up the listener to avoid memory leaks
         if (homeDisplayRef != null && homeDisplayListener != null) {
             homeDisplayRef.removeEventListener(homeDisplayListener);
         }
@@ -143,7 +185,7 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (!snapshot.exists()) {
-                    loadHomeDisplayFromPrefsIfAny();
+                    loadHomeDisplayFromPrefsIfAny(); // Try loading from local backup
                     return;
                 }
                 String jsonString = String.valueOf(snapshot.getValue());
@@ -152,7 +194,8 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                loadHomeDisplayFromPrefsIfAny();
+                Log.w(TAG, "Firebase onCancelled", error.toException());
+                loadHomeDisplayFromPrefsIfAny(); // On error, try loading from local backup
             }
         };
         homeDisplayRef.addValueEventListener(homeDisplayListener);
@@ -169,87 +212,56 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
         if (json == null || json.isEmpty()) return;
         try {
             JSONObject root = new JSONObject(json);
+            taskMap.clear();
 
-            // Kiểm tra xem có phải dữ liệu mới (toàn bộ tuần) hay dữ liệu cũ (một ngày)
-            if (root.has("day_2") || root.has("day_3") || root.has("day_4") ||
-                root.has("day_5") || root.has("day_6") || root.has("day_7") || root.has("day_8")) {
-                // Dữ liệu mới - toàn bộ tuần
-                taskMap.clear();
+            for (int day = 2; day <= 8; day++) {
+                String dayKey = "day_" + day;
+                JSONArray acts = root.optJSONArray(dayKey);
 
-                for (int day = 2; day <= 8; day++) {
-                    String dayKey = "day_" + day;
-                    JSONArray acts = root.optJSONArray(dayKey);
-
-                    if (acts != null) {
-                        List<ScheduleItem> list = new ArrayList<>();
-                        for (int i = 0; i < acts.length(); i++) {
-                            JSONObject o = acts.optJSONObject(i);
-                            if (o == null) continue;
-                            ScheduleItem item = new ScheduleItem();
-                            item.setStartTime(o.optString("start", ""));
-                            item.setEndTime(o.optString("end", ""));
-                            item.setActivity(o.optString("activity", ""));
-                            item.setDayOfWeek(o.optInt("day", day));
-                            list.add(item);
-                        }
-                        sortListByStartTime(list);
-                        taskMap.put(day, list);
+                if (acts != null) {
+                    List<ScheduleItem> list = new ArrayList<>();
+                    for (int i = 0; i < acts.length(); i++) {
+                        JSONObject o = acts.optJSONObject(i);
+                        if (o == null) continue;
+                        ScheduleItem item = new ScheduleItem();
+                        item.setStartTime(o.optString("start", ""));
+                        item.setEndTime(o.optString("end", ""));
+                        item.setActivity(o.optString("activity", ""));
+                        item.setDayOfWeek(o.optInt("day", day));
+                        list.add(item);
                     }
+                    sortListByStartTime(list);
+                    taskMap.put(day, list);
                 }
-
-                // Hiển thị ngày đã lưu hoặc mặc định Thứ 2
-                int savedDay = profilePrefs.getInt(HOME_DISPLAY_DAY_KEY, 2);
-                LinearLayout targetLayout = getLayoutForDay(savedDay);
-                if (targetLayout != null) selectDay(targetLayout, savedDay);
-
-            } else {
-                // Dữ liệu cũ - chỉ một ngày (để tương thích ngược)
-                int day = root.optInt("day", 2);
-                JSONArray acts = root.optJSONArray("activities");
-                if (acts == null) return;
-
-                List<ScheduleItem> list = new ArrayList<>();
-                for (int i = 0; i < acts.length(); i++) {
-                    JSONObject o = acts.optJSONObject(i);
-                    if (o == null) continue;
-                    ScheduleItem item = new ScheduleItem();
-                    item.setStartTime(o.optString("start", ""));
-                    item.setEndTime(o.optString("end", ""));
-                    item.setActivity(o.optString("activity", ""));
-                    list.add(item);
-                }
-
-                sortListByStartTime(list);
-                taskMap.put(day, list);
-
-                LinearLayout targetLayout = getLayoutForDay(day);
-                if (targetLayout != null) selectDay(targetLayout, day);
             }
 
+            int savedDay = profilePrefs.getInt(HOME_DISPLAY_DAY_KEY, 2);
+            selectDay(getLayoutForDay(savedDay), savedDay);
+
+            // Keep prefs in sync with the loaded data
             profilePrefs.edit()
                     .putString(HOME_DISPLAY_ACTIVITIES_KEY, json)
                     .apply();
 
         } catch (JSONException ex) {
-            ex.printStackTrace();
+            Log.e(TAG, "applyHomeDisplayJson error", ex);
         }
     }
 
     private void selectDay(LinearLayout dayLayout, int dayKey) {
-        if (selectedDay != null) {
-            selectedDay.setSelected(false);
+        if (selectedDayView != null) {
+            selectedDayView.setSelected(false);
         }
         dayLayout.setSelected(true);
-        selectedDay = dayLayout;
+        selectedDayView = dayLayout;
+        selectedDay = dayKey;
 
-        List<ScheduleItem> tasks = taskMap.get(dayKey);
-        if (tasks == null) {
-            tasks = new ArrayList<>();
-        } else {
-            // ensure displayed list is sorted (defensive)
-            sortListByStartTime(tasks);
-        }
-        scheduleAdapter.updateList(tasks);
+        currentList = taskMap.getOrDefault(dayKey, new ArrayList<>());
+        sortListByStartTime(currentList);
+        scheduleAdapter.updateList(currentList);
+
+        // Save the currently selected day to restore view later
+        profilePrefs.edit().putInt(HOME_DISPLAY_DAY_KEY, dayKey).apply();
     }
 
     private LinearLayout getLayoutForDay(int day) {
@@ -260,105 +272,174 @@ public class HomeFragment extends Fragment implements ScheduleItemAdapter.OnItem
             case 5: return llThu;
             case 6: return llFri;
             case 7: return llSat;
-            case 8: return llSun;  // Chủ Nhật = 8
+            case 8: return llSun;
             default: return llMon;
         }
     }
 
-    @Override
-    public void onItemClick(int position, ScheduleItem item) {
-        // In HomeFragment, clicks might not do anything, or could show a read-only detail view.
-        // For now, a simple Toast is fine.
-        Toast.makeText(getContext(), "Công việc: " + item.getActivity(), Toast.LENGTH_SHORT).show();
+    private void updateScheduleName() {
+        if (tvScheduleName == null) return;
+        String scheduleName = profilePrefs.getString(PREF_ACTIVE_SCHEDULE_NAME, "Lịch trình");
+        tvScheduleName.setText(scheduleName);
     }
 
-    @Override
-    public void onEditClick(int position, ScheduleItem item) {
-        // This will not be called in HomeFragment as the button is hidden.
+    private void updateGreeting() {
+        if (tvGreeting == null) return;
+        FirebaseUser user = mAuth.getCurrentUser();
+        String nameToShow = "User";
+
+        if (user != null) {
+            if (user.getDisplayName() != null && !user.getDisplayName().trim().isEmpty()) {
+                nameToShow = user.getDisplayName().trim();
+            } else {
+                String savedName = prefs.getString(KEY_DISPLAY_NAME, null);
+                if (savedName != null && !savedName.trim().isEmpty()) {
+                    nameToShow = savedName;
+                } else if (user.getEmail() != null && user.getEmail().contains("@")) {
+                    nameToShow = user.getEmail().substring(0, user.getEmail().indexOf("@"));
+                }
+            }
+        }
+        tvGreeting.setText("Xin chào, " + nameToShow);
+        if (nameToShow != null) {
+            prefs.edit().putString(KEY_DISPLAY_NAME, nameToShow).apply();
+        }
     }
 
-    // --- Helpers: sorting by start time (HH:mm). Empty or invalid times are pushed to the end. ---
+    private void showEditDialog(int position, ScheduleItem item) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        View view = LayoutInflater.from(getContext()).inflate(R.layout.edit_schedule1, null);
+        EditText etStart = view.findViewById(R.id.etStartTime);
+        EditText etEnd = view.findViewById(R.id.etEndTime);
+        EditText etAct = view.findViewById(R.id.etActivity);
+
+        etStart.setText(item.getStartTime());
+        etEnd.setText(item.getEndTime());
+        etAct.setText(item.getActivity());
+
+        builder.setView(view)
+                .setTitle("Chỉnh sửa lịch trình")
+                .setPositiveButton("Lưu", (dialog, which) -> {
+                    String newStart = etStart.getText().toString().trim();
+                    String newEnd = etEnd.getText().toString().trim();
+                    String newAct = etAct.getText().toString().trim();
+
+                    if (newStart.isEmpty() || newEnd.isEmpty()) {
+                        Toast.makeText(getContext(), "Vui lòng nhập đầy đủ thời gian", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (isOverlapping(newStart, newEnd, currentList, item)) {
+                        Toast.makeText(getContext(), "Thời gian mới trùng với mục khác.", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    item.setStartTime(newStart);
+                    item.setEndTime(newEnd);
+                    item.setActivity(newAct);
+
+                    saveItem(item, position);
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    private void saveItem(ScheduleItem item, int position) {
+        if (position != -1 && position < currentList.size()) {
+            // Update the item in the local list
+            currentList.set(position, item);
+
+            // Re-sort the list for the current day
+            sortListByStartTime(currentList);
+
+            // Put the updated list back into the main map
+            taskMap.put(selectedDay, currentList);
+
+            // Notify the adapter of the change
+            scheduleAdapter.updateList(currentList);
+
+            // Persist the entire week's schedule to Firebase and SharedPreferences
+            saveCurrentWeekToHomeDisplay();
+
+            Toast.makeText(getContext(), "Lịch trình đã được cập nhật.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void saveCurrentWeekToHomeDisplay() {
+        if (homeDisplayRef == null) {
+            Log.e(TAG, "homeDisplayRef is null, cannot save schedule.");
+            return;
+        }
+        try {
+            JSONObject weekData = new JSONObject();
+
+            // Serialize the in-memory taskMap to JSON
+            for (Map.Entry<Integer, List<ScheduleItem>> entry : taskMap.entrySet()) {
+                JSONArray dayActivities = new JSONArray();
+                for (ScheduleItem item : entry.getValue()) {
+                    JSONObject actObj = new JSONObject();
+                    actObj.put("start", item.getStartTime());
+                    actObj.put("end", item.getEndTime());
+                    actObj.put("activity", item.getActivity());
+                    actObj.put("day", item.getDayOfWeek());
+                    dayActivities.put(actObj);
+                }
+                weekData.put("day_" + entry.getKey(), dayActivities);
+            }
+
+            String jsonToSave = weekData.toString();
+
+            // Save to Firebase
+            homeDisplayRef.setValue(jsonToSave);
+
+            // Also save to SharedPreferences as a local backup
+            profilePrefs.edit()
+                    .putString(HOME_DISPLAY_ACTIVITIES_KEY, jsonToSave)
+                    .apply();
+
+            Log.d(TAG, "Saved current week schedule to home display");
+        } catch (JSONException ex) {
+            Log.e(TAG, "saveCurrentWeekToHomeDisplay JSONException", ex);
+        }
+    }
+
     private void sortListByStartTime(List<ScheduleItem> list) {
-        if (list == null || list.size() <= 1) return;
+        if (list == null) return;
         Collections.sort(list, new Comparator<ScheduleItem>() {
             @Override
-            public int compare(ScheduleItem a, ScheduleItem b) {
-                int aStart = parseTimeToMinutes(a.getStartTime());
-                int bStart = parseTimeToMinutes(b.getStartTime());
-                if (aStart != bStart) return Integer.compare(aStart, bStart);
-
-                // tie-breaker: compare end times
-                int aEnd = parseTimeToMinutes(a.getEndTime());
-                int bEnd = parseTimeToMinutes(b.getEndTime());
-                return Integer.compare(aEnd, bEnd);
+            public int compare(ScheduleItem o1, ScheduleItem o2) {
+                int t1 = parseTimeToMinutes(o1.getStartTime());
+                int t2 = parseTimeToMinutes(o2.getStartTime());
+                return Integer.compare(t1, t2);
             }
         });
     }
 
     private int parseTimeToMinutes(String time) {
-        if (time == null) return Integer.MAX_VALUE;
-        String t = time.trim();
-        if (t.isEmpty()) return Integer.MAX_VALUE;
-        // Expected format "HH:mm" or "H:mm". If invalid, push to end.
+        if (time == null || !time.contains(":")) return Integer.MAX_VALUE;
         try {
-            String[] parts = t.split(":");
-            if (parts.length < 1) return Integer.MAX_VALUE;
-            int hh = Integer.parseInt(parts[0]);
-            int mm = 0;
-            if (parts.length >= 2 && parts[1].length() > 0) {
-                mm = Integer.parseInt(parts[1]);
-            }
-            // Normalize hours; if hour >=24 treat as large
-            if (hh < 0 || hh > 23 || mm < 0 || mm > 59) return Integer.MAX_VALUE;
+            String[] parts = time.split(":");
+            int hh = Integer.parseInt(parts[0].trim());
+            int mm = Integer.parseInt(parts[1].trim());
             return hh * 60 + mm;
-        } catch (Exception ex) {
+        } catch (NumberFormatException e) {
             return Integer.MAX_VALUE;
         }
     }
 
-    /**
-     * Update the greeting TextView using Firebase displayName with fallbacks.
-     * Preference order:
-     * 1) FirebaseUser.getDisplayName()
-     * 2) cached name in SharedPreferences
-     * 3) email local-part (before @)
-     * 4) "User"
-     *
-     * The chosen name is saved into SharedPreferences for future fallback.
-     */
-    private void updateGreeting() {
-        if (tvGreeting == null) return;
+    private boolean isOverlapping(String newStart, String newEnd, List<ScheduleItem> existing, ScheduleItem exclude) {
+        int ns = parseTimeToMinutes(newStart);
+        int ne = parseTimeToMinutes(newEnd);
+        if (ns < 0 || ne < 0 || ne <= ns) return true; // Invalid time
 
-        FirebaseUser user = mAuth.getCurrentUser();
-        String nameToShow = null;
-
-        if (user != null) {
-            String displayName = user.getDisplayName();
-            if (displayName != null && !displayName.trim().isEmpty()) {
-                nameToShow = displayName.trim();
-            } else {
-                String saved = prefs.getString(KEY_DISPLAY_NAME, null);
-                if (saved != null && !saved.trim().isEmpty()) {
-                    nameToShow = saved;
-                } else {
-                    String email = user.getEmail();
-                    if (email != null && email.contains("@")) {
-                        nameToShow = email.substring(0, email.indexOf("@"));
-                    } else if (email != null) {
-                        nameToShow = email;
-                    }
-                }
-            }
-        } else {
-            nameToShow = "User";
+        if (existing == null) return false;
+        for (ScheduleItem it : existing) {
+            if (exclude != null && it.equals(exclude)) continue;
+            int is = parseTimeToMinutes(it.getStartTime());
+            int ie = parseTimeToMinutes(it.getEndTime());
+            if (is < 0 || ie < 0) continue;
+            // Check for overlap: (StartA < EndB) and (StartB < EndA)
+            if (ns < ie && is < ne) return true;
         }
-
-        if (nameToShow == null || nameToShow.trim().isEmpty()) {
-            nameToShow = "User";
-        }
-
-        prefs.edit().putString(KEY_DISPLAY_NAME, nameToShow).apply();
-
-        tvGreeting.setText("Xin chào, " + nameToShow);
+        return false;
     }
 }

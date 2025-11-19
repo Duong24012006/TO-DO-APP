@@ -281,14 +281,4 @@
         </androidx.cardview.widget.CardView>
 
     <!-- Bottom Navigation placeholder -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAddSlot"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:layout_margin="16dp"
-        android:contentDescription="Thêm lịch"
-        app:srcCompat="@drawable/ic_add"
-        app:backgroundTint="@color/main_button"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"/>
 </RelativeLayout>

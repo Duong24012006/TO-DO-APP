@@ -60,12 +60,15 @@
                     android:text="Chúc bạn một ngày tốt lành"
                     android:textColor="#555"
                     android:textSize="16sp" />
+
             </LinearLayout>
 
         </LinearLayout>
 
         <!-- Thanh tiêu đề -->
+
         <TextView
+            android:id="@+id/tenLich"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -75,8 +78,7 @@
             android:gravity="left"
             android:text="Lịch trình"
             android:textColor="#000"
-            android:textSize="32sp"
-            />
+            android:textSize="32sp" />
 
 
         <HorizontalScrollView

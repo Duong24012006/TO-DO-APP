@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <TextView
+        android:id="@+id/sign_in"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Đăng nhập"
+        android:textSize="40sp"
+        android:textStyle="bold"
+        android:layout_marginStart="44dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/name_sign_in"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="44dp"
+        android:layout_marginLeft="44dp"
+        android:layout_marginTop="14dp"
+        android:text="Tên đăng nhập"
+        android:textSize="18sp"
+        android:textStyle="normal"
+        app:layout_constraintStart_toStartOf="@id/sign_in"
+        app:layout_constraintRight_toRightOf="@id/sign_in"
+        app:layout_constraintTop_toBottomOf="@id/sign_in"/>
+
+    <EditText
+        android:id="@+id/user_name"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:layout_marginLeft="44dp"
+        android:layout_marginRight="44dp"
+        android:hint="Tên đăng nhập"
+        android:padding="8dp"
+        android:textStyle="normal"
+        android:background="@drawable/vien_tim"
+        android:textSize="16sp"
+        android:layout_marginTop="4dp"
+        app:layout_constraintStart_toStartOf="@id/sign_in"
+        app:layout_constraintRight_toRightOf="@id/sign_in"
+        app:layout_constraintTop_toBottomOf="@id/name_sign_in"/>
+
+    <TextView
+        android:id="@+id/password"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Mật khẩu"
+        android:layout_marginRight="44dp"
+        android:layout_marginLeft="44dp"
+        android:textStyle="normal"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="@id/sign_in"
+        app:layout_constraintRight_toRightOf="@id/sign_in"
+        app:layout_constraintTop_toBottomOf="@id/user_name"
+        android:layout_marginTop="12dp"/>
+
+    <EditText
+        android:id="@+id/user_password"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:hint="Mật khẩu"
+        android:layout_marginRight="44dp"
+        android:layout_marginLeft="44dp"
+        android:textStyle="normal"
+        android:padding="8dp"
+        android:background="@drawable/vien_tim"
+        android:textSize="16sp"
+        android:inputType="textPassword"
+        android:layout_marginTop="4dp"
+        app:layout_constraintStart_toStartOf="@id/sign_in"
+        app:layout_constraintRight_toRightOf="@id/sign_in"
+        app:layout_constraintTop_toBottomOf="@id/password"/>
+
+    <Button
+        android:id="@+id/sign_in_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Đăng nhập"
+        android:textColor="@color/black"
+        android:textSize="24sp"
+        android:layout_marginLeft="44dp"
+        android:layout_marginRight="44dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintLeft_toLeftOf="@id/sign_in"
+        app:layout_constraintRight_toRightOf="@id/sign_in"
+        app:layout_constraintTop_toBottomOf="@id/user_password"
+        android:background="@drawable/sign_bg"
+        app:backgroundTint="@null"
+        />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/sign_in_button">
+
+        <TextView
+            android:id="@+id/check_account"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:gravity="center"
+            android:textSize="18sp"
+            android:textStyle="normal"
+            android:text="Bạn chưa có tài khoản?">
+
+        </TextView>
+
+        <Button
+            android:id="@+id/change_sign_up"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="Đăng kí"
+            android:padding="0dp"
+            android:textSize="18sp"
+            android:paddingStart="0dp"
+            android:textColor="#4595DB"
+            android:background="@android:color/transparent"
+            app:backgroundTint="@null">
+        </Button>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

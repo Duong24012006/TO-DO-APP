@@ -2,6 +2,10 @@
 <resources>
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
+    <color name="time_row_bg">#FFFFFF</color>
+    <color name="add_bg">#FFFFFF</color>
+    <color name="search_bg">#EBF5F6</color>
+    <color name="manhinh_lichduocchon_bg">#FFFFFF</color>
 
     <color name="main_button">#22D0D4</color> <!-- Màu chính của button -->
     <color name="day_select_button">#BFF0F5</color> <!-- Màu nền cua button ngay khi được chọn -->
@@ -17,7 +21,7 @@
     <color name="template">#E5FDFF</color><!-- Màu nền của các template -->
 
     <color name="color_select_bottom_nav">#000000</color> <!-- Màu icon/text khi chưa chọn -->
-
+    <color name="background_home">#EAF8F9</color> <!-- Màu nền của man hinh home -->
     <color name="bottom_nav">#EAF8F9</color> <!-- Nền của thanh bottom nav -->
     <color name="search_background">#EBF5F6</color> <!-- Nền của thanh search/ten lich ben man hinh lich duoc chon -->
 

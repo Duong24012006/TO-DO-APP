@@ -6,60 +6,10 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/add_bg"
-    android:padding="16dp"
+    android:paddingRight="16dp"
+    android:paddingLeft="16dp"
     tools:context=".fragment.AddFragment">
 
-    <!-- Search Bar - Combined Button and Input -->
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardBackgroundColor="@color/search_bg"
-        app:cardCornerRadius="28dp"
-        app:cardElevation="0dp"
-        app:strokeWidth="1dp"
-        app:strokeColor="#E0E0E0">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingStart="4dp"
-            android:paddingEnd="12dp"
-            android:paddingVertical="4dp">
-
-            <!-- Search Button -->
-            <ImageButton
-                android:id="@+id/btn_search"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Tìm kiếm"
-                android:padding="12dp"
-                android:src="@android:drawable/ic_menu_search"
-                android:tint="?attr/colorOnSurfaceVariant" />
-
-            <!-- Search Text Input -->
-            <EditText
-                android:id="@+id/search_edit_text"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@android:color/transparent"
-                android:hint="Tìm kiếm tên lịch"
-                android:imeOptions="actionSearch"
-                android:inputType="text"
-                android:maxLines="1"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:paddingVertical="12dp"
-                android:textColor="@color/black"
-                android:textColorHint="?attr/colorOnSurfaceVariant"
-                android:textSize="16sp" />
-
-        </LinearLayout>
-
-    </com.google.android.material.card.MaterialCardView>
 
     <ScrollView
         android:layout_width="match_parent"
@@ -82,15 +32,71 @@
                 android:visibility="visible" />
 
             <!-- Filter Buttons with Horizontal Scroll -->
-            <HorizontalScrollView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:scrollbars="none">
+                android:layout_marginBottom="4dp">
+
+                <!-- Search Bar - Combined Button and Input -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginRight="12dp"
+                    app:cardBackgroundColor="@color/search_bg"
+                    app:cardCornerRadius="28dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="1dp"
+                    app:strokeColor="#E0E0E0">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="12dp"
+                        android:paddingVertical="4dp">
+
+                        <!-- Search Button -->
+                        <ImageButton
+                            android:id="@+id/btn_search"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="Tìm kiếm"
+                            android:padding="12dp"
+                            android:src="@android:drawable/ic_menu_search"
+                            app:tint="?attr/colorOnSurfaceVariant" />
+
+                        <!-- Search Text Input -->
+                        <EditText
+                            android:id="@+id/search_edit_text"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_weight="1"
+                            android:background="@android:color/transparent"
+                            android:hint="Tìm kiếm tên lịch"
+                            android:imeOptions="actionSearch"
+                            android:inputType="text"
+                            android:maxLines="1"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp"
+                            android:paddingVertical="12dp"
+                            android:textColor="@color/black"
+                            android:textColorHint="?attr/colorOnSurfaceVariant"
+                            android:textSize="16sp" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1.15"
                     android:orientation="horizontal">
 
                     <com.google.android.material.button.MaterialButton
@@ -101,7 +107,7 @@
                         android:backgroundTint="@color/main_button"
                         android:layout_marginEnd="8dp"
                         android:text="Giờ ngủ"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
                         android:textColor="@color/black"
                         app:icon="@drawable/ic_down"
                         app:iconGravity="end" />
@@ -114,7 +120,7 @@
                         android:backgroundTint="@color/main_button"
                         android:layout_marginEnd="8dp"
                         android:text="Học tập"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
                         android:textColor="@color/black"
                         app:icon="@drawable/ic_down"
                         app:iconGravity="end" />
@@ -127,7 +133,7 @@
                         android:backgroundTint="@color/main_button"
                         android:layout_marginEnd="8dp"
                         android:text="Giải trí"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
                         android:textColor="@color/black"
                         app:icon="@drawable/ic_down"
                         app:iconGravity="end" />
@@ -139,12 +145,13 @@
                         android:layout_height="wrap_content"
                         android:backgroundTint="@color/main_button"
                         android:text="Thể thao"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
                         android:textColor="@color/black"
                         app:icon="@drawable/ic_down"
                         app:iconGravity="end" />
                 </LinearLayout>
-            </HorizontalScrollView>
+
+            </LinearLayout>
 
             <!-- Filter Options Dropdown (Initially Hidden) -->
             <LinearLayout

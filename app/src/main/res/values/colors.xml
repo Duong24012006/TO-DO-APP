@@ -6,6 +6,10 @@
     <color name="add_bg">#FFFFFF</color>
     <color name="search_bg">#EBF5F6</color>
     <color name="manhinh_lichduocchon_bg">#FFFFFF</color>
+    <color name="hint_color">#A7878585</color>
+    <color name="text_color">#000000</color>
+    <color name="bg_recycleview">#FFFFFF</color>
+
 
     <color name="main_button">#22D0D4</color> <!-- Màu chính của button -->
     <color name="day_select_button">#BFF0F5</color> <!-- Màu nền cua button ngay khi được chọn -->

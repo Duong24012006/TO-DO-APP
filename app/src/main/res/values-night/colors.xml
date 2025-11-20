@@ -6,6 +6,12 @@
     <color name="add_bg">#1e1f22</color>
     <color name="search_bg">#7C7878</color>
     <color name="manhinh_lichduocchon_bg">#1e1f22</color>
+    <color name="text_color">#2E2C2C</color>
+    <color name="hint_color">#A7A2A2A2</color>
+    <color name="bg_recycleview">#1e1f22</color>
+
+
+
 
 
     <color name="main_button">#57B3BC</color> <!-- Màu chính của button -->

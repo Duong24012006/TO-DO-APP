@@ -18,6 +18,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Hồ Sơ Của Tôi"
+        android:textColor="@color/black"
         android:textSize="32sp"
         android:textStyle="bold"
         android:layout_marginBottom="24dp" />
@@ -37,6 +38,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
         android:textSize="28sp"
+        android:textColor="@color/black"
         android:textStyle="bold"
         tools:text="Tên Người Dùng" />
 
@@ -46,6 +48,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:textSize="20sp"
+        android:textColor="@color/black"
         tools:text="user.email@example.com" />
 
     <View
@@ -57,8 +60,10 @@
         android:layout_marginTop="32dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:backgroundTint="#000000"
-        android:text="Đăng Xuất"
-        android:textColor="#FFFFFF"/>
+        android:background="@drawable/sign_bg"
+        app:backgroundTint="@null"
+        android:text="Đăng xuất"
+        android:textSize="24sp"
+        android:textColor="@color/black"/>
 
 </LinearLayout>

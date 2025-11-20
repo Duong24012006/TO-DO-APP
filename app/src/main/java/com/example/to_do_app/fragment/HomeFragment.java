@@ -130,7 +130,6 @@ public class HomeFragment extends Fragment {
         llSat = view.findViewById(R.id.llSat);
         llSun = view.findViewById(R.id.llSun);
         recyclerView = view.findViewById(R.id.homerecyclerview);
-        tvScheduleName = view.findViewById(R.id.tenLich);
 
         // Setup RecyclerView
         scheduleAdapter = new ScheduleItemAdapter(getContext(), currentList, new ScheduleItemAdapter.OnItemClickListener() {

@@ -5,7 +5,7 @@
     android:id="@+id/root_manhinh_lichduocchon"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF">
+    android:background="@color/manhinh_lichduocchon_bg">
 
         <!-- Main white card -->
         <androidx.cardview.widget.CardView
@@ -14,7 +14,7 @@
             android:layout_height="match_parent"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
-            app:cardBackgroundColor="#FFFFFF"
+            app:cardBackgroundColor="@color/manhinh_lichduocchon_bg"
             app:cardCornerRadius="20dp"
             app:cardElevation="0dp">
 
@@ -84,7 +84,7 @@
                         android:layout_height="wrap_content"
                         android:background="@drawable/sign_bg"
                         android:text="Áp dụng lịch"
-                        android:textColor="#000000"
+                        android:textColor="@color/black"
                         android:textSize="16sp"
                         app:backgroundTint="@null"
                         app:cornerRadius="5dp"
@@ -92,7 +92,7 @@
                         app:iconGravity="textEnd"
                         app:iconPadding="4dp"
                         app:iconSize="32dp"
-                        app:iconTint="#000000" />
+                        app:iconTint="@color/black" />
 
                 </LinearLayout>
 
@@ -111,7 +111,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:paddingLeft="16dp"
-                        android:background="#FFFFFF"
+                        android:background="@color/manhinh_lichduocchon_bg"
                         android:overScrollMode="never"
                         android:scrollbars="none">
 

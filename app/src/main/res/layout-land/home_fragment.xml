@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bottom_nav"
+    android:background="@color/background_home"
     tools:context=".activitys.MainActivity"
     >
 
@@ -51,6 +51,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:text="Xin chào, User"
+                    android:textColor="@color/black"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
@@ -60,7 +61,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:text="Chúc bạn một ngày tốt lành"
-                    android:textColor="#555"
+                    android:textColor="@color/black"
                     android:textSize="16sp" />
             </LinearLayout>
 
@@ -76,7 +77,7 @@
             android:layout_marginBottom="8dp"
             android:gravity="left"
             android:text="Lịch trình"
-            android:textColor="#000"
+            android:textColor="@color/black"
             android:textSize="28sp"
             />
 
@@ -121,7 +122,7 @@
                             android:background="@drawable/day_item_selector"
                             android:gravity="center"
                             android:text="T2"
-                            android:textColor="#000"
+                            android:textColor="@color/black"
                             android:textSize="16sp" />
                     </LinearLayout>
 
@@ -144,7 +145,7 @@
                             android:layout_height="wrap_content"
                             android:gravity="center"
                             android:text="T3"
-                            android:textColor="#000"
+                            android:textColor="@color/black"
                             android:textSize="16sp" />
                     </LinearLayout>
 
@@ -167,7 +168,7 @@
                             android:layout_height="wrap_content"
                             android:gravity="center"
                             android:text="T4"
-                            android:textColor="#000"
+                            android:textColor="@color/black"
                             android:textSize="16sp" />
                     </LinearLayout>
 
@@ -190,7 +191,7 @@
                             android:layout_height="wrap_content"
                             android:gravity="center"
                             android:text="T5"
-                            android:textColor="#000"
+                            android:textColor="@color/black"
                             android:textSize="16sp" />
                     </LinearLayout>
 
@@ -213,7 +214,7 @@
                             android:layout_height="wrap_content"
                             android:gravity="center"
                             android:text="T6"
-                            android:textColor="#000"
+                            android:textColor="@color/black"
                             android:textSize="16sp" />
                     </LinearLayout>
 
@@ -236,7 +237,7 @@
                             android:layout_height="wrap_content"
                             android:gravity="center"
                             android:text="T7"
-                            android:textColor="#000"
+                            android:textColor="@color/black"
                             android:textSize="16sp" />
                     </LinearLayout>
 
@@ -259,7 +260,7 @@
                             android:layout_height="wrap_content"
                             android:gravity="center"
                             android:text="CN"
-                            android:textColor="#000000"
+                            android:textColor="@color/black"
                             android:textSize="16sp" />
                     </LinearLayout>
 
@@ -271,7 +272,7 @@
                 android:id="@+id/homerecyclerview"
                 android:paddingLeft="16dp"
                 android:paddingRight="16dp"
-                android:background="@color/white"
+                android:background="@color/time_row_bg"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="6"/>

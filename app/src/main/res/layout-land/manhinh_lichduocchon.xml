@@ -12,8 +12,8 @@
             android:id="@+id/mainContentCard"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp"
             app:cardBackgroundColor="@color/manhinh_lichduocchon_bg"
             app:cardCornerRadius="20dp"
             app:cardElevation="0dp">
